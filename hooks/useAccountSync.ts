@@ -19,7 +19,6 @@ export function useAccountSync() {
     const isLoggedIn = useAuthStore(s => s.isLoggedIn);
     const updateUnifiedMargin = useMarketStore(s => s.updateUnifiedMargin);
     const lastOrderTime = useOrderStore(s => s.lastOrderTime);
-    const tradingMode = useOrderStore(s => s.tradingMode);
 
     // Sync Logic
     useEffect(() => {
@@ -67,5 +66,5 @@ export function useAccountSync() {
         const interval = setInterval(syncMargins, 30000);
 
         return () => clearInterval(interval);
-    }, [isLoggedIn, activeBroker, lastOrderTime, updateUnifiedMargin, tradingMode]);
+    }, [isLoggedIn, activeBroker, lastOrderTime, updateUnifiedMargin]);
 }

@@ -27,8 +27,10 @@ import { IndicesTicker } from "@/components/market/IndicesTicker";
 import { SafetyToggle } from "@/components/layout/SafetyToggle";
 import { Toaster } from "@/components/ui/toaster";
 import { MobileNavBar } from "@/components/layout/MobileNavBar";
-
 import { CursorFollower } from "@/components/ui/CursorFollower";
+import { PiPWindow } from "@/components/charts/PiPWindow";
+
+const INSTRUMENT_TOKENS = MARKET_INSTRUMENTS.map(i => i.token);
 
 export default function AppShell() {
     const [isWidgetPickerOpen, setIsWidgetPickerOpen] = useState(false);
@@ -36,7 +38,7 @@ export default function AppShell() {
 
     // Connect to Kite WebSocket for live data
     useKiteTicker({
-        instrumentTokens: MARKET_INSTRUMENTS.map(i => i.token)
+        instrumentTokens: INSTRUMENT_TOKENS
     });
 
     useLayoutSwipe();
@@ -76,6 +78,7 @@ export default function AppShell() {
             <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/10 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
             <div className="absolute bottom-[-10%] right-[10%] w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none z-0 animate-float" />
 
+            <PiPWindow />
             <AuthInitializer />
             <GlobalHotkeys />
             <CursorFollower />

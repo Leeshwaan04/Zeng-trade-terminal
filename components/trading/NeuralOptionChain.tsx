@@ -54,7 +54,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
     const { executeStraddle } = useStrategyStore();
 
     // Determine active spot
-    const spotPrice = useMemo(() => tickers[symbol]?.lastPrice || 25471.10, [tickers, symbol]);
+    const spotPrice = useMemo(() => tickers[symbol]?.last_price || 25471.10, [tickers, symbol]);
     const chainData = useMemo(() => generateMockChain(spotPrice), [spotPrice]);
 
     // Heatmap scaling
@@ -81,7 +81,8 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
     return (
         <div className="h-full w-full flex flex-col bg-black/90 text-xs font-mono select-none overflow-hidden">
             <WidgetHeader
-                title="NEURAL CHAIN"
+                id="option-chain"
+                title="Option Chain"
                 symbol={symbol}
                 action={<span className="text-[10px] text-zinc-400">SPOT: <span className="text-white font-bold">{spotPrice.toFixed(2)}</span></span>}
             />

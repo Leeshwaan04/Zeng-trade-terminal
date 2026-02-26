@@ -8,9 +8,7 @@ export type WidgetType =
     | "PAYOFF_DIAGRAM"
     | "PORTFOLIO_HEATMAP"
     | "ALGO_RULES"
-    | "ALGO_RULES"
     | "AUTOMATE_BUILDER"
-    | "ORDER_ENTRY"
     | "ORDER_ENTRY"
     | "WHALE_SONAR"
     | "STRADDLE"
@@ -18,8 +16,14 @@ export type WidgetType =
 
 // ... (existing constants) ...
 
-
-// ... (existing constants) ...
+export const WIDGET_COLORS = [
+    { id: "blue", label: "Blue", hex: "#3b82f6" },
+    { id: "orange", label: "Orange", hex: "#f97316" },
+    { id: "purple", label: "Purple", hex: "#a855f7" },
+    { id: "green", label: "Green", hex: "#22c55e" },
+    { id: "yellow", label: "Yellow", hex: "#eab308" },
+] as const;
+export type WidgetColorGroup = (typeof WIDGET_COLORS)[number]["id"];
 
 
 export const ORDER_TYPES = ["MARKET", "LIMIT", "SL", "SL-M"] as const;
@@ -34,11 +38,20 @@ export type OrderVariety = (typeof ORDER_VARIETIES)[number];
 export const VALIDITY_TYPES = ["DAY", "IOC", "TTL"] as const;
 export type ValidityType = (typeof VALIDITY_TYPES)[number];
 
+export type MultiChartViewMode = "1x1" | "1x2" | "2x1" | "2x2";
+
+export interface MultiChartConfig {
+    viewMode: MultiChartViewMode;
+    symbols: [string, string?, string?, string?]; // Up to 4 symbols
+}
+
 export interface WidgetConfig {
     id: string;
     type: WidgetType;
     title: string;
-    symbol?: string; // For chart/chain
+    symbol?: string; // Standard single-symbol for charts/chains
+    colorGroup?: WidgetColorGroup; // Grouping matching widgets to share symbol
+    multiChartConfig?: MultiChartConfig; // For Multiview grid charts
 }
 
 export interface GridArea {

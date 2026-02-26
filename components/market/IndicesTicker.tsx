@@ -4,23 +4,31 @@ import React, { useEffect } from "react";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { cn } from "@/lib/utils";
 
-const INDICES = [
-    { symbol: "NIFTY 50", token: 256265 },
-    { symbol: "NIFTY BANK", token: 260105 },
-    { symbol: "NIFTY FIN SERVICE", token: 257801 },
-    { symbol: "NIFTY MID SELECT", token: 288009 },
-    { symbol: "SENSEX", token: 265 },
-    { symbol: "INDIA VIX", token: 264969 },
-];
+import { Settings2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { useTickerStore } from "@/hooks/useTickerStore";
 
 export const IndicesTicker = () => {
-    const { subscribe, tickers } = useMarketStore();
+    const subscribe = useMarketStore(s => s.subscribe);
+    const tickers = useMarketStore(s => s.tickers);
+    const { items, speedMultiplier, toggleItem, setSpeed, resetToDefault } = useTickerStore();
+
+    const activeItems = React.useMemo(() => items.filter(i => i.isActive), [items]);
 
     useEffect(() => {
-        subscribe(INDICES.map(i => i.token));
-    }, [subscribe]);
+        // Subscribe only to active tokens, filter out string commodities for now if WebSocket doesn't support them
+        const tokensToSubscribe = activeItems
+            .map(i => i.token)
+            .filter(t => typeof t === 'number') as number[];
 
-    const TickerItem = ({ index }: { index: typeof INDICES[0] }) => {
+        if (tokensToSubscribe.length > 0) {
+            subscribe(tokensToSubscribe);
+        }
+    }, [subscribe, activeItems]);
+
+    const TickerItem = ({ index }: { index: typeof items[0] }) => {
         const ticker = tickers[index.symbol] || { last_price: 0, net_change: 0, change_percent: 0 };
         const isPositive = (ticker.net_change ?? 0) >= 0;
         const changePct = ticker.change_percent ?? (ticker.net_change / (ticker.last_price - ticker.net_change) * 100 || 0);
@@ -41,17 +49,76 @@ export const IndicesTicker = () => {
     };
 
     return (
-        <div data-testid="indices-ticker" className="w-full flex overflow-hidden relative h-full group/ticker">
+        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-full group/ticker">
             {/* Fade edges */}
             <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0c0f13] to-transparent z-10 pointer-events-none" />
 
-            <div className="flex animate-marquee pause-on-hover h-full">
-                {[...INDICES, ...INDICES].map((index, i) => (
+            <div
+                className="flex animate-marquee h-full items-center"
+                style={{
+                    animationDuration: `${40 / speedMultiplier}s`,
+                    animationPlayState: 'running' // Allow pause on hover via css if needed, but groww scrolls smoothly
+                }}
+            >
+                {[...activeItems, ...activeItems].map((index, i) => (
                     <TickerItem key={`${index.symbol}-${i}`} index={index} />
                 ))}
             </div>
 
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0c0f13] to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0c0f13] via-[#0c0f13]/80 to-transparent z-10 pointer-events-none flex items-center justify-end pr-2" />
+
+            {/* Settings Trigger */}
+            <div className="absolute right-2 top-0 bottom-0 z-20 flex items-center">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="p-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 text-zinc-400 hover:text-white transition-colors opacity-0 group-hover/ticker:opacity-100 focus:opacity-100">
+                            <Settings2 className="w-3.5 h-3.5" />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 bg-[#0c0f13] border-white/10 p-4" align="end" sideOffset={8}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-300">Edit Columns</h4>
+                            <button onClick={resetToDefault} className="text-[10px] text-zinc-400 flex items-center gap-1 hover:text-primary transition-colors">
+                                <span className="rotate-180">↻</span> Reset
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                            {items.map(item => (
+                                <div key={item.symbol} className="flex items-center space-x-2">
+                                    <Switch
+                                        id={`ticker-${item.symbol}`}
+                                        checked={item.isActive}
+                                        onCheckedChange={() => toggleItem(item.symbol)}
+                                        className="data-[state=checked]:bg-primary h-4 w-7 [&_span]:h-3 [&_span]:w-3"
+                                    />
+                                    <label
+                                        htmlFor={`ticker-${item.symbol}`}
+                                        className="text-[10px] font-bold text-zinc-300 cursor-pointer hover:text-white"
+                                    >
+                                        # {item.symbol.replace("NIFTY ", "").replace("INDIA ", "")}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="pt-4 border-t border-white/5">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ticker Speed</span>
+                                <span className="text-[9px] font-mono font-bold text-primary">{speedMultiplier}x</span>
+                            </div>
+                            <Slider
+                                defaultValue={[speedMultiplier]}
+                                max={2}
+                                min={0.2}
+                                step={0.1}
+                                onValueChange={(v) => setSpeed(v[0])}
+                                className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary"
+                            />
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
         </div>
     );
 };

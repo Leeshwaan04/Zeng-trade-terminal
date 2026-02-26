@@ -126,7 +126,7 @@ export const PositionsTable = () => {
             {/* Rows */}
             <ScrollArea className="flex-1 overflow-auto custom-scrollbar">
                 <div className="divide-y divide-white/[0.02]">
-                    {positions.map((pos) => (
+                    {positions.map((pos: any) => (
                         <PositionRow key={`${pos.symbol}-${pos.product}`} position={pos} />
                     ))}
                 </div>

@@ -3,11 +3,20 @@
 import React, { useRef, useEffect, useState, useMemo, createContext, useContext } from "react";
 import { useResizeObserver } from "@/hooks/use-resize-observer"; // We need to create this or use existing raw observer
 
+export interface ChartData {
+    time: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+}
+
 // ─── Chart Context ───────────────────────────────────────────
 interface ChartContextType {
     width: number;
     height: number;
-    data: any[];
+    data: ChartData[];
     scales: {
         x: (i: number) => number;
         y: (p: number) => number;

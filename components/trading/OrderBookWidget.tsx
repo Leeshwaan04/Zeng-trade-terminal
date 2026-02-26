@@ -26,7 +26,7 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
 
     return (
         <div className="flex flex-col h-full bg-surface-1 font-mono select-none">
-            <WidgetHeader title="MARKET DEPTH" symbol={symbol} />
+            <WidgetHeader id="order-book" title="MARKET DEPTH" symbol={symbol} />
 
             {/* Header Info (Total Qty) */}
             <div className="px-2 py-1.5 border-b border-border bg-surface-1 flex justify-between items-end">

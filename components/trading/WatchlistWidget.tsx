@@ -71,9 +71,9 @@ const PriceCell = ({ price, isUp }: { price: number, isUp: boolean }) => {
             {price > 0 ? price.toFixed(2) : "—"}
         </span>
     );
-};
+}
 
-export const WatchlistWidget = () => {
+export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
     const {
         watchlists,
         activeWatchlistId,
@@ -85,6 +85,15 @@ export const WatchlistWidget = () => {
 
     const { tickers, subscribe } = useMarketStore();
     const setWorkspaceSymbol = useLayoutStore(state => state.setWorkspaceSymbol);
+    const setColorGroupSymbol = useLayoutStore(state => state.setColorGroupSymbol);
+    const workspaces = useLayoutStore(state => state.workspaces);
+    const activeWorkspaceId = useLayoutStore(state => state.activeWorkspaceId);
+
+    // Determine the color group for this watchlist widget instance
+    const thisWidgetColorGroup = widgetId
+        ? workspaces[activeWorkspaceId]?.areas.flatMap(a => a.widgets).find(w => w.id === widgetId)?.colorGroup
+        : undefined;
+
     const [filter, setFilter] = useState("");
 
     useEffect(() => {
@@ -172,7 +181,13 @@ export const WatchlistWidget = () => {
                         return (
                             <div
                                 key={item.symbol}
-                                onClick={() => setWorkspaceSymbol(item.symbol)}
+                                onClick={() => {
+                                    if (thisWidgetColorGroup) {
+                                        setColorGroupSymbol(thisWidgetColorGroup, item.symbol);
+                                    } else {
+                                        setWorkspaceSymbol(item.symbol);
+                                    }
+                                }}
                                 className="group relative grid grid-cols-[1fr_75px_75px_70px] items-center px-3 py-1.5 hover:bg-white/[0.05] border-b border-white/[0.02] transition-all cursor-pointer overflow-hidden"
                             >
                                 {/* Symbol & Exchange - High Density */}

@@ -18,7 +18,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
         }
 
-        const result = await cancelOrder(auth.apiKey, auth.accessToken, order_id, variety);
+        const result = await cancelOrder(auth.apiKey!, auth.accessToken!, order_id, variety);
         return NextResponse.json({ status: "success", data: result });
     } catch (error: any) {
         if (error instanceof KiteError) {

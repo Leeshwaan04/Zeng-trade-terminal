@@ -723,7 +723,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
             ctx.strokeStyle = isCurrent ? colors.primary : (d.color || colors.primary);
             ctx.lineWidth = 2;
-            ctx.shadowColor = ctx.strokeStyle;
+            ctx.shadowColor = ctx.strokeStyle as string;
             ctx.shadowBlur = 10;
 
             if (d.type === 'trendline') {
@@ -816,7 +816,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
             const idx = Math.round((x - MARGIN.left - scales.gap / 2) / scales.gap);
             const snappedTime = (idx >= 0 && idx < data.length) ? data[idx].time : Date.now();
 
-            setCurrentDrawing(prev => ({
+            setCurrentDrawing((prev: any) => ({
                 ...prev,
                 p2: { time: snappedTime, price }
             }));
@@ -869,20 +869,20 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
             {/* ─── OHLCV Overlay ──────────────────────────────── */}
             {activeCandle && (
-                <div className="absolute top-2 left-3 flex items-center gap-3 text-[11px] font-mono select-none pointer-events-none z-10">
-                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"}`}>
+                <div className="absolute top-2 left-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono select-none pointer-events-none z-10 pr-2">
+                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"} whitespace-nowrap`}>
                         O <span className="text-[12px]">{activeCandle.open.toFixed(2)}</span>
                     </span>
-                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"}`}>
+                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"} whitespace-nowrap`}>
                         H <span className="text-[12px]">{activeCandle.high.toFixed(2)}</span>
                     </span>
-                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"}`}>
+                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"} whitespace-nowrap`}>
                         L <span className="text-[12px]">{activeCandle.low.toFixed(2)}</span>
                     </span>
-                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"}`}>
+                    <span className={`font-bold ${isActiveUp ? "text-up" : "text-down"} whitespace-nowrap`}>
                         C <span className="text-[12px]">{activeCandle.close.toFixed(2)}</span>
                     </span>
-                    <span className="text-muted-foreground font-bold">
+                    <span className="text-muted-foreground font-bold whitespace-nowrap">
                         V <span className="text-[12px]">{activeCandle.volume.toLocaleString()}</span>
                     </span>
                 </div>

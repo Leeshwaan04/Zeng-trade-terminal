@@ -56,7 +56,7 @@ export const WhaleSonarWidget = () => {
 
     return (
         <div className="flex flex-col h-full bg-black font-mono select-none relative overflow-hidden">
-            <WidgetHeader
+            <WidgetHeader id="whale-sonar"
                 title="WHALE SONAR"
                 action={<Radar className="w-3 h-3 text-[var(--neon-green)] animate-pulse" />}
             />

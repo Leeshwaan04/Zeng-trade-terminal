@@ -10,12 +10,12 @@ const fetchHistory = async (symbol: string): Promise<number[]> => {
 };
 
 export const useCyberScalp = () => {
-    const { activeWorkspace, workspaces, setWidgetSymbol } = useLayoutStore();
-    const { tickerData } = useMarketStore();
+    const { activeWorkspaceId, workspaces, setWorkspaceSymbol } = useLayoutStore();
+    const { tickers } = useMarketStore();
     const [stats, setStats] = useState<{ correlation: number | null }>({ correlation: null });
 
     useEffect(() => {
-        if (activeWorkspace !== 'cyber-scalp') return;
+        if (activeWorkspaceId !== 'cyber-scalp') return;
 
         const workspace = workspaces['cyber-scalp'];
         if (!workspace) return;
@@ -32,18 +32,18 @@ export const useCyberScalp = () => {
         if (!spotWidget || !atmWidget) return;
 
         // 3. Get Spot Price
-        const spotTick = tickerData[spotSymbol];
+        const spotTick = tickers[spotSymbol];
         if (!spotTick) return;
 
         // 4. Calculate ATM Logic
         const step = spotSymbol.includes('BANK') ? 100 : 50;
-        const strike = getATMStrike(spotTick.lastPrice, step);
+        const strike = getATMStrike(spotTick.last_price, step);
         const ceSymbol = `${spotSymbol.split(' ')[0]}24SEP${strike}CE`; // HARDCODED EXPIRY FOR PROTOTYPE
 
         // 5. Update ATM Widget if changed
         if (atmWidget.symbol !== ceSymbol) {
             console.log(`[CyberScalp] Dynamic ATM Update: ${ceSymbol}`);
-            setWidgetSymbol('cyber-scalp', 'cs-atm', ceSymbol);
+            setWorkspaceSymbol(ceSymbol);
         }
 
         // 6. Calculate Correlation (Debounced)
@@ -60,7 +60,7 @@ export const useCyberScalp = () => {
 
         return () => clearInterval(interval);
 
-    }, [activeWorkspace, tickerData, workspaces, setWidgetSymbol]);
+    }, [activeWorkspaceId, tickers, workspaces, setWorkspaceSymbol]);
 
     return stats;
 };

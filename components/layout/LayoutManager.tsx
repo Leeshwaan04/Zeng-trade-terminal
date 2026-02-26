@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLayoutStore } from "@/hooks/useLayoutStore";
 import { WidgetContainer } from "./WidgetContainer";
-import { TradingChart } from "@/components/charts/TradingChart";
+import { MultiChartWidget } from "@/components/charts/MultiChartWidget";
 import { PositionsTable } from "@/components/trading/PositionsTable";
 import { OrderEntryPanel } from "@/components/trading/OrderEntryPanel";
 import { WatchlistWidget } from "@/components/trading/WatchlistWidget";
@@ -34,7 +34,8 @@ export const LayoutManager = () => {
         setActiveWidget,
         resizeGrid,
         reorderWidgets,
-        maximizedWidgetId
+        maximizedWidgetId,
+        theaterModeWidgetId
     } = useLayoutStore();
 
     const { correlation } = useCyberScalp();
@@ -213,12 +214,9 @@ export const LayoutManager = () => {
                         onActivate={() => { }}
                     >
                         {targetWidget.type === "CHART" && (
-                            <TradingChart
-                                symbol={targetWidget.symbol || "NIFTY 50"}
-                                widgetId={targetWidget.id}
-                            />
+                            <MultiChartWidget widgetConfig={targetWidget} />
                         )}
-                        {targetWidget.type === "WATCHLIST" && <WatchlistWidget />}
+                        {targetWidget.type === "WATCHLIST" && <WatchlistWidget widgetId={targetWidget.id} />}
                         {targetWidget.type === "ORDER_BOOK" && (
                             <OrderBookWidget symbol={targetWidget.symbol} />
                         )}
@@ -310,12 +308,40 @@ export const LayoutManager = () => {
                         const widgetConfig = area.widgets.find(w => w.id === area.activeWidgetId) || area.widgets[0];
                         if (!widgetConfig) return null;
 
+                        // Check if this or another widget is in theater mode
+                        const isInTheaterMode = theaterModeWidgetId === widgetConfig.id;
+                        const isOtherInTheaterMode = theaterModeWidgetId && !isInTheaterMode;
+
+                        // Calculate grid area override for theater mode
+                        let finalGridArea = area.gridArea;
+                        if (isInTheaterMode && !isMobile) {
+                            // Span across top rows, assuming a standard 3-col or 2-col layout
+                            // This intercepts the entire top area of the grid.
+                            finalGridArea = "1 / 1 / -1 / -2";
+                            // Meaning: Start row 1 to end. Start col 1 to end-1 (leaving the last right column for small widgets)
+                        } else if (isOtherInTheaterMode && !isMobile) {
+                            // If another widget is in theater mode, push this one to the right sidebar (last column)
+                            // or hide it depending on preference. Let's stack them in the last column.
+                            finalGridArea = `auto / -2 / auto / -1`;
+                        }
+
+                        // If another widget is in theater mode, and we are pushing everything to the right,
+                        // we can optionally hide secondary widgets to keep it clean like YouTube.
+                        if (isOtherInTheaterMode && widgetConfig.type !== "ORDER_ENTRY" && widgetConfig.type !== "POSITIONS" && !isMobile) {
+                            return null; // Hide non-essential widgets during theater mode
+                        }
+
                         return (
                             <SortableWidget
                                 key={area.id}
                                 id={area.id}
-                                style={{ gridArea: area.gridArea }}
-                                className="overflow-hidden min-h-0 min-w-0 bg-background relative border-b md:border-b-0 border-white/10 last:border-0"
+                                style={{
+                                    gridArea: finalGridArea,
+                                    zIndex: isInTheaterMode ? 10 : 1,
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}
+                                className={`overflow-hidden min-h-0 min-w-0 bg-background relative border-b md:border-b-0 border-white/10 last:border-0 ${isInTheaterMode ? 'shadow-2xl ring-1 ring-primary/50' : ''}`}
                             >
                                 <WidgetContainer
                                     widgets={area.widgets}
@@ -326,12 +352,9 @@ export const LayoutManager = () => {
                                     allowOverflow={widgetConfig.type === "CHART"}
                                 >
                                     {widgetConfig.type === "CHART" && (
-                                        <TradingChart
-                                            symbol={widgetConfig.symbol || "NIFTY 50"}
-                                            widgetId={widgetConfig.id}
-                                        />
+                                        <MultiChartWidget widgetConfig={widgetConfig} />
                                     )}
-                                    {widgetConfig.type === "WATCHLIST" && <WatchlistWidget />}
+                                    {widgetConfig.type === "WATCHLIST" && <WatchlistWidget widgetId={widgetConfig.id} />}
                                     {widgetConfig.type === "ORDER_BOOK" && (
                                         <OrderBookWidget symbol={widgetConfig.symbol} />
                                     )}

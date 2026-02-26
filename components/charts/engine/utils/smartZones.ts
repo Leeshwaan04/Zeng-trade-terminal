@@ -1,4 +1,4 @@
-import { ChartData } from "./ChartEngine";
+import { ChartData } from "../ChartEngine";
 
 export interface Zone {
     type: "SUPPORT" | "RESISTANCE" | "FVG_BULL" | "FVG_BEAR";

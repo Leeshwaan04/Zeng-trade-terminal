@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const margins = await getMargins(auth.apiKey, auth.accessToken);
+        const margins = await getMargins(auth.apiKey!, auth.accessToken!);
 
         // Cyber-Infinity Aggregation Logic
         const equity = margins.equity?.available?.live_balance || 0;

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { WorkspaceConfig, PRESET_LAYOUTS, WidgetConfig } from "@/types/layout";
+import { WorkspaceConfig, PRESET_LAYOUTS, WidgetConfig, WidgetColorGroup, MultiChartConfig, MultiChartViewMode } from "@/types/layout";
 
 interface LayoutState {
     activeWorkspaceId: string;
@@ -10,6 +10,12 @@ interface LayoutState {
     setActiveWidget: (areaId: string, widgetId: string) => void;
     updateWidgetSymbol: (widgetId: string, symbol: string) => void;
     setWorkspaceSymbol: (symbol: string) => void;
+    // Widget Color Grouping
+    setWidgetColorGroup: (widgetId: string, colorGroup: WidgetColorGroup | undefined) => void;
+    setColorGroupSymbol: (colorGroup: WidgetColorGroup, symbol: string) => void;
+    // Multiview (Grid) Config
+    updateMultiChartConfig: (widgetId: string, config: Partial<MultiChartConfig>) => void;
+
     addWorkspace: (workspace: WorkspaceConfig) => void;
     deleteWorkspace: (id: string) => void;
     renameWorkspace: (id: string, name: string) => void;
@@ -20,6 +26,14 @@ interface LayoutState {
     // Maximize State
     maximizedWidgetId: string | null;
     toggleMaximize: (widgetId: string) => void;
+
+    // PiP Mode State
+    pipWidgetId: string | null;
+    togglePiP: (widgetId: string | null) => void;
+
+    // Theater Mode State
+    theaterModeWidgetId: string | null;
+    toggleTheaterMode: (widgetId: string | null) => void;
 
     // Popout State
     poppedOutWidgets: Record<string, boolean>;
@@ -81,6 +95,66 @@ export const useLayoutStore = create<LayoutState>()(
                     widgets: area.widgets.map(w => {
                         if (['CHART', 'ORDER_ENTRY', 'ORDER_BOOK', 'OPTION_CHAIN', 'STRADDLE'].includes(w.type)) {
                             return { ...w, symbol };
+                        }
+                        return w;
+                    })
+                }));
+
+                return {
+                    workspaces: {
+                        ...state.workspaces,
+                        [state.activeWorkspaceId]: { ...workspace, areas: newAreas }
+                    }
+                };
+            }),
+
+            setWidgetColorGroup: (widgetId, colorGroup) => set((state) => {
+                const workspace = state.workspaces[state.activeWorkspaceId];
+                const newAreas = workspace.areas.map(area => ({
+                    ...area,
+                    widgets: area.widgets.map(w => w.id === widgetId ? { ...w, colorGroup } : w)
+                }));
+
+                return {
+                    workspaces: {
+                        ...state.workspaces,
+                        [state.activeWorkspaceId]: { ...workspace, areas: newAreas }
+                    }
+                };
+            }),
+
+            setColorGroupSymbol: (colorGroup, symbol) => set((state) => {
+                const workspace = state.workspaces[state.activeWorkspaceId];
+                const newAreas = workspace.areas.map(area => ({
+                    ...area,
+                    widgets: area.widgets.map(w =>
+                        w.colorGroup === colorGroup && ['CHART', 'ORDER_ENTRY', 'ORDER_BOOK', 'OPTION_CHAIN', 'STRADDLE'].includes(w.type)
+                            ? { ...w, symbol }
+                            : w
+                    )
+                }));
+
+                return {
+                    workspaces: {
+                        ...state.workspaces,
+                        [state.activeWorkspaceId]: { ...workspace, areas: newAreas }
+                    }
+                };
+            }),
+
+            updateMultiChartConfig: (widgetId, config) => set((state) => {
+                const workspace = state.workspaces[state.activeWorkspaceId];
+                const newAreas = workspace.areas.map(area => ({
+                    ...area,
+                    widgets: area.widgets.map(w => {
+                        if (w.id === widgetId) {
+                            return {
+                                ...w,
+                                multiChartConfig: {
+                                    ...(w.multiChartConfig || { viewMode: "1x1", symbols: [w.symbol || "NIFTY 50"] }),
+                                    ...config
+                                }
+                            };
                         }
                         return w;
                     })
@@ -194,6 +268,22 @@ export const useLayoutStore = create<LayoutState>()(
                 maximizedWidgetId: state.maximizedWidgetId === widgetId ? null : widgetId
             })),
 
+            pipWidgetId: null,
+            togglePiP: (widgetId) => set((state) => ({
+                pipWidgetId: state.pipWidgetId === widgetId ? null : widgetId,
+                // Ensure Theater and Maximize are cleared if entering PiP
+                theaterModeWidgetId: null,
+                maximizedWidgetId: null
+            })),
+
+            theaterModeWidgetId: null,
+            toggleTheaterMode: (widgetId) => set((state) => ({
+                theaterModeWidgetId: state.theaterModeWidgetId === widgetId ? null : widgetId,
+                // Ensure PiP and Maximize are cleared if entering Theater
+                pipWidgetId: null,
+                maximizedWidgetId: null
+            })),
+
             poppedOutWidgets: {},
             setPoppedOut: (widgetId: string, isPopped: boolean) => set((state) => ({
                 poppedOutWidgets: {
@@ -208,7 +298,7 @@ export const useLayoutStore = create<LayoutState>()(
             setSettingsOpen: (open) => set({ settingsOpen: open }),
         }),
         {
-            name: "pro-terminal-layout-v9", // bumped for Groww 915 replication
+            name: "pro-terminal-layout-v10", // bumped for YouTube Layouts
         }
     )
 );

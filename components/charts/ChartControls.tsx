@@ -9,15 +9,26 @@ import {
     Minus,
     MessageCircle,
     Magnet,
-    MoreHorizontal
+    MoreHorizontal,
+    PictureInPicture,
+    MonitorPlay,
+    LayoutTemplate
 } from "lucide-react";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { useOrderStore } from "@/hooks/useOrderStore";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutStore } from "@/hooks/useLayoutStore";
 import { cn } from "@/lib/utils";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChartControlsProps {
     symbol: string;
+    widgetId: string;
     period: string;
     onPeriodChange: (period: string) => void;
     interval: string;
@@ -34,6 +45,7 @@ interface ChartControlsProps {
 
 export const ChartControls = ({
     symbol,
+    widgetId,
     period,
     onPeriodChange,
     interval,
@@ -50,7 +62,29 @@ export const ChartControls = ({
     const intervals = ["1m", "5m", "15m", "30m", "1H", "4H", "1D", "1W"];
     const tickerData = useMarketStore(state => state.tickers[symbol]);
     const placeOrder = useOrderStore(state => state.placeOrder);
+    const {
+        pipWidgetId,
+        togglePiP,
+        theaterModeWidgetId,
+        toggleTheaterMode,
+        updateMultiChartConfig,
+        workspaces,
+        activeWorkspaceId
+    } = useLayoutStore();
     const { toast } = useToast();
+
+    // Get current multi-chart config for this widget
+    const activeWorkspace = workspaces[activeWorkspaceId];
+    let currentViewMode = "1x1";
+    if (activeWorkspace) {
+        for (const area of activeWorkspace.areas) {
+            const widget = area.widgets.find(w => w.id === widgetId);
+            if (widget && widget.multiChartConfig) {
+                currentViewMode = widget.multiChartConfig.viewMode;
+                break;
+            }
+        }
+    }
 
     const handleQuickTrade = (side: "BUY" | "SELL") => {
         const price = tickerData?.last_price ?? 22400;
@@ -140,37 +174,58 @@ export const ChartControls = ({
                 ))}
             </div>
 
-            {/* Right: Chart Type + Tools */}
-            <div className="flex items-center gap-1 pl-2 h-full">
-                <div className="flex items-center bg-white/5 rounded p-0.5">
-                    <button
-                        onClick={() => onChartTypeChange("candle")}
-                        className={cn(
-                            "p-1 rounded transition-colors",
-                            chartType === "candle" ? "bg-white/10 text-white" : "text-[#555] hover:text-[#aaa]"
-                        )}
-                        title="Candles"
-                    >
-                        <CandlestickChart className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => onChartTypeChange("line")}
-                        className={cn(
-                            "p-1 rounded transition-colors",
-                            chartType === "line" ? "bg-white/10 text-white" : "text-[#555] hover:text-[#aaa]"
-                        )}
-                        title="Line"
-                    >
-                        <LineChart className="w-3.5 h-3.5" />
-                    </button>
-                </div>
+            <button className="p-1.5 hover:bg-white/5 rounded text-[#555] hover:text-white transition-colors">
+                <MoreHorizontal className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-0.5 border-l border-white/5 pl-2 h-full">
+                {/* Multiview Layout Selector */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            className={cn(
+                                "p-1.5 rounded transition-colors flex items-center gap-1",
+                                currentViewMode !== "1x1" ? "bg-white/10 text-primary" : "text-[#555] hover:text-white hover:bg-white/5"
+                            )}
+                            title="Grid Layout"
+                        >
+                            <LayoutTemplate className="w-3.5 h-3.5" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36 bg-[#0c1016] border-white/5">
+                        <DropdownMenuItem onClick={() => updateMultiChartConfig(widgetId, { viewMode: "1x1" })} className="text-xs">
+                            Single (1x1)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateMultiChartConfig(widgetId, { viewMode: "1x2" })} className="text-xs">
+                            Vertical (1x2)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateMultiChartConfig(widgetId, { viewMode: "2x1" })} className="text-xs">
+                            Horizontal (2x1)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateMultiChartConfig(widgetId, { viewMode: "2x2" })} className="text-xs">
+                            Quad (2x2)
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
-                <button className="p-1.5 hover:bg-white/5 rounded text-[#555] hover:text-white transition-colors text-[11px] font-bold font-serif italic">
-                    ƒ
+                <button
+                    onClick={() => togglePiP(widgetId)}
+                    className={cn(
+                        "p-1.5 rounded transition-colors",
+                        pipWidgetId === widgetId ? "bg-white/10 text-primary" : "text-[#555] hover:text-white hover:bg-white/5"
+                    )}
+                    title="Picture-in-Picture"
+                >
+                    <PictureInPicture className="w-3.5 h-3.5" />
                 </button>
-
-                <button className="p-1.5 hover:bg-white/5 rounded text-[#555] hover:text-white transition-colors">
-                    <MoreHorizontal className="w-4 h-4" />
+                <button
+                    onClick={() => toggleTheaterMode(widgetId)}
+                    className={cn(
+                        "p-1.5 rounded transition-colors",
+                        theaterModeWidgetId === widgetId ? "bg-white/10 text-primary" : "text-[#555] hover:text-white hover:bg-white/5"
+                    )}
+                    title="Theater Mode"
+                >
+                    <MonitorPlay className="w-3.5 h-3.5" />
                 </button>
             </div>
         </div>

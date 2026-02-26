@@ -41,6 +41,11 @@ const WIDGET_META: Record<WidgetType, { label: string; icon: React.ReactNode; co
     PAYOFF_DIAGRAM: { label: "Payoff Diagram", icon: <TrendingUp className="w-3.5 h-3.5" />, color: "text-orange-400", desc: "P&L visualization curve" },
     PORTFOLIO_HEATMAP: { label: "Portfolio Heatmap", icon: <LayoutGrid className="w-3.5 h-3.5" />, color: "text-rose-400", desc: "Visual sizing of holdings" },
     ORDER_ENTRY: { label: "Order Entry", icon: <Columns className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Buy/Sell execution panel" },
+    STRADDLE: { label: "Straddle Tracking", icon: <Activity className="w-3.5 h-3.5" />, color: "text-blue-400", desc: "CE+PE combined chart" },
+    ALGO_RULES: { label: "Algo Rules", icon: <Activity className="w-3.5 h-3.5" />, color: "text-zinc-400", desc: "Automation strategies" },
+    AUTOMATE_BUILDER: { label: "Automate Builder", icon: <Activity className="w-3.5 h-3.5" />, color: "text-zinc-400", desc: "Build algorithms" },
+    WHALE_SONAR: { label: "Whale Sonar", icon: <Activity className="w-3.5 h-3.5" />, color: "text-cyan-400", desc: "Large order tracking" },
+    HYPER_CHART: { label: "Hyper Chart", icon: <Activity className="w-3.5 h-3.5" />, color: "text-indigo-400", desc: "High octane technicals" }
 };
 
 /* ═══════════════════════════════════════════════════════════
