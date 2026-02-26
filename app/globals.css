@@ -1,0 +1,279 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* 
+     GROWW 915 THEME 
+     Near-black dark palette with precise green/red trading accents.
+  */
+
+  /* ─── BASE COLORS ─── */
+  --background: #111318;
+  /* Groww near-black */
+  --foreground: #e0e2e6;
+  /* Slightly cool white */
+
+  /* ─── COMPONENT COLORS ─── */
+  --card: #181c22;
+  /* Groww card */
+  --card-foreground: #e0e2e6;
+
+  --popover: #181c22;
+  --popover-foreground: #e0e2e6;
+
+  --primary: #3b82f6;
+  /* Blue accent */
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e2228;
+  --secondary-foreground: #e0e2e6;
+
+  --muted: #1e2228;
+  --muted-foreground: #7a7d85;
+  /* Groww muted grey */
+
+  --accent: #1e2228;
+  --accent-foreground: #60a5fa;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: #1e2228;
+  --input: #1e2228;
+  --ring: #3b82f6;
+
+  --radius: 0.375rem;
+  /* Slightly tighter than before */
+
+  /* ─── SEMANTIC TRADING COLORS ─── */
+  --up: #22c55e;
+  /* Groww Green */
+  --down: #ef4444;
+  /* Groww Red */
+
+  /* ─── SURFACE HIERARCHY ─── */
+  --surface-0: #0c0f13;
+  --surface-1: #111318;
+  --surface-2: #181c22;
+  --surface-3: #1e2228;
+  --surface-4: #252a32;
+
+  /* ─── CHART COLORS ─── */
+  --chart-bg: #0c0f13;
+  --chart-grid: rgba(255, 255, 255, 0.03);
+  --chart-crosshair: rgba(59, 130, 246, 0.4);
+  --chart-watermark: rgba(255, 255, 255, 0.02);
+  --chart-volume-bull: rgba(34, 197, 94, 0.15);
+  --chart-volume-bear: rgba(239, 68, 68, 0.15);
+
+  /* ─── ORDER LINES ─── */
+  --order-entry-buy: #4ade80;
+  --order-entry-sell: #f87171;
+  --order-label-bg: rgba(11, 16, 26, 0.9);
+
+  /* ─── NEURAL UI VARIABLES ─── */
+  --glass-blur: 12px;
+  --neon-glow-opacity: 0.1;
+  --chromatic-shift: 0px;
+
+  --neon-cyan: #00e5ff;
+  --neon-purple: #b400ff;
+}
+
+.dark {
+  /* Inherit :root, already dark by default */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-up: var(--up);
+  --color-down: var(--down);
+
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius));
+  --radius-lg: calc(var(--radius) + 2px);
+
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* Animations */
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-marquee: marquee 30s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 0 0;
+    }
+
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/* ─── GLOBAL STYLES & EFFECTS ─── */
+
+.pause-on-hover:hover {
+  animation-play-state: paused;
+}
+
+body {
+  @apply text-foreground antialiased selection:bg-primary/30 selection:text-primary;
+  background: #111318;
+  font-family: var(--font-sans);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Custom Scrollbar - Sleek */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Semantic Text */
+.text-up {
+  color: var(--up);
+}
+
+.text-down {
+  color: var(--down);
+}
+
+/* ─── GLASSMORPHISM & UTILITIES ─── */
+
+.glass {
+  background: rgba(11, 16, 26, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.82);
+}
+
+.glass-panel {
+  background: rgba(11, 16, 26, 0.25);
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mesh-gradient {
+  background-color: #080b12;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(34, 197, 94, 0.05) 0px, transparent 50%);
+}
+
+.neon-border-cyan {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.neon-border-purple {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 10px rgba(180, 0, 255, 0.3);
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Neo-Glow Effect for Cards */
+.neo-card {
+  @apply bg-[#0b101a] border border-white/5 rounded-xl shadow-lg transition-all duration-300;
+}
+
+.neo-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+/* Button Glows */
+.btn-primary-glow {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary-glow:hover {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+}
+
+/* Text Glows */
+.text-glow {
+  text-shadow: 0 0 10px currentColor;
+  /* Glows with its own color */
+}
+
+/* Grid Background Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}

@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=trading-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g" # Allocate 50% of available RAM (adjust as needed for host)
+      - xpack.security.enabled=false # simplified for dev; enable in prod
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: es02
+    environment:
+      - node.name=es02
+      - cluster.name=trading-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: es03
+    environment:
+      - node.name=es03
+      - cluster.name=trading-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata03:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.2
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./data/master_files:/data/input # Place NSE/BSE CSVs here
+    environment:
+      - "LS_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.monitoring.elasticsearch.hosts=["http://es01:9200"]
+    depends_on:
+      - es01
+    networks:
+      - elastic
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    container_name: kibana
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es01:9200
+    networks:
+      - elastic
+    depends_on:
+      - es01
+
+volumes:
+  esdata01:
+    driver: local
+  esdata02:
+    driver: local
+  esdata03:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge

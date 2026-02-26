@@ -1,0 +1,361 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+            - generic [ref=e10]:
+              - generic [ref=e11]: CYBER
+              - generic [ref=e12]: TRADE
+          - generic [ref=e14]:
+            - generic [ref=e16] [cursor=pointer]: Standard
+            - generic [ref=e18] [cursor=pointer]: Sahi Scalper
+            - generic [ref=e20] [cursor=pointer]: Multi-Chart
+            - generic [ref=e22] [cursor=pointer]: Options Trader
+            - generic [ref=e23] [cursor=pointer]:
+              - generic [ref=e24]: Legend Strategy
+              - button [ref=e25]:
+                - img [ref=e26]
+            - generic [ref=e29] [cursor=pointer]:
+              - generic [ref=e30]: Algo Studio
+              - button [ref=e31]:
+                - img [ref=e32]
+            - generic [ref=e36] [cursor=pointer]: Cyber-Scalp (Neural)
+            - generic [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]: Whale Hunter
+              - button [ref=e39]:
+                - img [ref=e40]
+            - generic [ref=e43] [cursor=pointer]:
+              - generic [ref=e44]: Hyper-Charts Beta
+              - button [ref=e45]:
+                - img [ref=e46]
+            - generic [ref=e50] [cursor=pointer]: Groww Classic
+            - button "Add Workspace" [ref=e51]:
+              - img [ref=e52]
+        - generic [ref=e53]:
+          - generic [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]: P&L
+            - generic [ref=e56]:
+              - generic [ref=e58]:
+                - img [ref=e60]
+                - generic [ref=e63]:
+                  - generic [ref=e64]: Net P&L
+                  - generic [ref=e65]: ₹0.00
+              - img [ref=e66]
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - img [ref=e72]
+              - generic [ref=e74]:
+                - generic [ref=e75]: INDIA VIX
+                - generic [ref=e76]:
+                  - generic [ref=e77]: "13.45"
+                  - generic [ref=e78]: "-2.1%"
+            - generic [ref=e80]:
+              - img [ref=e82]
+              - generic [ref=e84]:
+                - generic [ref=e85]: "1240"
+                - generic [ref=e86]: A/D
+                - generic [ref=e87]: "850"
+        - generic [ref=e91]:
+          - button "Tools" [ref=e93]:
+            - img [ref=e94]
+            - text: Tools
+          - button "+ Widgets" [ref=e97]:
+            - img [ref=e98]
+            - text: + Widgets
+          - generic [ref=e103]:
+            - button "SAFE EXECUTION SAFETY SAFE Orders Blocked ARMED Live Execution Prevents accidental \"fat finger\" trades. Toggle to ARM before striking." [ref=e104]:
+              - generic [ref=e106]:
+                - img [ref=e107]
+                - generic [ref=e110]: SAFE
+              - generic:
+                - generic:
+                  - img
+                  - generic: EXECUTION SAFETY
+                - generic:
+                  - generic:
+                    - generic: SAFE
+                    - generic: Orders Blocked
+                  - generic:
+                    - generic: ARMED
+                    - generic: Live Execution
+                - generic: Prevents accidental "fat finger" trades. Toggle to ARM before striking.
+            - generic [ref=e111]:
+              - button [active] [ref=e112]:
+                - img [ref=e113]
+              - generic [ref=e117]:
+                - generic [ref=e118]:
+                  - generic [ref=e119]:
+                    - generic [ref=e121]: Mo
+                    - generic [ref=e122]:
+                      - generic [ref=e123]: Mock Groww
+                      - generic [ref=e124]: mock@groww.io
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: ENTERPRISE PRO
+                    - generic [ref=e127]: ₹5,40,231.00
+                - generic [ref=e128]:
+                  - generic [ref=e129]: Trading Broker
+                  - generic [ref=e130]:
+                    - button "Kite Zerodha" [ref=e131]
+                    - button "Groww Trade" [ref=e132]
+                - generic [ref=e133]:
+                  - button "My Profile" [ref=e134]:
+                    - img [ref=e135]
+                    - generic [ref=e138]: My Profile
+                    - img [ref=e139]
+                  - button "Funds & Ledger" [ref=e141]:
+                    - img [ref=e142]
+                    - generic [ref=e144]: Funds & Ledger
+                    - img [ref=e145]
+                  - button "Interface Settings" [ref=e147]:
+                    - img [ref=e148]
+                    - generic [ref=e151]: Interface Settings
+                    - img [ref=e152]
+                  - button "Global Shortcuts" [ref=e154]:
+                    - img [ref=e155]
+                    - generic [ref=e157]: Global Shortcuts
+                    - img [ref=e158]
+                - button "Log Out System" [ref=e161]:
+                  - img [ref=e162]
+                  - generic [ref=e165]: Log Out System
+      - generic [ref=e168]:
+        - generic [ref=e169] [cursor=pointer]:
+          - generic [ref=e170]: "50"
+          - generic [ref=e171]: 25,471.10
+          - generic [ref=e172]: ▼ 1.30%
+        - generic [ref=e173] [cursor=pointer]:
+          - generic [ref=e174]: BANK
+          - generic [ref=e175]: —
+          - generic [ref=e176]: ▲ 0.00%
+        - generic [ref=e177] [cursor=pointer]:
+          - generic [ref=e178]: FIN SERVICE
+          - generic [ref=e179]: —
+          - generic [ref=e180]: ▲ 0.00%
+        - generic [ref=e181] [cursor=pointer]:
+          - generic [ref=e182]: MID SELECT
+          - generic [ref=e183]: —
+          - generic [ref=e184]: ▲ 0.00%
+        - generic [ref=e185] [cursor=pointer]:
+          - generic [ref=e186]: SENSEX
+          - generic [ref=e187]: 82,626.76
+          - generic [ref=e188]: ▼ 1.25%
+        - generic [ref=e189] [cursor=pointer]:
+          - generic [ref=e190]: VIX
+          - generic [ref=e191]: —
+          - generic [ref=e192]: ▲ 0.00%
+        - generic [ref=e193] [cursor=pointer]:
+          - generic [ref=e194]: "50"
+          - generic [ref=e195]: 25,471.10
+          - generic [ref=e196]: ▼ 1.30%
+        - generic [ref=e197] [cursor=pointer]:
+          - generic [ref=e198]: BANK
+          - generic [ref=e199]: —
+          - generic [ref=e200]: ▲ 0.00%
+        - generic [ref=e201] [cursor=pointer]:
+          - generic [ref=e202]: FIN SERVICE
+          - generic [ref=e203]: —
+          - generic [ref=e204]: ▲ 0.00%
+        - generic [ref=e205] [cursor=pointer]:
+          - generic [ref=e206]: MID SELECT
+          - generic [ref=e207]: —
+          - generic [ref=e208]: ▲ 0.00%
+        - generic [ref=e209] [cursor=pointer]:
+          - generic [ref=e210]: SENSEX
+          - generic [ref=e211]: 82,626.76
+          - generic [ref=e212]: ▼ 1.25%
+        - generic [ref=e213] [cursor=pointer]:
+          - generic [ref=e214]: VIX
+          - generic [ref=e215]: —
+          - generic [ref=e216]: ▲ 0.00%
+      - main [ref=e217]:
+        - generic [ref=e218]:
+          - generic [ref=e234]:
+            - button [ref=e235]:
+              - img [ref=e236]
+            - generic [ref=e243]:
+              - generic [ref=e244]:
+                - button "Watchlist" [ref=e246]:
+                  - generic [ref=e247]: Watchlist
+                - generic [ref=e248]:
+                  - button "Pop Out Window" [ref=e249]:
+                    - img [ref=e250]
+                  - button "Maximize" [ref=e254]:
+                    - img [ref=e255]
+                  - button [ref=e260]:
+                    - img [ref=e261]
+              - generic [ref=e265]:
+                - generic [ref=e267]:
+                  - img [ref=e268]
+                  - textbox "Search in Watchlist 1..." [ref=e271]
+                  - generic [ref=e272]: 2/50
+                - generic [ref=e273]:
+                  - generic [ref=e274]: Instrument
+                  - generic [ref=e275]: LTP
+                  - generic [ref=e276]: Chg%
+                - generic [ref=e280]:
+                  - generic [ref=e281] [cursor=pointer]:
+                    - generic [ref=e282]:
+                      - generic [ref=e283]: NIFTY 50
+                      - generic [ref=e284]: NSE
+                    - generic [ref=e285]: "25471.10"
+                    - generic [ref=e287]: "-1.30%"
+                  - generic [ref=e288] [cursor=pointer]:
+                    - generic [ref=e289]:
+                      - generic [ref=e290]: BANKNIFTY
+                      - generic [ref=e291]: NSE
+                    - generic [ref=e292]: "60186.65"
+                    - generic [ref=e294]: "-0.91%"
+                - generic [ref=e295]:
+                  - button "1" [ref=e296]
+                  - button "2" [ref=e297]
+                  - button "3" [ref=e298]
+                  - button "4" [ref=e299]
+                  - button "5" [ref=e300]
+                  - button "6" [ref=e301]
+                  - button "7" [ref=e302]
+                  - button [ref=e303]:
+                    - img [ref=e304]
+          - generic [ref=e307]:
+            - button [ref=e308]:
+              - img [ref=e309]
+            - generic [ref=e316]:
+              - generic [ref=e317]:
+                - button "Positions" [ref=e319]:
+                  - generic [ref=e320]: Positions
+                - generic [ref=e321]:
+                  - button "Pop Out Window" [ref=e322]:
+                    - img [ref=e323]
+                  - button "Maximize" [ref=e327]:
+                    - img [ref=e328]
+                  - button [ref=e333]:
+                    - img [ref=e334]
+              - generic [ref=e338]:
+                - img [ref=e340]
+                - generic [ref=e342]:
+                  - generic [ref=e343]: Portfolio Void
+                  - generic [ref=e344]: No open positions detected in this segment
+                - button "Search Instruments" [ref=e345]
+          - generic [ref=e346]:
+            - button [ref=e347]:
+              - img [ref=e348]
+            - generic [ref=e355]:
+              - generic [ref=e356]:
+                - button "Orders" [ref=e358]:
+                  - generic [ref=e359]: Orders
+                - generic [ref=e360]:
+                  - button "Pop Out Window" [ref=e361]:
+                    - img [ref=e362]
+                  - button "Maximize" [ref=e366]:
+                    - img [ref=e367]
+                  - button [ref=e372]:
+                    - img [ref=e373]
+              - generic [ref=e377]:
+                - generic [ref=e379]:
+                  - generic [ref=e380]: MARKET DEPTH
+                  - generic [ref=e382]: NIFTY 50
+                - generic [ref=e383]:
+                  - generic [ref=e384]: Total Qty
+                  - generic [ref=e385]: 1.2M
+                - generic [ref=e386]:
+                  - generic [ref=e387]: Bid Price
+                  - generic [ref=e388]: Bid Qty
+                  - generic [ref=e389]: Orders
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: Spread
+                    - generic [ref=e393]: "0.00"
+                  - generic [ref=e394]:
+                    - generic [ref=e395]: Ask Price
+                    - generic [ref=e396]: Ask Qty
+                    - generic [ref=e397]: Orders
+                - generic [ref=e398]:
+                  - button "Depth 20" [ref=e399]
+                  - button "Stats" [ref=e400]
+          - generic [ref=e401]:
+            - button [ref=e402]:
+              - img [ref=e403]
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - generic [ref=e412]:
+                  - button "Chart" [ref=e413]:
+                    - generic [ref=e414]: Chart
+                  - button "Option Chain" [ref=e415]:
+                    - generic [ref=e416]: Option Chain
+                - generic [ref=e417]:
+                  - button "Pop Out Window" [ref=e418]:
+                    - img [ref=e419]
+                  - button "Maximize" [ref=e423]:
+                    - img [ref=e424]
+                  - button [ref=e429]:
+                    - img [ref=e430]
+              - generic [ref=e434]:
+                - generic [ref=e436]:
+                  - generic [ref=e437]:
+                    - generic [ref=e438] [cursor=pointer]:
+                      - generic [ref=e440]: ■
+                      - generic [ref=e441]:
+                        - generic [ref=e442]: NIFTY 50
+                        - generic [ref=e443]:
+                          - generic [ref=e444]: ₹25471.10
+                          - generic [ref=e445]: ▼ -336.10 (-1.30%)
+                    - generic [ref=e446]:
+                      - button "Buy" [ref=e447]
+                      - button "Sell" [ref=e448]
+                  - generic [ref=e449]:
+                    - button "Draw" [ref=e450]:
+                      - img [ref=e451]
+                    - button "Rectangle" [ref=e454]:
+                      - img [ref=e455]
+                    - button "Horizontal Line" [ref=e457]:
+                      - img [ref=e458]
+                    - button "Annotation" [ref=e459]:
+                      - img [ref=e460]
+                    - button "Magnet" [ref=e462]:
+                      - img [ref=e463]
+                  - generic [ref=e467]:
+                    - button "1m" [ref=e468]
+                    - button "5m" [ref=e469]
+                    - button "15m" [ref=e470]
+                    - button "30m" [ref=e471]
+                    - button "1H" [ref=e472]
+                    - button "4H" [ref=e473]
+                    - button "1D" [ref=e474]
+                    - button "1W" [ref=e475]
+                  - generic [ref=e476]:
+                    - generic [ref=e477]:
+                      - button "Candles" [ref=e478]:
+                        - img [ref=e479]
+                      - button "Line" [ref=e483]:
+                        - img [ref=e484]
+                    - button "ƒ" [ref=e487]
+                    - button [ref=e488]:
+                      - img [ref=e489]
+                - generic [ref=e494]:
+                  - generic:
+                    - generic: O 23968.78
+                    - generic: H 24064.32
+                    - generic: L 23947.15
+                    - generic: C 24017.68
+                    - generic: V 41,800
+          - status [ref=e496]
+      - generic [ref=e497]:
+        - generic [ref=e498]:
+          - generic [ref=e501]: GROWW LIVE
+          - generic [ref=e502]:
+            - text: "MARGIN:"
+            - generic [ref=e503]: ₹0
+          - generic [ref=e504]:
+            - text: "LATENCY:"
+            - generic [ref=e505]: "-"
+          - generic [ref=e506]: "|"
+          - generic [ref=e507] [cursor=pointer]: v0.4.0-cyber
+          - generic [ref=e508]: • GROWW-TEST
+        - generic [ref=e510]: Unified Adapter
+  - button "Open Next.js Dev Tools" [ref=e516] [cursor=pointer]:
+    - img [ref=e517]
+  - alert [ref=e520]
+```

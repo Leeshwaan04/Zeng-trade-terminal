@@ -1,0 +1,82 @@
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+const KITE_API_BASE = "https://api.kite.trade";
+
+export async function GET(req: NextRequest) {
+    const searchParams = req.nextUrl.searchParams;
+    const instrument_token = searchParams.get("instrument_token");
+    const interval = searchParams.get("interval") || "day";
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+
+    if (!instrument_token || !from || !to) {
+        return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    }
+
+    // MOCK MODE: Bypass Auth
+    if (searchParams.get("mock") === "true") {
+        return NextResponse.json(generateMockData(from, to, interval, 24000));
+    }
+
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value;
+    const apiKey = process.env.KITE_API_KEY;
+
+    if (!accessToken || !apiKey) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const url = `${KITE_API_BASE}/instruments/historical/${instrument_token}/${interval}?from=${from}&to=${to}`;
+
+        const response = await fetch(url, {
+            headers: {
+                "X-Kite-Version": "3",
+                "Authorization": `token ${apiKey}:${accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Kite History Error:", errorText);
+            return NextResponse.json({ error: "Failed to fetch from Kite" }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error("Server Error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+function generateMockData(fromStr: string, toStr: string, interval: string, basePrice: number) {
+    const candles = [];
+    const from = new Date(fromStr).getTime();
+    const to = new Date(toStr).getTime();
+    let current = from;
+    const step = interval === "day" ? 86400000 : interval === "60minute" ? 3600000 : 300000; // Approx
+
+    let price = basePrice;
+
+    while (current <= to) {
+        const volatility = basePrice * 0.005; // 0.5%
+        const change = (Math.random() - 0.5) * volatility;
+        const open = price;
+        const close = price + change;
+        const high = Math.max(open, close) + Math.random() * volatility * 0.5;
+        const low = Math.min(open, close) - Math.random() * volatility * 0.5;
+        const volume = Math.floor(Math.random() * 100000);
+
+        // Mock ISO String for API compatibility
+        const timeStr = new Date(current).toISOString();
+        candles.push([timeStr, open, high, low, close, volume]);
+
+        price = close;
+        current += step;
+    }
+
+    return { status: "success", data: { candles } };
+}
