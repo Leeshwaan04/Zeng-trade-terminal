@@ -191,15 +191,36 @@ function broadcast(type, key, payload) {
 
 function checkFailover() {
     const now = Date.now();
+    // Only check during active market hours (simplified check for resilience)
     instances.forEach((instance, key) => {
-        if (instance.type === 'sse' && instance.lastTickAt > 0 && (now - instance.lastTickAt > LAG_THRESHOLD)) {
+        if (instance.lastTickAt > 0 && (now - instance.lastTickAt > LAG_THRESHOLD)) {
+            // Emits STALE_DATA so the frontend can paint the prices orange.
             self.postMessage({
-                type: 'FAILOVER_SUGGESTION',
-                payload: { laggyKey: key, broker: instance.broker }
+                type: 'STALE_DATA',
+                payload: { key, broker: instance.broker }
             });
+
+            // Force connection rebuild depending on transport
+            if (instance.type === 'sse' && !instance.pollTimer) {
+                console.warn(`[Worker] SSE Connection ${key} is STALE (>3s). Forcing REST polling.`);
+                if (instance.eventSource) {
+                    instance.eventSource.close();
+                    instance.eventSource = null;
+                }
+                startPolling(key);
+            } else if (instance.type === 'ws' && !instance.reconnectTimer) {
+                console.warn(`[Worker] WS Connection ${key} is STALE (>3s). Reconnecting.`);
+                if (instance.socket) {
+                    instance.socket.close();
+                }
+                scheduleReconnect(instance.url, 'ws', key, instance.broker);
+            }
         }
     });
 }
+
+// Global active monitor to catch completely dead sockets
+setInterval(checkFailover, 1000);
 
 // ─── SSE Connection (Primary) ─────────────────────────────────
 function connectSSE(url, key, broker) {
@@ -210,6 +231,7 @@ function connectSSE(url, key, broker) {
         type: 'sse',
         lastTickAt: Date.now(),
         broker,
+        url,
         sseFailureCount: 0,
         pollTimer: null,
         pollUrl: null,
@@ -344,7 +366,7 @@ function connectWS(url, key, broker) {
     try {
         const socket = new WebSocket(url);
         socket.binaryType = 'arraybuffer';
-        instances.set(key, { socket, type: 'ws', lastTickAt: Date.now(), broker });
+        instances.set(key, { socket, type: 'ws', lastTickAt: Date.now(), broker, url });
 
         socket.onopen = () => {
             broadcast('STATUS', key, { connected: true });

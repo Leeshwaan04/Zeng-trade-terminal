@@ -97,6 +97,9 @@ interface OrderState {
     removeOrderLinesForOrder: (orderId: string) => void;
     setOrders: (orders: Order[]) => void;
     setPositions: (positions: Position[]) => void;
+    updatePositionLTP: (symbol: string, ltp: number) => void;
+    closePosition: (symbol: string, price: number) => void;
+    updateOrderLinePrice: (lineId: string, newPrice: number) => void;
     // Institutional Blitz
     executeBlitz: (orderParams: Omit<Order, 'id' | 'status' | 'timestamp'>, config: BlitzConfig) => void;
 }
