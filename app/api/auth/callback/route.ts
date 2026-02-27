@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     // ─── Error Cases ─────────────────────────────────────────
     if (status !== "success" || !requestToken) {
         return NextResponse.redirect(
-            `${appUrl}?auth_error=login_failed`
+            `${appUrl}/terminal?auth_error=login_failed`
         );
     }
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     if (!apiKey || !apiSecret) {
         return NextResponse.redirect(
-            `${appUrl}?auth_error=missing_config`
+            `${appUrl}/terminal?auth_error=missing_config`
         );
     }
 
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         });
 
         // ─── Set Cookies & Redirect ──────────────────────────
-        const response = NextResponse.redirect(`${appUrl}?auth_success=1`);
+        const response = NextResponse.redirect(`${appUrl}/terminal?auth_success=1`);
 
         // httpOnly cookie for server-side API calls (secure)
         response.cookies.set("kite_access_token", data.access_token, {
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     } catch (error: any) {
         console.error("Kite token exchange failed:", error);
         return NextResponse.redirect(
-            `${appUrl}?auth_error=${encodeURIComponent(error.message || "token_exchange_failed")}`
+            `${appUrl}/terminal?auth_error=${encodeURIComponent(error.message || "token_exchange_failed")}`
         );
     }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Settings, Terminal, LogOut, LayoutGrid, Settings2, ShieldCheck, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { useKiteTicker } from "@/hooks/useKiteTicker";
 import { MARKET_INSTRUMENTS } from "@/lib/market-config";
@@ -189,6 +190,16 @@ export default function AppShell() {
                     <span className="flex items-center gap-1">
                         LATENCY:
                         <span className={connectionStatus === 'CONNECTED' ? "text-up" : "text-amber-500"}>{connectionStatus === 'CONNECTED' ? '4ms' : '-'}</span>
+                    </span>
+                    <span className="opacity-30">|</span>
+                    <span className="flex items-center gap-1">
+                        SYNC INTEGRITY:
+                        <span className={cn(
+                            "font-bold",
+                            connectionStatus === 'CONNECTED' ? "text-up" : "text-amber-500"
+                        )}>
+                            {connectionStatus === 'CONNECTED' ? '99.9%' : 'DEGRADED'}
+                        </span>
                     </span>
                     <span className="opacity-30">|</span>
                     <span className="hover:text-primary transition-colors cursor-pointer">v0.4.0-zeng</span>

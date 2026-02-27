@@ -25,7 +25,13 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     const submitLock = React.useRef(false);
 
     const { activeBroker } = useAuthStore();
+    const { tickers } = useMarketStore();
     const { toast } = useToast();
+
+    const currentTicker = tickers[symbol];
+    const ltp = currentTicker?.last_price || parseFloat(price);
+    const change = currentTicker?.change_percent || 0;
+    const isUp = change >= 0;
 
     const handleOrderSubmit = async () => {
         if (submitLock.current || submitting) return;
@@ -146,15 +152,20 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                         <span className="px-1 py-0.5 bg-white/5 rounded-[2px] text-[8px] items-center font-bold text-zinc-500 border border-white/5 uppercase tracking-widest">NFO</span>
                         <h2 className="text-[11px] font-black text-zinc-200 tracking-tighter">{symbol}</h2>
                     </div>
-                    <span className="flex items-center gap-0.5 text-up text-[10px] font-mono font-bold bg-up/10 px-1.5 py-0.5 rounded-sm border border-up/20 tabular-nums">
-                        <ArrowUpRight className="w-3 h-3" /> 145.20 <span className="text-[8px] font-sans opacity-80">(+12%)</span>
+                    <span className={cn(
+                        "flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-sm border tabular-nums transition-colors duration-300",
+                        isUp ? "text-up bg-up/10 border-up/20" : "text-down bg-down/10 border-down/20"
+                    )}>
+                        {isUp ? <ArrowUpRight className="w-3 h-3" /> : <div className="w-3 h-3 rotate-180"><ArrowUpRight className="w-3 h-3" /></div>}
+                        {ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <span className="text-[8px] font-sans opacity-80 pl-0.5">({isUp ? '+' : ''}{change.toFixed(2)}%)</span>
                     </span>
                 </div>
                 <div className="flex items-center justify-between text-[9px] text-zinc-500 mt-1.5">
-                    <span className="font-mono uppercase tracking-widest font-bold text-[8px]">LTP: <span className="text-zinc-300 font-bold text-[10px]">145.20</span></span>
+                    <span className="font-mono uppercase tracking-widest font-bold text-[8px]">LTP: <span className={cn("font-bold text-[10px] transition-colors", isUp ? "text-up" : "text-down")}>{ltp.toFixed(2)}</span></span>
                     <div className="flex gap-2 font-mono uppercase tracking-widest font-bold text-[8px]">
-                        <span>OI: <span className="text-zinc-300">1.2Cr</span></span>
-                        <span>Vol: <span className="text-zinc-300">45.2L</span></span>
+                        <span>OI: <span className="text-zinc-300">{(currentTicker?.oi || 0).toLocaleString()}</span></span>
+                        <span>Vol: <span className="text-zinc-300">{(currentTicker?.volume || 0).toLocaleString()}</span></span>
                     </div>
                 </div>
             </div>

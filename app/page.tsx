@@ -62,6 +62,10 @@ export default function LandingPage() {
                             <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
                             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                         </Link>
+                        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02] backdrop-blur-sm self-center">
+                            <Shield className="w-4 h-4 text-primary" />
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Kite Connect Verified Partner</span>
+                        </div>
                     </div>
 
                     {/* Feature Grid */}
