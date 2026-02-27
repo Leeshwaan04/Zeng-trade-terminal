@@ -351,10 +351,31 @@ export const useOrderStore = create<OrderState>()(
                 executeSlice();
             },
 
-            cancelOrder: (orderId) => set((state) => ({
-                orders: state.orders.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o),
-                activeOrderLines: state.activeOrderLines.filter(l => l.linkedOrderId !== orderId),
-            })),
+            cancelOrder: async (orderId) => {
+                try {
+                    console.info(`[EXECUTION] Attempting to cancel Order ID: ${orderId} via API bridge`);
+                    const response = await fetch(`/api/orders/cancel?order_id=${orderId}`, {
+                        method: 'DELETE',
+                    });
+
+                    const json = await response.json();
+
+                    if (!response.ok || json.status !== 'success') {
+                        throw new Error(json.error || 'Failed to cancel order on broker');
+                    }
+
+                    // Broker accepted cancel, now mutate UI state
+                    set((state) => ({
+                        orders: state.orders.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o),
+                        activeOrderLines: state.activeOrderLines.filter(l => l.linkedOrderId !== orderId),
+                    }));
+
+                    console.info(`[EXECUTION] Order ${orderId} successfully cancelled.`);
+                } catch (error: any) {
+                    console.error("Order Cancel Failed:", error);
+                    alert(`🚨 Order Cancellation Failed\n\nReason: ${error.message}\nYour order might still be live on the exchange.`);
+                }
+            },
 
             updatePositionLTP: (symbol: string, ltp: number) => set((state) => {
                 const newPositions = state.positions.map(p => {
@@ -376,24 +397,44 @@ export const useOrderStore = create<OrderState>()(
                 };
             }),
 
-            closePosition: (symbol: string, price: number) => {
-                const state = get();
-                const position = state.positions.find(p => p.symbol === symbol);
-                if (!position || position.quantity === 0) return;
+            closePosition: async (symbol: string, price: number) => {
+                try {
+                    console.info(`[EXECUTION] Attempting to close position for ${symbol}`);
+                    const state = get();
+                    const position = state.positions.find(p => p.symbol === symbol);
+                    if (!position || position.quantity === 0) return;
 
-                // Remove all order lines for this symbol
-                set(s => ({
-                    activeOrderLines: s.activeOrderLines.filter(l => l.symbol !== symbol)
-                }));
+                    const isNFO = symbol.includes('CE') || symbol.includes('PE') || symbol.includes('FUT');
 
-                get().placeOrder({
-                    symbol: position.symbol,
-                    transactionType: position.quantity > 0 ? 'SELL' : 'BUY',
-                    orderType: 'MARKET',
-                    productType: position.product,
-                    qty: Math.abs(position.quantity),
-                    price: price
-                });
+                    const payload = {
+                        tradingsymbol: symbol,
+                        exchange: isNFO ? 'NFO' : 'NSE',
+                        product: position.product
+                    };
+
+                    const response = await fetch('/api/portfolio/close', {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const json = await response.json();
+
+                    if (!response.ok || json.status !== 'success') {
+                        throw new Error(json.error || 'Failed to close the position on Broker');
+                    }
+
+                    // Broker accepted the close, now optimistic UI update & cleanup
+                    set((s) => ({
+                        positions: s.positions.filter(p => p.symbol !== symbol),
+                        activeOrderLines: s.activeOrderLines.filter(l => l.symbol !== symbol)
+                    }));
+
+                    console.info(`[EXECUTION] Flattened position for ${symbol}`);
+                } catch (error: any) {
+                    console.error("Position Close Failed:", error);
+                    alert(`🚨 Failed to close position\n\nReason: ${error.message}`);
+                }
             },
 
             // ─── Order Line Management ───────────────────────

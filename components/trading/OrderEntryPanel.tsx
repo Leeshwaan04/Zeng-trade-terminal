@@ -17,6 +17,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     const [qty, setQty] = useState("50");
     const [price, setPrice] = useState("22450.00");
     const [trigger, setTrigger] = useState("0.00");
+    const [gttTrailing, setGttTrailing] = useState("0.00");
     const [isBlitz, setIsBlitz] = useState(false);
     const [blitzSlices, setBlitzSlices] = useState("5");
     const [blitzInterval, setBlitzInterval] = useState("3");
@@ -47,16 +48,24 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             if (type === "GTT") {
                 const triggerPrice = parseFloat(trigger);
                 const limitPrice = parseFloat(price);
+                const trailingSL = parseFloat(gttTrailing);
 
                 if (isNaN(triggerPrice) || triggerPrice <= 0) throw new Error("Invalid trigger price for GTT");
                 if (isNaN(limitPrice) || limitPrice <= 0) throw new Error("Invalid limit price for GTT");
 
                 const ltp = tickers[symbol]?.last_price || limitPrice;
 
+                // Kite allows [trigger] or [trigger, stoploss] or [trigger, stoploss, trailing] depending on single/two-leg.
+                // For a robust trailing we push the value.
+                const triggerValues = [triggerPrice];
+                if (!isNaN(trailingSL) && trailingSL > 0) {
+                    triggerValues.push(trailingSL);
+                }
+
                 const condition = {
                     exchange: symbol.includes('FUT') || symbol.includes('CE') || symbol.includes('PE') ? 'NFO' : 'NSE',
                     tradingsymbol: symbol,
-                    trigger_values: [triggerPrice],
+                    trigger_values: triggerValues,
                     last_price: ltp
                 };
 
@@ -243,12 +252,21 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                 </div>
 
                 {/* Inputs Grid */}
-                <div className="grid grid-cols-2 gap-2">
-                    <InputGroup label="Qty" value={qty} setValue={setQty} unit="Lot" />
-                    <InputGroup label="Price" value={price} setValue={setPrice} disabled={type === "MKT" || type === "SL-M"} />
-                    <InputGroup label="Trigger" value={trigger} setValue={setTrigger} disabled={type === "LMT" || type === "MKT"} />
-                    <InputGroup label="Disclosed" value="0" disabled={true} />
-                </div>
+                {type === "GTT" ? (
+                    <div className="grid grid-cols-2 gap-2">
+                        <InputGroup label="Qty" value={qty} setValue={setQty} unit="Lot" />
+                        <InputGroup label="Limit Price" value={price} setValue={setPrice} />
+                        <InputGroup label="Trigger SL" value={trigger} setValue={setTrigger} />
+                        <InputGroup label="Trailing SL (Pts)" value={gttTrailing} setValue={setGttTrailing} />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                        <InputGroup label="Qty" value={qty} setValue={setQty} unit="Lot" />
+                        <InputGroup label="Price" value={price} setValue={setPrice} disabled={type === "MKT" || type === "SL-M"} />
+                        <InputGroup label="Trigger" value={trigger} setValue={setTrigger} disabled={type === "LMT" || type === "MKT"} />
+                        <InputGroup label="Disclosed" value="0" disabled={true} />
+                    </div>
+                )}
 
                 {/* Margin Info Box */}
                 <div className="bg-[#0c0f13] rounded-md border border-white/5 overflow-hidden">
