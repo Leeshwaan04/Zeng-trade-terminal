@@ -8,11 +8,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { exchangeToken } from "@/lib/kite-client";
 
 export async function GET(req: NextRequest) {
+    const host = req.headers.get("host");
+    const origin = req.nextUrl.origin;
     const searchParams = req.nextUrl.searchParams;
     const requestToken = searchParams.get("request_token");
     const status = searchParams.get("status");
 
-    const origin = req.nextUrl.origin;
+    console.log(`[AuthCallback] DEBUG INFO:`);
+    console.log(` - URL: ${req.url}`);
+    console.log(` - Host Header: ${host}`);
+    console.log(` - Detected Origin: ${origin}`);
+    console.log(` - Process Env URL: ${process.env.NEXT_PUBLIC_APP_URL}`);
+    console.log(` - Status: ${status}, Token: ${requestToken?.substring(0, 5)}...`);
 
     // ─── Error Cases ─────────────────────────────────────────
     if (status !== "success" || !requestToken) {
