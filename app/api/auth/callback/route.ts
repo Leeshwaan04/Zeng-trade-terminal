@@ -12,22 +12,18 @@ export async function GET(req: NextRequest) {
     const requestToken = searchParams.get("request_token");
     const status = searchParams.get("status");
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = req.nextUrl.origin;
 
     // ─── Error Cases ─────────────────────────────────────────
     if (status !== "success" || !requestToken) {
-        return NextResponse.redirect(
-            `${appUrl}/terminal?auth_error=login_failed`
-        );
+        return NextResponse.redirect(`${origin}/terminal?auth_error=login_failed`);
     }
 
     const apiKey = process.env.KITE_API_KEY;
     const apiSecret = process.env.KITE_API_SECRET;
 
     if (!apiKey || !apiSecret) {
-        return NextResponse.redirect(
-            `${appUrl}/terminal?auth_error=missing_config`
-        );
+        return NextResponse.redirect(`${origin}/terminal?auth_error=missing_config`);
     }
 
     try {
@@ -54,31 +50,35 @@ export async function GET(req: NextRequest) {
         });
 
         // ─── Set Cookies & Redirect ──────────────────────────
-        const response = NextResponse.redirect(`${appUrl}/terminal?auth_success=1`);
+        // Redirect back to the same origin (terminal)
+        const response = NextResponse.redirect(`${origin}/terminal?auth_success=1`);
+
+        const cookieOptions = {
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax" as const,
+            maxAge: 60 * 60 * 8, // 8 hours (Kite tokens expire at 6 AM)
+            path: "/",
+            // If on a custom domain, we might want to set domain to .zengtrade.in 
+            // but for now, allowing standard path behavior is safer for localhost compatibility.
+        };
 
         // httpOnly cookie for server-side API calls (secure)
         response.cookies.set("kite_access_token", data.access_token, {
+            ...cookieOptions,
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 8, // 8 hours (Kite tokens expire at 6 AM)
-            path: "/",
         });
 
         // Non-httpOnly cookie for client-side auth state (readable by JS)
         response.cookies.set("kite_auth_payload", authPayload, {
+            ...cookieOptions,
             httpOnly: false,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 8,
-            path: "/",
         });
 
         return response;
     } catch (error: any) {
         console.error("Kite token exchange failed:", error);
         return NextResponse.redirect(
-            `${appUrl}/terminal?auth_error=${encodeURIComponent(error.message || "token_exchange_failed")}`
+            `${origin}/terminal?auth_error=${encodeURIComponent(error.message || "token_exchange_failed")}`
         );
     }
 }
