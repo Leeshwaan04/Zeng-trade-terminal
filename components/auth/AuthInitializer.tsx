@@ -21,21 +21,23 @@ export const AuthInitializer = () => {
         // Only hydrate if not already logged in
         if (isLoggedIn) return;
 
-        // ─── CYBER-INFINITY: Mock Mode Bypass ────────────────
+        // ─── ZENG-INFINITY: Mock Mode Bypass ────────────────
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("mock") === "true") {
-            console.log("🚀 [CyberTrade] Mock Mode Activated");
+        const isImplicitMock = urlParams.get("mock") === "true" || urlParams.get("testAuth") === "1";
+
+        if (isImplicitMock) {
+            console.log("🚀 [ZenGTrade] Mock Mode Activated");
             const mockUser = {
-                user_id: "mock_cyber_user",
-                user_name: "Cyber Trader (Mock)",
-                user_shortname: "Cyber",
-                email: "mock@cybertrade.com",
+                user_id: "mock_zeng_user",
+                user_name: "ZenG Trader (Mock)",
+                user_shortname: "ZenG",
+                email: "mock@zengtrade.in",
                 broker: "KITE",
                 exchanges: ["NSE", "NFO", "BSE", "MCX"],
                 products: ["CNC", "MIS", "NRML"],
                 order_types: ["MARKET", "LIMIT", "SL", "SL-M"],
                 login_time: new Date().toISOString(),
-                avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Cyber"
+                avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=ZenG"
             };
             setSession(mockUser as any, "mock_token_infinity", "mock_public_token");
             setBroker("KITE");

@@ -56,7 +56,8 @@ export function useKiteTicker({
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
 
     // Check for mock mode in URL
-    const isMock = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mock') === 'true';
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const isMock = urlParams.get('mock') === 'true' || urlParams.get('testAuth') === '1';
     const url = `${origin}/api/ws/stream?tokens=${tokensParam}&mode=${mode}&broker=${broker}${isMock ? '&mock=true' : ''}`;
 
     const { status: workerStatus } = useWorkerTicker({
