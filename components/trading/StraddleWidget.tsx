@@ -84,9 +84,9 @@ export const StraddleWidget = () => {
     const currentStraddlePrice = history.length > 0 ? history[history.length - 1].value : 0;
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0f18] font-sans">
+        <div className="flex flex-col h-full bg-background font-sans">
             {/* Straddle Navbar */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-white/[0.03]">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface-1">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-2 py-1 rounded-sm">
                         <Zap className="w-3 h-3 text-primary" />
@@ -97,14 +97,14 @@ export const StraddleWidget = () => {
                         {/* Underlying Select */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="flex items-center gap-2 px-2 py-1 bg-white/[0.05] border border-white/5 rounded-sm hover:bg-white/[0.08] transition-all">
-                                    <span className="text-[10px] font-bold text-white/80">{underlying}</span>
-                                    <ChevronDown className="w-3 h-3 text-zinc-600" />
+                                <button className="flex items-center gap-2 px-2 py-1 bg-surface-1 border border-border rounded-sm hover:bg-surface-2 transition-all">
+                                    <span className="text-[10px] font-bold text-foreground">{underlying}</span>
+                                    <ChevronDown className="w-3 h-3 text-muted-foreground" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-[#0c0f13] border-white/5 min-w-[120px]">
+                            <DropdownMenuContent className="bg-surface-1 border-border min-w-[120px]">
                                 {INDICES.map(idx => (
-                                    <DropdownMenuItem key={idx} onClick={() => setUnderlying(idx)} className="text-[10px] font-bold text-zinc-300">
+                                    <DropdownMenuItem key={idx} onClick={() => setUnderlying(idx)} className="text-[10px] font-bold text-foreground">
                                         {idx}
                                     </DropdownMenuItem>
                                 ))}
@@ -114,15 +114,15 @@ export const StraddleWidget = () => {
                         {/* Expiry Select */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="flex items-center gap-2 px-2 py-1 bg-white/[0.05] border border-white/5 rounded-sm hover:bg-white/[0.08] transition-all">
-                                    <Calendar className="w-3 h-3 text-zinc-500" />
-                                    <span className="text-[10px] font-bold text-white/80">{expiry}</span>
-                                    <ChevronDown className="w-3 h-3 text-zinc-600" />
+                                <button className="flex items-center gap-2 px-2 py-1 bg-surface-1 border border-border rounded-sm hover:bg-surface-2 transition-all">
+                                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-[10px] font-bold text-foreground">{expiry}</span>
+                                    <ChevronDown className="w-3 h-3 text-muted-foreground" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-[#0c0f13] border-white/5 min-w-[120px]">
+                            <DropdownMenuContent className="bg-surface-1 border-border min-w-[120px]">
                                 {EXPIRIES.map(exp => (
-                                    <DropdownMenuItem key={exp} onClick={() => setExpiry(exp)} className="text-[10px] font-bold text-zinc-300">
+                                    <DropdownMenuItem key={exp} onClick={() => setExpiry(exp)} className="text-[10px] font-bold text-foreground">
                                         {exp}
                                     </DropdownMenuItem>
                                 ))}
@@ -133,10 +133,10 @@ export const StraddleWidget = () => {
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-tighter">Spot Price</span>
-                        <span className="text-[11px] font-mono font-black text-white">{spotPrice.toFixed(2)}</span>
+                        <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Spot Price</span>
+                        <span className="text-[11px] font-mono font-black text-foreground">{spotPrice.toFixed(2)}</span>
                     </div>
-                    <button className="p-1.5 text-zinc-600 hover:text-white transition-colors">
+                    <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
                         <RefreshCcw className="w-3.5 h-3.5" />
                     </button>
                 </div>
@@ -146,35 +146,35 @@ export const StraddleWidget = () => {
             <div className="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
                 {/* Dashboard Metrics */}
                 <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-white/[0.02] border border-white/5 p-2 rounded-md">
-                        <span className="text-[7.5px] font-black text-zinc-600 uppercase tracking-widest block mb-1">Straddle Price (ATM)</span>
+                    <div className="bg-surface-1 border border-border p-2 rounded-md">
+                        <span className="text-[7.5px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Straddle Price (ATM)</span>
                         <div className="flex items-baseline gap-1.5">
                             <span className="text-xl font-mono font-black text-primary text-glow">₹{currentStraddlePrice.toFixed(2)}</span>
                             <span className="text-[9px] font-bold text-up">+2.4%</span>
                         </div>
                     </div>
-                    <div className="bg-white/[0.02] border border-white/5 p-2 rounded-md">
-                        <span className="text-[7.5px] font-black text-zinc-600 uppercase tracking-widest block mb-1">ATM Strike</span>
+                    <div className="bg-surface-1 border border-border p-2 rounded-md">
+                        <span className="text-[7.5px] font-black text-muted-foreground uppercase tracking-widest block mb-1">ATM Strike</span>
                         <div className="flex items-baseline gap-1.5">
-                            <span className="text-xl font-mono font-black text-white/90">{strike}</span>
-                            <span className="text-[9px] font-bold text-zinc-500">CE+PE</span>
+                            <span className="text-xl font-mono font-black text-foreground">{strike}</span>
+                            <span className="text-[9px] font-bold text-muted-foreground">CE+PE</span>
                         </div>
                     </div>
-                    <div className="bg-white/[0.02] border border-white/5 p-2 rounded-md">
-                        <span className="text-[7.5px] font-black text-zinc-600 uppercase tracking-widest block mb-1">IV Sensitivity</span>
+                    <div className="bg-surface-1 border border-border p-2 rounded-md">
+                        <span className="text-[7.5px] font-black text-muted-foreground uppercase tracking-widest block mb-1">IV Sensitivity</span>
                         <div className="flex items-baseline gap-1.5">
                             <span className="text-xl font-mono font-black text-amber-500">14.8</span>
-                            <span className="text-[9px] font-bold text-zinc-500">High</span>
+                            <span className="text-[9px] font-bold text-muted-foreground">High</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Combined Premium Chart */}
-                <div className="flex-1 min-h-0 bg-[#0c0f13] rounded-lg border border-white/[0.05] p-2 relative">
+                <div className="flex-1 min-h-0 bg-surface-1 rounded-lg border border-border p-2 relative">
                     <div className="absolute top-3 left-4 z-10">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-primary" />
-                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Premium Sum (Decay Tracking)</span>
+                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Premium Sum (Decay Tracking)</span>
                         </div>
                     </div>
 
@@ -195,7 +195,7 @@ export const StraddleWidget = () => {
                                 hide
                             />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#0c0f16', border: '1px solid rgba(255,255,255,0.1)', fontSize: '10px' }}
+                                contentStyle={{ backgroundColor: 'var(--surface-1)', border: '1px solid var(--border)', fontSize: '10px' }}
                                 itemStyle={{ color: '#3b82f6' }}
                             />
                             <Area
@@ -221,19 +221,19 @@ export const StraddleWidget = () => {
             </div>
 
             {/* Footer Insights */}
-            <div className="px-3 py-1.5 border-t border-white/[0.05] bg-black/40 flex items-center justify-between">
+            <div className="px-3 py-1.5 border-t border-border bg-surface-1 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[7.5px] font-black text-zinc-700 uppercase tracking-widest">Theta Decay</span>
+                        <span className="text-[7.5px] font-black text-muted-foreground uppercase tracking-widest">Theta Decay</span>
                         <span className="text-[9px] font-mono font-black text-down">-$4.2/hr</span>
                     </div>
                     <div className="w-px h-3 bg-white/5" />
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[7.5px] font-black text-zinc-700 uppercase tracking-widest">Synthetic Fut</span>
-                        <span className="text-[9px] font-mono font-black text-zinc-500">25482.10</span>
+                        <span className="text-[7.5px] font-black text-muted-foreground uppercase tracking-widest">Synthetic Fut</span>
+                        <span className="text-[9px] font-mono font-black text-muted-foreground">25482.10</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 text-[8px] text-zinc-800 italic">
+                <div className="flex items-center gap-1 text-[8px] text-muted-foreground italic">
                     <Info className="w-2.5 h-2.5" />
                     Live 915 Calculation Cycle
                 </div>

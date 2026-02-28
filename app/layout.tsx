@@ -29,9 +29,6 @@ export default function RootLayout({
         mono.variable
       )} suppressHydrationWarning>
         <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
           disableTransitionOnChange
         >
           <TooltipProvider>

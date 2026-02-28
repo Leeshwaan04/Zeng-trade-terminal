@@ -30,9 +30,9 @@ export const AccountManager = () => {
     ];
 
     return (
-        <div className="flex flex-col h-full w-full bg-[#05080f]/90 backdrop-blur-3xl border-t border-white/10 select-none overflow-hidden text-numeral">
+        <div className="flex flex-col h-full w-full bg-background/90 backdrop-blur-3xl border-t border-border select-none overflow-hidden text-numeral">
             {/* Header / Tabs */}
-            <div className="flex items-center justify-between px-4 h-9 border-b border-white/5 bg-black/20">
+            <div className="flex items-center justify-between px-4 h-9 border-b border-border bg-surface-1">
                 <div className="flex items-center gap-1 h-full">
                     {tabs.map(tab => (
                         <button
@@ -69,10 +69,10 @@ export const AccountManager = () => {
                             ₹{dailyPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                     </div>
-                    <div className="w-[1px] h-4 bg-white/10" />
+                    <div className="w-[1px] h-4 bg-border" />
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Available</span>
-                        <span className="text-[11px] font-bold text-white">
+                        <span className="text-[11px] font-bold text-foreground">
                             ₹{marginAvailable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                     </div>
@@ -83,8 +83,8 @@ export const AccountManager = () => {
             <div className="flex-1 overflow-auto custom-scrollbar">
                 {activeTab === "POSITIONS" && (
                     <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead className="sticky top-0 bg-[#05080f] z-10">
-                            <tr className="border-b border-white/5">
+                        <thead className="sticky top-0 bg-surface-1 z-10">
+                            <tr className="border-b border-border">
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase">Instrument</th>
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase">Qty</th>
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase text-right">Avg. Price</th>
@@ -93,7 +93,7 @@ export const AccountManager = () => {
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-border">
                             {positions.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground text-xs italic">
@@ -110,7 +110,7 @@ export const AccountManager = () => {
                                         <tr key={pos.symbol} className="hover:bg-white/5 transition-colors group">
                                             <td className="px-4 py-2">
                                                 <div className="flex flex-col">
-                                                    <span className="text-xs font-bold text-white leading-tight">{pos.symbol}</span>
+                                                    <span className="text-xs font-bold text-foreground leading-tight">{pos.symbol}</span>
                                                     <span className="text-[9px] text-muted-foreground uppercase tracking-tighter">{pos.product}</span>
                                                 </div>
                                             </td>
@@ -122,8 +122,8 @@ export const AccountManager = () => {
                                                     {pos.quantity > 0 ? "+" : ""}{pos.quantity}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-2 text-right text-xs text-white">₹{pos.average_price.toFixed(2)}</td>
-                                            <td className="px-4 py-2 text-right text-xs font-bold text-white">₹{ltp.toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-right text-xs text-foreground">₹{pos.average_price.toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-right text-xs font-bold text-foreground">₹{ltp.toFixed(2)}</td>
                                             <td className="px-4 py-2 text-right">
                                                 <div className="flex flex-col items-end">
                                                     <span className={cn("text-xs font-black", isUp ? "text-up" : "text-down")}>
@@ -149,8 +149,8 @@ export const AccountManager = () => {
 
                 {activeTab === "ORDERS" && (
                     <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead className="sticky top-0 bg-[#05080f] z-10">
-                            <tr className="border-b border-white/5">
+                        <thead className="sticky top-0 bg-surface-1 z-10">
+                            <tr className="border-b border-border">
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase">Time</th>
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase">Type</th>
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase">Instrument</th>
@@ -160,7 +160,7 @@ export const AccountManager = () => {
                                 <th className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-border">
                             {orders.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground text-xs italic">

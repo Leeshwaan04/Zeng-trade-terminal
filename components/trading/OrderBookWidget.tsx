@@ -47,14 +47,14 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             <WidgetHeader id="order-book" title="MARKET DEPTH" symbol={symbol} />
 
             {/* Header Info (Total Qty) */}
-            <div className="px-2 py-1 border-b border-white/5 bg-[#080a0c] flex justify-between items-end">
+            <div className="px-2 py-1 border-b border-border bg-background flex justify-between items-end">
                 <span className="text-[8px] text-zinc-500 uppercase font-black tracking-widest">Total Bids: <span className="text-up font-bold">{(totalBuy / 1000).toFixed(1)}K</span></span>
                 <span className="text-[8px] text-zinc-500 uppercase font-black tracking-widest">Total Asks: <span className="text-down font-bold">{(totalSell / 1000).toFixed(1)}K</span></span>
             </div>
 
             {/* Table Header */}
             <div className={cn(
-                "grid text-[8px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/5 bg-[#0c0f13]",
+                "grid text-[8px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border bg-surface-1",
                 isMobile ? "grid-cols-2" : "grid-cols-3"
             )}>
                 <div className="pl-2 py-1">Bid Price</div>
@@ -63,7 +63,7 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             </div>
 
             {/* Bids List */}
-            <div className="flex-1 overflow-hidden bg-[#080a0c]">
+            <div className="flex-1 overflow-hidden bg-background">
                 {depth.buy.map((bid, i) => (
                     <div key={`bid-${i}`} className={cn(
                         "relative grid py-0.5 px-2 text-[9px] items-center group cursor-crosshair hover:bg-white/[0.02]",
@@ -80,7 +80,7 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                 ))}
 
                 {/* Spread */}
-                <div className="py-1 px-2 bg-[#0c0f13] border-y border-white/5 flex justify-between items-center my-0.5">
+                <div className="py-1 px-2 bg-surface-1 border-y border-border flex justify-between items-center my-0.5">
                     <span className="text-[8px] text-zinc-500 uppercase font-black tracking-widest">Spread</span>
                     <span className="text-[9px] font-bold font-mono text-zinc-400">
                         {depth.buy.length > 0 && depth.sell.length > 0
@@ -91,7 +91,7 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
 
                 {/* Asks Header */}
                 <div className={cn(
-                    "grid text-[8px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/5 bg-[#0c0f13]",
+                    "grid text-[8px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border bg-surface-1",
                     isMobile ? "grid-cols-2" : "grid-cols-3"
                 )}>
                     <div className="pl-2 py-1">Ask Price</div>
@@ -117,7 +117,7 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             </div>
 
             {/* Bottom Controls */}
-            <div className="p-1.5 border-t border-white/5 bg-[#0c0f13] flex gap-1">
+            <div className="p-1.5 border-t border-border bg-surface-1 flex gap-1">
                 <button className="flex-1 bg-white/[0.02] border border-white/5 rounded-[2px] py-1 text-[8px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors">
                     Depth 20
                 </button>

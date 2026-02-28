@@ -5,7 +5,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root,
-[data-theme='antigravity'] {
+.antigravity {
   /* 
      ANTIGRAVITY THEME (Default)
      Deep Space Absolute Black w/ Neon Accents
@@ -67,7 +67,7 @@
   --neon-purple: #b400ff;
 }
 
-[data-theme='groww'] {
+.groww {
   /* 
      GROWW 915 THEME 
      Softer dark panel with solid green/red investing colors.
@@ -127,7 +127,7 @@
   --neon-purple: #8b5cf6;
 }
 
-[data-theme='midnight'] {
+.midnight {
   /* 
      MIDNIGHT PROTOCOL
      Pure OLED Hardware Black w/ Monochrome/Slate accents.
@@ -187,7 +187,7 @@
   --neon-purple: #94a3b8;
 }
 
-[data-theme='light'] {
+.light {
   /* ─── LIGHT MODE (Corporate Slate) ─── */
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -379,8 +379,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  /* subtle grey */
+  background: color-mix(in srgb, var(--foreground) 15%, transparent);
   border-radius: 2px;
 }
 
@@ -411,7 +410,6 @@ body {
   background: color-mix(in srgb, var(--surface-1) 70%, transparent);
   backdrop-filter: blur(var(--glass-blur)) saturate(200%);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
 }
 
 .glass-panel {
@@ -421,12 +419,12 @@ body {
 }
 
 .mesh-gradient {
-  background-color: #080b12;
+  background-color: var(--background);
   background-image:
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(34, 197, 94, 0.05) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, color-mix(in srgb, var(--primary) 10%, transparent) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, color-mix(in srgb, var(--neon-purple) 5%, transparent) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, color-mix(in srgb, var(--primary) 5%, transparent) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, color-mix(in srgb, var(--up) 5%, transparent) 0px, transparent 50%);
 }
 
 .neon-border-cyan {

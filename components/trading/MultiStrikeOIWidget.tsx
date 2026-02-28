@@ -38,8 +38,8 @@ export const MultiStrikeOIWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-[#0c0f13] border border-white/10 p-2 rounded shadow-xl font-mono text-[10px]">
-                    <div className="text-white font-bold mb-1 border-b border-white/10 pb-1">Strike: {label}</div>
+                <div className="bg-surface-1 border border-border p-2 rounded shadow-xl font-mono text-[10px]">
+                    <div className="text-foreground font-bold mb-1 border-b border-border pb-1">Strike: {label}</div>
                     <div className="text-down">CE OI: {(payload[0].value).toLocaleString()}</div>
                     <div className="text-up">PE OI: {(payload[1].value).toLocaleString()}</div>
                 </div>
@@ -92,7 +92,7 @@ export const MultiStrikeOIWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }
                 )}
             </div>
 
-            <div className="px-3 py-2 bg-[#080a0c] border-t border-white/5 flex items-center justify-between text-[8px] font-bold text-zinc-500 tracking-widest uppercase">
+            <div className="px-3 py-2 bg-surface-1 border-t border-border flex items-center justify-between text-[8px] font-bold text-muted-foreground tracking-widest uppercase">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 bg-down rounded-sm inline-block"></span> Call Writers (Res)</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 bg-up rounded-sm inline-block"></span> Put Writers (Sup)</span>
             </div>

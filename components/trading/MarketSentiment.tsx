@@ -23,7 +23,7 @@ export const MarketSentiment = () => {
                     <Activity className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col leading-none">
-                    <span className="text-[9px] text-zinc-500 font-bold tracking-widest uppercase">INDIA VIX</span>
+                    <span className="text-[9px] text-muted-foreground font-bold tracking-widest uppercase">INDIA VIX</span>
                     <div className="flex items-center gap-1.5">
                         <span className={cn(
                             "text-xs font-mono font-bold",
@@ -38,7 +38,7 @@ export const MarketSentiment = () => {
                 </div>
             </div>
 
-            <div className="w-px h-6 bg-white/5" />
+            <div className="w-px h-6 bg-border" />
 
             {/* Advance / Decline Ratio */}
             <div className="flex items-center gap-2 group cursor-default">

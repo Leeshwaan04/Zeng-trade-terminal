@@ -34,8 +34,8 @@ export const IndicesTicker = () => {
         const changePct = ticker.change_percent ?? (ticker.net_change / (ticker.last_price - ticker.net_change) * 100 || 0);
 
         return (
-            <div className="flex items-center gap-3 px-4 shrink-0 border-r border-white/5 h-full cursor-pointer hover:bg-white/[0.04] transition-colors group">
-                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.12em] group-hover:text-zinc-300 transition-colors">
+            <div className="flex items-center gap-3 px-4 shrink-0 border-r border-border/10 h-full cursor-pointer hover:bg-foreground/5 transition-colors group">
+                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.12em] group-hover:text-foreground transition-colors">
                     {index.symbol.replace("NIFTY ", "").replace("INDIA ", "")}
                 </span>
                 <span className={cn("text-[10px] font-black tracking-tight text-numeral", isPositive ? "text-up" : "text-down")}>
@@ -49,9 +49,9 @@ export const IndicesTicker = () => {
     };
 
     return (
-        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-[22px] bg-black/60 backdrop-blur-md group/ticker border-b border-white/5">
+        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-[22px] bg-background/60 backdrop-blur-md group/ticker border-b border-border/10">
             {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/60 to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
 
             <div
                 className="flex animate-marquee h-full items-center"
@@ -65,20 +65,20 @@ export const IndicesTicker = () => {
                 ))}
             </div>
 
-            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black/60 via-black/40 to-transparent z-10 pointer-events-none flex items-center justify-end pr-2" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background via-background/60 to-transparent z-10 pointer-events-none flex items-center justify-end pr-2" />
 
             {/* Settings Trigger */}
             <div className="absolute right-2 top-0 bottom-0 z-20 flex items-center">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <button className="p-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 text-zinc-400 hover:text-white transition-colors opacity-0 group-hover/ticker:opacity-100 focus:opacity-100">
+                        <button className="p-1.5 rounded-md bg-foreground/5 hover:bg-foreground/10 border border-border/10 text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover/ticker:opacity-100 focus:opacity-100">
                             <Settings2 className="w-3.5 h-3.5" />
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 bg-[#0c0f13] border-white/10 p-4" align="end" sideOffset={8}>
+                    <PopoverContent className="w-72 bg-surface-1 border-border/20 p-4" align="end" sideOffset={8}>
                         <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-300">Edit Columns</h4>
-                            <button onClick={resetToDefault} className="text-[10px] text-zinc-400 flex items-center gap-1 hover:text-primary transition-colors">
+                            <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Edit Columns</h4>
+                            <button onClick={resetToDefault} className="text-[10px] text-muted-foreground flex items-center gap-1 hover:text-primary transition-colors">
                                 <span className="rotate-180">↻</span> Reset
                             </button>
                         </div>

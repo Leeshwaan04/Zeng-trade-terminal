@@ -86,10 +86,10 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
     ) || [];
 
     return (
-        <div data-testid="watchlist-widget" className="flex flex-col h-full bg-[#080a0c] font-sans">
+        <div data-testid="watchlist-widget" className="flex flex-col h-full bg-background font-sans">
 
             {/* Header & Tabs */}
-            <div className="flex flex-col bg-[#0c0f13] border-b border-white/5">
+            <div className="flex flex-col bg-surface-1 border-b border-border">
                 <div className="flex items-center justify-between px-2 pt-2 gap-1 overflow-x-auto no-scrollbar">
                     <div className="flex items-center gap-1">
                         {watchlists.map((wl) => (
@@ -128,7 +128,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             placeholder={`Search & Add to ${activeList?.name}...`}
-                            className="w-full bg-[#181c22] border border-white/[0.05] rounded-sm py-1.5 pl-8 pr-12 text-[10px] font-mono focus:outline-none focus:border-primary/40 text-zinc-300 placeholder:text-zinc-700 transition-all font-bold"
+                            className="w-full bg-surface-3 border border-border rounded-sm py-1.5 pl-8 pr-12 text-[10px] font-mono focus:outline-none focus:border-primary/40 text-foreground placeholder:text-muted-foreground transition-all font-bold"
                         />
                         <div className="absolute right-2.5 flex items-center gap-2">
                             <span className="text-[8px] text-zinc-700 font-mono font-black uppercase">
@@ -139,7 +139,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
 
                     {/* Search Results Dropdown */}
                     {searchResults.length > 0 && (
-                        <div className="absolute left-2 right-2 top-[100%] z-50 mt-1 bg-[#111318] border border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="absolute left-2 right-2 top-[100%] z-50 mt-1 bg-surface-2 border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
                             {searchResults.map((res) => (
                                 <button
                                     key={res.symbol}
@@ -206,7 +206,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                             {item.symbol}
                                         </span>
                                         {item.segment !== "EQ" && (
-                                            <span className="px-1 py-0 rounded-sm bg-[#111318] text-[7px] font-bold text-zinc-500 border border-white/5">
+                                            <span className="px-1 py-0 rounded-sm bg-surface-3 text-[7px] font-bold text-muted-foreground border border-border">
                                                 {item.segment}
                                             </span>
                                         )}
@@ -243,7 +243,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                 </div>
 
                                 {/* Hover Actions */}
-                                <div className="absolute inset-y-0 right-0 w-[120px] bg-gradient-to-l from-[#0c0f13] via-[#0c0f13]/95 to-transparent opacity-0 group-hover:opacity-100 flex items-center justify-end px-2 transition-all translate-x-4 group-hover:translate-x-0">
+                                <div className="absolute inset-y-0 right-0 w-[120px] bg-gradient-to-l from-surface-1 via-surface-1/95 to-transparent opacity-0 group-hover:opacity-100 flex items-center justify-end px-2 transition-all translate-x-4 group-hover:translate-x-0">
                                     <div className="flex items-center gap-0.5">
                                         <button
                                             onClick={(e) => {
@@ -300,7 +300,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
             </ScrollArea>
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-between border-t border-white/5 bg-[#0c0f13] px-2 py-1">
+            <div className="flex items-center justify-between border-t border-border bg-surface-1 px-2 py-1">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => deleteWatchlist(activeWatchlistId)}

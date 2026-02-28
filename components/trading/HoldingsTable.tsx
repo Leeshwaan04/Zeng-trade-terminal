@@ -13,19 +13,19 @@ export const HoldingsTable = () => {
     const totalPnLPercent = totalInvested !== 0 ? (totalPnL / totalInvested) * 100 : 0;
 
     return (
-        <div className="flex flex-col h-full bg-[#080a0c]">
+        <div className="flex flex-col h-full bg-background">
             {/* Summary Header */}
-            <div className="grid grid-cols-2 gap-4 p-3 border-b border-white/5 bg-[#0c0f13]">
+            <div className="grid grid-cols-2 gap-4 p-3 border-b border-border bg-surface-1">
                 <div className="space-y-0.5">
-                    <div className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Invested</div>
-                    <div className="font-mono text-[14px] font-bold tracking-tighter text-zinc-200 tabular-nums my-0.5">₹{totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                    <div className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">Invested</div>
+                    <div className="font-mono text-[14px] font-bold tracking-tighter text-foreground tabular-nums my-0.5">₹{totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
                 </div>
                 <div className="space-y-0.5 text-right">
-                    <div className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Current</div>
+                    <div className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">Current</div>
                     <div className="font-mono text-[14px] font-bold tracking-tighter text-blue-400 tabular-nums my-0.5">₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
                 </div>
-                <div className="col-span-2 flex items-center justify-between pt-2 border-t border-white/5 mt-1">
-                    <div className="text-[8px] uppercase font-bold text-zinc-500 tracking-widest">Total P&L</div>
+                <div className="col-span-2 flex items-center justify-between pt-2 border-t border-border mt-1">
+                    <div className="text-[8px] uppercase font-bold text-muted-foreground tracking-widest">Total P&L</div>
                     <div className={cn("font-mono text-[11px] font-bold flex items-center gap-2 tabular-nums", totalPnL >= 0 ? "text-up" : "text-down")}>
                         <span>{totalPnL >= 0 ? "+" : "-"}₹{Math.abs(totalPnL).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         <span className={cn("text-[9px] px-1 py-0.5 rounded-[2px] font-bold uppercase", totalPnL >= 0 ? "bg-up/10 border border-up/20 text-up" : "bg-down/10 border border-down/20 text-down")}>
@@ -36,7 +36,7 @@ export const HoldingsTable = () => {
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-4 text-right py-1 px-2 bg-[#0c0f13] text-[7px] uppercase font-bold text-zinc-500 border-b border-white/5 tracking-widest">
+            <div className="grid grid-cols-4 text-right py-1 px-2 bg-surface-1 text-[7px] uppercase font-bold text-muted-foreground border-b border-border tracking-widest">
                 <div className="text-left">Instrument</div>
                 <div>Qty</div>
                 <div>Avg price</div>
@@ -57,13 +57,13 @@ export const HoldingsTable = () => {
                         const pnlPercent = investVal !== 0 ? (p.pnl / investVal) * 100 : 0;
 
                         return (
-                            <div key={`${p.symbol}-${p.product}`} className="relative grid grid-cols-4 text-right py-1 px-2 border-b border-white/[0.01] hover:bg-white/[0.02] items-center font-mono group transition-all duration-200">
+                            <div key={`${p.symbol}-${p.product}`} className="relative grid grid-cols-4 text-right py-1 px-2 border-b border-border/[0.01] hover:bg-primary/5 items-center font-mono group transition-all duration-200">
                                 {/* Symbol */}
                                 <div className="text-left flex flex-col leading-tight">
-                                    <div className="font-black text-white/90 group-hover:text-primary transition-colors tracking-tighter uppercase text-[10px]">{p.symbol}</div>
+                                    <div className="font-black text-foreground group-hover:text-primary transition-colors tracking-tighter uppercase text-[10px]">{p.symbol}</div>
                                     <div className="flex items-center gap-1 mt-[1px]">
-                                        <span className="text-[7px] text-zinc-600 font-bold uppercase tracking-tighter bg-white/5 px-1 rounded-[1px] border border-white/5">{p.product}</span>
-                                        <span className="text-[7px] text-zinc-500 font-bold uppercase tracking-tighter">LTP <span className="text-zinc-300">₹{p.last_price.toFixed(2)}</span></span>
+                                        <span className="text-[7px] text-muted-foreground font-bold uppercase tracking-tighter bg-surface-2 px-1 rounded-[1px] border border-border">{p.product}</span>
+                                        <span className="text-[7px] text-muted-foreground font-bold uppercase tracking-tighter">LTP <span className="text-foreground">₹{p.last_price.toFixed(2)}</span></span>
                                     </div>
                                 </div>
 
@@ -87,7 +87,7 @@ export const HoldingsTable = () => {
                                 </div>
 
                                 {/* Lightning Hover Actions */}
-                                <div className="absolute right-2 inset-y-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-[#080a0c] via-[#080a0c] to-transparent pl-8 z-10">
+                                <div className="absolute right-2 inset-y-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-background via-background to-transparent pl-8 z-10">
                                     <button className="px-1.5 py-0.5 rounded-[2px] bg-up/10 hover:bg-up border border-up/20 hover:border-up text-up hover:text-black text-[8px] font-black transition-all">B</button>
                                     <button className="px-1.5 py-0.5 rounded-[2px] bg-down/10 hover:bg-down border border-down/20 hover:border-down text-down hover:text-black text-[8px] font-black transition-all">S</button>
                                 </div>

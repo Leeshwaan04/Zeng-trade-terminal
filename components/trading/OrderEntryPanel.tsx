@@ -152,13 +152,13 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     };
 
     return (
-        <div className="h-full bg-[#080a0c] border-l border-white/5 flex flex-col tracking-tight transition-colors duration-300">
+        <div className="h-full bg-background border-l border-border flex flex-col tracking-tight transition-colors duration-300">
             {/* Context Header */}
-            <div className="p-2 border-b border-white/5 bg-[#0c0f13]">
+            <div className="p-2 border-b border-border bg-surface-1">
                 <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5">
-                        <span className="px-1 py-0.5 bg-white/5 rounded-[2px] text-[8px] items-center font-bold text-zinc-500 border border-white/5 uppercase tracking-widest">NFO</span>
-                        <h2 className="text-[11px] font-black text-zinc-200 tracking-tighter uppercase">{symbol}</h2>
+                        <span className="px-1 py-0.5 bg-surface-2 rounded-[2px] text-[8px] items-center font-bold text-muted-foreground border border-border uppercase tracking-widest">NFO</span>
+                        <h2 className="text-[11px] font-black text-foreground tracking-tighter uppercase">{symbol}</h2>
                     </div>
                     <div className={cn(
                         "flex flex-col items-end gap-0.5 px-1.5 py-0.5 rounded-sm border tabular-nums transition-colors duration-300",
@@ -175,11 +175,11 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center justify-between text-[9px] text-zinc-500 mt-1.5">
+                <div className="flex items-center justify-between text-[9px] text-muted-foreground mt-1.5">
                     <span className="font-mono uppercase tracking-widest font-bold text-[8px]">LTP: <span className={cn("font-bold text-[10px] transition-colors", isUp ? "text-up" : "text-down")}>{ltp.toFixed(2)}</span></span>
                     <div className="flex gap-2 font-mono uppercase tracking-widest font-bold text-[8px]">
-                        <span>OI: <span className="text-zinc-300">{(currentTicker?.oi || 0).toLocaleString()}</span></span>
-                        <span>Vol: <span className="text-zinc-300">{(currentTicker?.volume || 0).toLocaleString()}</span></span>
+                        <span>OI: <span className="text-foreground">{(currentTicker?.oi || 0).toLocaleString()}</span></span>
+                        <span>Vol: <span className="text-foreground">{(currentTicker?.volume || 0).toLocaleString()}</span></span>
                     </div>
                 </div>
             </div>
@@ -187,7 +187,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             {/* Scrollable Form Area */}
             <div className="flex-1 overflow-y-auto p-2 space-y-3 custom-scrollbar">
                 {/* Buy/Sell Toggle */}
-                <div className="grid grid-cols-2 p-0.5 bg-[#0c0f13] rounded-md gap-0.5 border border-white/5">
+                <div className="grid grid-cols-2 p-0.5 bg-surface-1 rounded-md gap-0.5 border border-border">
                     <button
                         onClick={() => setSide("buy")}
                         className={cn(
@@ -219,7 +219,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                         "w-full py-1 rounded-[4px] text-[9px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-1.5 border border-transparent transition-all",
                         isBlitz
                             ? "bg-primary text-black shadow-[0_0_15px_rgba(34,197,94,0.3)] border-primary/40 animate-pulse"
-                            : "bg-[#0c0f13] text-zinc-500 border-white/5 hover:bg-white/[0.02] hover:text-zinc-400"
+                            : "bg-surface-1 text-muted-foreground border-border hover:bg-white/[0.02] hover:text-foreground"
                     )}
                 >
                     <span className={isBlitz ? "animate-pulse" : ""}>⚡ Institutional Blitz</span>
@@ -245,7 +245,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                                     "flex-1 py-1 border rounded-[4px] text-[9px] font-black tracking-widest transition-all relative overflow-hidden group",
                                     product === p
                                         ? "border-primary/50 bg-primary/10 text-primary"
-                                        : "border-white/5 bg-[#0c0f13] text-zinc-500 hover:border-white/10 hover:text-zinc-300 hover:bg-white/[0.02]"
+                                        : "border-border bg-surface-1 text-muted-foreground hover:border-white/10 hover:text-foreground hover:bg-white/[0.02]"
                                 )}
                             >
                                 {p}
@@ -272,7 +272,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                                     "py-1 border rounded-[4px] text-[9px] font-black tracking-widest transition-all",
                                     type === t
                                         ? "border-primary/50 bg-primary/10 text-primary"
-                                        : "border-white/5 bg-[#0c0f13] text-zinc-500 hover:border-white/10 hover:text-zinc-300 hover:bg-white/[0.02]"
+                                        : "border-border bg-surface-1 text-muted-foreground hover:border-white/10 hover:text-foreground hover:bg-white/[0.02]"
                                 )}
                             >
                                 {t}
@@ -299,15 +299,15 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                 )}
 
                 {/* Margin Info Box */}
-                <div className="bg-[#0c0f13] rounded-md border border-white/5 overflow-hidden">
-                    <div className="px-2 py-1.5 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+                <div className="bg-surface-1 rounded-md border border-border overflow-hidden">
+                    <div className="px-2 py-1.5 border-b border-border bg-surface-2 flex justify-between items-center">
                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Margin Required</span>
                         <RefreshCcw className="w-2.5 h-2.5 text-zinc-500 cursor-pointer hover:rotate-180 transition-transform duration-500 hover:text-primary" />
                     </div>
                     <div className="p-2 space-y-0.5">
                         <div className="flex justify-between items-center text-[10px]">
-                            <span className="text-zinc-500 font-bold uppercase tracking-widest text-[8px]">Total</span>
-                            <span className="font-mono font-bold text-zinc-200 tabular-nums tracking-tighter">₹7,260.00</span>
+                            <span className="text-muted-foreground font-bold uppercase tracking-widest text-[8px]">Total</span>
+                            <span className="font-mono font-bold text-foreground tabular-nums tracking-tighter">₹7,260.00</span>
                         </div>
                         <div className="flex justify-between items-center text-[9px] text-zinc-600">
                             <span className="uppercase tracking-widest font-bold text-[7px]">Available</span>
@@ -318,7 +318,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
             </div>
 
             {/* Action Footer */}
-            <div className="p-2 border-t border-white/5 bg-[#0c0f13] mt-auto">
+            <div className="p-2 border-t border-border bg-surface-1 mt-auto">
                 <button
                     disabled={submitting}
                     onClick={handleOrderSubmit}
@@ -342,7 +342,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
 };
 
 const Label = ({ children }: { children: React.ReactNode }) => (
-    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest pl-0.5">{children}</span>
+    <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest pl-0.5">{children}</span>
 );
 
 const InputGroup = ({ label, value, setValue, unit, disabled }: any) => (
@@ -354,9 +354,9 @@ const InputGroup = ({ label, value, setValue, unit, disabled }: any) => (
                 value={value}
                 onChange={(e) => setValue && setValue(e.target.value)}
                 disabled={disabled}
-                className="w-full bg-[#0c0f13] border border-white/5 rounded-[4px] px-2 py-1 text-[11px] text-zinc-200 font-mono tracking-tighter outline-none focus:border-primary/50 focus:bg-white/[0.02] transition-all group-hover:border-white/10"
+                className="w-full bg-surface-1 border border-border rounded-[4px] px-2 py-1 text-[11px] text-foreground font-mono tracking-tighter outline-none focus:border-primary/50 focus:bg-white/[0.02] transition-all group-hover:border-white/10"
             />
-            {unit && <span className="absolute right-2 top-[3px] text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{unit}</span>}
+            {unit && <span className="absolute right-2 top-[3px] text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{unit}</span>}
         </div>
     </div>
 );

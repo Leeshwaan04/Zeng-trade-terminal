@@ -69,10 +69,10 @@ export const ProfileMenu = () => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "h-8 w-8 rounded-full border transition-all flex items-center justify-center bg-black/40",
+                    "h-8 w-8 rounded-full border transition-all flex items-center justify-center bg-foreground/5",
                     isOpen
-                        ? "border-primary ring-2 ring-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                        : "border-white/10 hover:border-primary/40 hover:shadow-lg"
+                        ? "border-primary ring-2 ring-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                        : "border-border/10 hover:border-primary/40 hover:shadow-lg"
                 )}
             >
                 {user && 'user_shortname' in user && user.user_shortname ? (
@@ -85,13 +85,13 @@ export const ProfileMenu = () => {
             {/* Dropdown */}
             <div
                 className={cn(
-                    "absolute top-full right-0 mt-2 w-60 bg-[#111318] border border-white/[0.08] rounded-lg shadow-2xl z-50 overflow-hidden origin-top-right transition-all duration-200",
+                    "absolute top-full right-0 mt-2 w-60 bg-background border border-border/20 rounded-lg shadow-2xl z-50 overflow-hidden origin-top-right transition-all duration-200",
                     isOpen
                         ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
                         : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                 )}
             >
-                <div className="p-3 border-b border-white/[0.05] bg-white/[0.02]">
+                <div className="p-3 border-b border-border/10 bg-foreground/[0.02]">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                             <span className="text-xs font-black text-primary uppercase">
@@ -99,8 +99,8 @@ export const ProfileMenu = () => {
                             </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-black text-white truncate">{user?.user_name || "Pro Trader"}</div>
-                            <div className="text-[10px] text-zinc-500 font-mono truncate">{user?.email || `ID: ${user?.user_id || "TRAD-001"}`}</div>
+                            <div className="text-sm font-black text-foreground truncate">{user?.user_name || "Pro Trader"}</div>
+                            <div className="text-[10px] text-muted-foreground font-mono truncate">{user?.email || `ID: ${user?.user_id || "TRAD-001"}`}</div>
                         </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
@@ -112,8 +112,8 @@ export const ProfileMenu = () => {
                     </div>
                 </div>
 
-                <div className="p-3 bg-white/[0.03] border-b border-white/[0.05]">
-                    <div className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-2 opacity-60">Trading Broker</div>
+                <div className="p-3 bg-foreground/[0.03] border-b border-border/10">
+                    <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-60">Trading Broker</div>
                     <div className="grid grid-cols-2 gap-2">
                         <button
                             onClick={() => handleSwitchBroker("KITE")}
@@ -121,7 +121,7 @@ export const ProfileMenu = () => {
                                 "py-2 rounded border text-[9px] font-black transition-all uppercase tracking-tighter",
                                 activeBroker === "KITE"
                                     ? "bg-primary/20 border-primary text-primary shadow-[0_0_8px_rgba(59,130,246,0.3)]"
-                                    : "bg-black/40 border-white/10 text-zinc-500 hover:border-white/20"
+                                    : "bg-background/40 border-border/10 text-muted-foreground hover:border-border/20"
                             )}
                         >
                             Kite Zerodha
@@ -132,7 +132,7 @@ export const ProfileMenu = () => {
                                 "py-2 rounded border text-[9px] font-black transition-all uppercase tracking-tighter",
                                 activeBroker === "GROWW"
                                     ? "bg-groww/20 border-groww text-groww shadow-[0_0_8px_rgba(0,186,173,0.3)]"
-                                    : "bg-black/40 border-white/10 text-zinc-500 hover:border-white/20"
+                                    : "bg-background/40 border-border/10 text-muted-foreground hover:border-border/20"
                             )}
                         >
                             Groww Trade
@@ -147,7 +147,7 @@ export const ProfileMenu = () => {
                     <MenuItem icon={Keyboard} label="Global Shortcuts" onClick={() => { }} />
                 </div>
 
-                <div className="p-2 border-t border-white/5 bg-white/2 mt-1">
+                <div className="p-2 border-t border-border/10 bg-foreground/[0.02] mt-1">
                     <MenuItem
                         icon={LogOut}
                         label="Log Out System"
@@ -167,7 +167,7 @@ const MenuItem = ({ icon: Icon, label, onClick, destructive }: { icon: any, labe
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all",
             destructive
                 ? "text-down hover:bg-down/10 hover:text-down"
-                : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
         )}
     >
         <Icon className="w-3.5 h-3.5" />

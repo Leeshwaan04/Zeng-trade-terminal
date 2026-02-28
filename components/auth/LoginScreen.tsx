@@ -10,13 +10,13 @@ export const LoginScreen = () => {
     const setBroker = useAuthStore((s) => s.setBroker);
 
     return (
-        <div className="min-h-screen bg-[#050506] flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden transition-colors duration-500">
             {/* Background Grid */}
             <div
-                className="absolute inset-0 opacity-[0.03]"
+                className="absolute inset-0 opacity-[0.05]"
                 style={{
-                    backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                                      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                    backgroundImage: `linear-gradient(currentColor 1px, transparent 1px),
+                                      linear-gradient(90deg, currentColor 1px, transparent 1px)`,
                     backgroundSize: "60px 60px",
                 }}
             />
@@ -32,10 +32,10 @@ export const LoginScreen = () => {
                         <Zap className="w-6 h-6 text-black" />
                     </div>
                     <div className="flex flex-col items-center text-center">
-                        <h1 className="text-2xl font-black text-white tracking-tight">
+                        <h1 className="text-2xl font-black text-foreground tracking-tight">
                             ZenG <span className="text-[var(--primary)]">TRADE</span>
                         </h1>
-                        <p className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] font-mono mt-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-mono mt-1">
                             Pro Trading Terminal
                         </p>
                     </div>
@@ -54,13 +54,13 @@ export const LoginScreen = () => {
                     </div>
                 </div>
 
-                <p className="text-[10px] text-zinc-600 text-center leading-relaxed max-w-xs mt-4">
+                <p className="text-[10px] text-muted-foreground text-center leading-relaxed max-w-xs mt-4">
                     Your credentials are encrypted locally and never shared with ZenG Trade.
                     Redirects to broker's secure login.
                 </p>
 
                 {/* Version */}
-                <div className="flex flex-col items-center gap-2 text-[9px] text-zinc-700 font-mono">
+                <div className="flex flex-col items-center gap-2 text-[9px] text-muted-foreground/50 font-mono">
                     <div className="flex items-center gap-2">
                         <span>v0.4.0-kite</span>
                         <span>•</span>

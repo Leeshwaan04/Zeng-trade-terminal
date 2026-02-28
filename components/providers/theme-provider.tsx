@@ -11,8 +11,10 @@ export function ThemeProvider({
     useNeuralUI(); // Active Neural Engine
     return (
         <NextThemesProvider
+            attribute="class"
             themes={['antigravity', 'groww', 'midnight', 'light']}
             defaultTheme="antigravity"
+            enableSystem={false}
             {...props}
         >
             {children}

@@ -53,7 +53,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
     });
 
     return (
-        <div className="h-full w-full flex flex-col bg-black/90 text-xs font-mono select-none overflow-hidden">
+        <div className="h-full w-full flex flex-col bg-background/90 text-xs font-mono select-none overflow-hidden">
             <WidgetHeader
                 id="option-chain"
                 title="Option Chain"
@@ -66,7 +66,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
 
             {/* Table Header */}
             <div className={cn(
-                "grid bg-zinc-900/50 text-[9px] py-1.5 text-center border-b border-white/5 shrink-0 uppercase tracking-wider sticky top-0 z-10 font-bold",
+                "grid bg-surface-1 text-[9px] py-1.5 text-center border-b border-border shrink-0 uppercase tracking-wider sticky top-0 z-10 font-bold",
                 isMobile ? "grid-cols-3" : "grid-cols-9"
             )}>
                 {!isMobile && <div className="col-span-1 text-[var(--neon-cyan)] bg-[var(--neon-cyan)]/5">OI (Lakhs)</div>}
@@ -74,7 +74,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
                 <div className="col-span-1 text-[var(--neon-cyan)]">CALL LTP</div>
                 {!isMobile && <div className="col-span-1 text-[var(--neon-cyan)]">Chg%</div>}
 
-                <div className="col-span-1 text-white bg-white/5 border-x border-white/5">STRIKE</div>
+                <div className="col-span-1 text-foreground bg-surface-2 border-x border-border">STRIKE</div>
 
                 {!isMobile && <div className="col-span-1 text-[var(--neon-purple)]">Chg%</div>}
                 <div className="col-span-1 text-[var(--neon-purple)]">PUT LTP</div>
@@ -118,7 +118,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
                                 className={cn(
-                                    "grid text-[10px] items-center text-zinc-400 hover:bg-white/5 transition-colors border-b border-white/5 group relative",
+                                    "grid text-[10px] items-center text-muted-foreground hover:bg-primary/10 transition-colors border-b border-border group relative",
                                     isMobile ? "grid-cols-3 h-10" : "grid-cols-9 h-7"
                                 )}
                             >
@@ -159,7 +159,7 @@ export const NeuralOptionChain = ({ symbol = "NIFTY 50" }: { symbol?: string }) 
                                 )}
 
                                 {/* STRIKE */}
-                                <div className="col-span-1 text-center font-bold text-white bg-white/5 h-full flex items-center justify-center border-x border-white/5 cursor-pointer hover:bg-[var(--color-neon-cyan)]/20 transition-colors">
+                                <div className="col-span-1 text-center font-bold text-foreground bg-surface-2 h-full flex items-center justify-center border-x border-border cursor-pointer hover:bg-primary/20 transition-colors">
                                     {row.strike}
                                 </div>
 

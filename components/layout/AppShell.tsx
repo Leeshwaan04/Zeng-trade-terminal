@@ -85,9 +85,9 @@ export default function AppShell() {
     return (
         <div className="h-screen w-full flex flex-col overflow-hidden selection:bg-primary/30 selection:text-primary relative font-sans">
             {/* ─── Global Background Effects ─── */}
-            <div className="absolute inset-0 mesh-gradient z-0 contrast-[1.1]" />
-            <div className="absolute inset-0 bg-grid-pattern opacity-[0.04] pointer-events-none z-0 mix-blend-overlay" />
-            <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/10 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
+            <div className="absolute inset-0 mesh-gradient z-0 transition-colors duration-500" />
+            <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] pointer-events-none z-0 mix-blend-overlay" />
+            <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
             <div className="absolute bottom-[-10%] right-[10%] w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none z-0 animate-float" />
 
             <PiPWindow />
@@ -100,18 +100,18 @@ export default function AppShell() {
 
             {/* Header - Antigravity Glass Refactor */}
             <div className="pt-3 px-3 w-full shrink-0 z-30">
-                <header data-testid="app-header" className="h-[52px] rounded-2xl border border-border/10 flex items-center justify-between gap-4 bg-background/60 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.05)] w-full transition-all relative">
+                <header data-testid="app-header" className="h-[52px] rounded-2xl border border-border/10 flex items-center justify-between gap-4 bg-background/60 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] w-full transition-all relative">
                     {/* Inner Edge Highlight */}
                     <div className="absolute inset-0 rounded-2xl border border-white/[0.02] pointer-events-none" />
                     {/* LEFT SECTION (Logo + Tabs) */}
                     <div className="flex items-center h-full min-w-0">
-                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-white/[0.06] h-full transition-colors hover:bg-white/[0.02]">
+                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-border/10 h-full transition-colors hover:bg-foreground/5">
                             <div className="w-6 h-6 bg-gradient-to-br from-[var(--up)] to-[var(--primary)] rounded-md flex items-center justify-center shadow-[0_0_15px_color-mix(in_srgb,var(--up)_20%,transparent)]">
                                 <Terminal className="w-3.5 h-3.5 text-black" />
                             </div>
                             <div className="flex items-center gap-1.5 px-1 pr-2">
-                                <span className="text-[13px] font-black tracking-tight text-white drop-shadow-md">ZenG</span>
-                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.15em] drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]">TRADE</span>
+                                <span className="text-[13px] font-black tracking-tight text-foreground drop-shadow-sm">ZenG</span>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.15em]">TRADE</span>
                             </div>
                         </div>
 
@@ -123,11 +123,11 @@ export default function AppShell() {
 
                     {/* MIDDLE SECTION (P&L + Market Status) */}
                     <div className="hidden lg:flex items-center gap-5 shrink-0">
-                        <div className="flex items-center gap-4 px-4 h-full border-x border-white/[0.06] cursor-pointer hover:bg-white/[0.03] transition-colors group">
-                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">P&L</span>
+                        <div className="flex items-center gap-4 px-4 h-full border-x border-border/10 cursor-pointer hover:bg-foreground/5 transition-colors group">
+                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">P&L</span>
                             <div className="flex items-center gap-1.5">
                                 <PnLTicker />
-                                <ChevronDown className="w-3 h-3 text-zinc-700" />
+                                <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
                             </div>
                         </div>
                         <div className="flex items-center">
@@ -140,7 +140,7 @@ export default function AppShell() {
                         {/* Tools Menu Trigger */}
                         <div className="relative h-full flex items-center">
                             <button
-                                className="hidden md:flex items-center gap-1.5 h-full px-4 border-x border-white/[0.06] text-[9px] font-black text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-all uppercase tracking-widest"
+                                className="hidden md:flex items-center gap-1.5 h-full px-4 border-x border-border/10 text-[9px] font-black text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all uppercase tracking-widest"
                                 onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
                             >
                                 <Settings2 className="w-3.5 h-3.5" />
@@ -151,7 +151,7 @@ export default function AppShell() {
 
                         {/* Widget Picker Trigger */}
                         <button
-                            className="flex items-center gap-1.5 h-full px-4 text-[9px] font-black text-primary hover:bg-primary/10 transition-all uppercase tracking-widest border-r border-white/[0.06]"
+                            className="flex items-center gap-1.5 h-full px-4 text-[9px] font-black text-primary hover:bg-primary/10 transition-all uppercase tracking-widest border-r border-border/10"
                             onClick={() => setIsWidgetPickerOpen(true)}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
@@ -170,7 +170,7 @@ export default function AppShell() {
             </div>
 
             {/* Indices Ticker Bar - Moved below floating header and made subtle */}
-            <div className="h-[28px] mt-1 border-b border-white/[0.02] bg-transparent flex items-center z-10 shrink-0">
+            <div className="h-[28px] mt-1 border-b border-border/5 bg-transparent flex items-center z-10 shrink-0">
                 <IndicesTicker />
             </div>
 

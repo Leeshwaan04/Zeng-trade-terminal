@@ -17,10 +17,10 @@ export const FiiDiiWidget = () => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-[#0c0f13] border border-white/10 p-2 rounded shadow-xl font-mono text-[10px]">
-                    <div className="text-white font-bold mb-1 border-b border-white/10 pb-1">{label}</div>
-                    <div className="text-zinc-300">FII: <span className={payload[0].value >= 0 ? 'text-up' : 'text-down'}>{payload[0].value} Cr</span></div>
-                    <div className="text-zinc-300">DII: <span className={payload[1].value >= 0 ? 'text-up' : 'text-down'}>{payload[1].value} Cr</span></div>
+                <div className="bg-surface-1 border border-border p-2 rounded shadow-xl font-mono text-[10px]">
+                    <div className="text-foreground font-bold mb-1 border-b border-border pb-1">{label}</div>
+                    <div className="text-muted-foreground">FII: <span className={payload[0].value >= 0 ? 'text-up' : 'text-down'}>{payload[0].value} Cr</span></div>
+                    <div className="text-muted-foreground">DII: <span className={payload[1].value >= 0 ? 'text-up' : 'text-down'}>{payload[1].value} Cr</span></div>
                 </div>
             );
         }
@@ -38,22 +38,22 @@ export const FiiDiiWidget = () => {
                         margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
                         barGap={1}
                     >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                         <XAxis
                             dataKey="date"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#71717a', fontSize: 8, fontWeight: 'bold' }}
+                            tick={{ fill: 'var(--muted-foreground)', fontSize: 8, fontWeight: 'bold' }}
                             dy={5}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#71717a', fontSize: 8, fontWeight: 'bold' }}
+                            tick={{ fill: 'var(--muted-foreground)', fontSize: 8, fontWeight: 'bold' }}
                             domain={[-4000, 4000]}
                             tickFormatter={(val) => `${val / 1000}k`}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--surface-2)' }} />
 
                         <Bar dataKey="fii" radius={[2, 2, 0, 0]}>
                             {data.map((entry, index) => (
@@ -69,7 +69,7 @@ export const FiiDiiWidget = () => {
                 </ResponsiveContainer>
             </div>
 
-            <div className="px-3 py-2 bg-[#080a0c] border-t border-white/5 flex gap-4 text-[9px] font-bold text-zinc-400">
+            <div className="px-3 py-2 bg-surface-1 border-t border-border flex gap-4 text-[9px] font-bold text-muted-foreground">
                 <div className="flex items-center gap-1">
                     <div className="w-1.5 h-4 bg-gradient-to-b from-green-500 to-red-500 rounded-sm"></div> FII
                 </div>

@@ -157,7 +157,14 @@ export function getChartColors(el?: HTMLElement): DesignTokens {
 
     const root = el ?? document.documentElement;
     const s = getComputedStyle(root);
-    const themeName = root.getAttribute("data-theme") || "antigravity";
+    const classes = document.documentElement.className;
+    const themeName = classes.includes("midnight")
+        ? "midnight"
+        : classes.includes("groww")
+            ? "groww"
+            : classes.includes("light")
+                ? "light"
+                : "antigravity";
 
     let fallbacks: DesignTokens = DARK_TOKENS;
     if (themeName === "light") fallbacks = LIGHT_TOKENS;
