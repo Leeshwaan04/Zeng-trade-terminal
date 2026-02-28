@@ -86,8 +86,8 @@ export default function AppShell() {
             <SettingsDialog />
             <Toaster />
 
-            {/* Header - Glassmorphism Refactor */}
-            <header data-testid="app-header" className="h-[44px] border-b border-white/[0.08] flex items-center justify-between gap-4 bg-black/40 backdrop-blur-2xl z-20 shrink-0 shadow-2xl">
+            {/* Header - Neural-Glass Refactor */}
+            <header data-testid="app-header" className="h-[48px] border-b border-white/10 flex items-center justify-between gap-4 bg-black/40 backdrop-blur-3xl z-20 shrink-0 shadow-[0_4px_30px_rgba(0,0,0,0.5)] bezel-top">
                 {/* LEFT SECTION (Logo + Tabs) */}
                 <div className="flex items-center h-full min-w-0">
                     <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-white/[0.06] h-full transition-colors hover:bg-white/[0.02]">
@@ -163,8 +163,8 @@ export default function AppShell() {
             </main>
 
 
-            {/* Footer Status Bar */}
-            <footer className="h-[22px] border-t border-white/[0.05] bg-[#0c1016] text-[9px] flex items-center justify-between px-3 text-zinc-600 select-none shrink-0 font-mono z-20">
+            {/* Footer Status Bar - Neural-Glass Polish */}
+            <footer className="h-[24px] border-t border-white/[0.05] bg-black/60 backdrop-blur-xl text-[9px] flex items-center justify-between px-3 text-zinc-500 select-none shrink-0 font-mono z-20">
                 <div className="flex gap-4">
                     <span className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_var(--up)] ${connectionStatus === 'CONNECTED' || searchParams.get('mock') === 'true' ? 'bg-up' :
@@ -186,7 +186,7 @@ export default function AppShell() {
                             </span>
                         )}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-numeral">
                         LATENCY:
                         <span className={cn(
                             "font-bold",
@@ -196,7 +196,7 @@ export default function AppShell() {
                         </span>
                     </span>
                     <span className="opacity-30">|</span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-numeral">
                         SYNC INTEGRITY:
                         <span className={cn(
                             "font-bold",
@@ -206,7 +206,7 @@ export default function AppShell() {
                         </span>
                     </span>
                     <span className="opacity-30">|</span>
-                    <span className="hover:text-primary transition-colors cursor-pointer">v0.4.0-zeng</span>
+                    <span className="hover:text-primary transition-colors cursor-pointer text-numeral">v0.4.0-zeng</span>
                     {user && <span className="opacity-50">• {user.user_id}</span>}
                 </div>
                 <div className="flex gap-4 uppercase tracking-widest text-[9px]">

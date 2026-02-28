@@ -13,28 +13,27 @@ export const SafetyToggle = () => {
         <button
             onClick={toggleArmed}
             className={cn(
-                "group relative flex items-center gap-2 px-3 py-1.5 rounded-md border transition-all duration-300 overflow-hidden",
+                "group relative flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all duration-500 overflow-hidden",
                 isArmed
-                    ? "bg-red-900/30 border-red-500/50 text-red-500 hover:bg-red-900/50 shadow-[0_0_15px_rgba(255,0,0,0.2)]"
-                    : "bg-emerald-900/30 border-emerald-500/50 text-emerald-500 hover:bg-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                    ? "bg-red-500/10 border-red-500/40 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:border-red-500/60"
+                    : "bg-emerald-500/10 border-emerald-500/40 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:border-emerald-500/60"
             )}
         >
-            {/* Animated Background Pulse */}
-            <div className={cn(
-                "absolute inset-0 opacity-20 transition-opacity duration-300",
-                isArmed ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-            )} />
+            {/* Animated Background Glow Layer */}
+            {isArmed && (
+                <div className="absolute inset-0 bg-red-500/20 blur-xl animate-pulse-glow pointer-events-none" />
+            )}
 
-            <div className="relative z-10 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <div className="relative z-10 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em]">
                 {isArmed ? (
                     <>
-                        <Unlock className="w-3 h-3" />
-                        <span>ARMED</span>
-                        <AlertTriangle className="w-3 h-3 animate-pulse" />
+                        <Unlock className="w-3.5 h-3.5 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                        <span className="drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]">ARMED</span>
+                        <AlertTriangle className="w-3.5 h-3.5 animate-pulse text-red-400" />
                     </>
                 ) : (
                     <>
-                        <Lock className="w-3 h-3" />
+                        <Lock className="w-3.5 h-3.5" />
                         <span>SAFE</span>
                     </>
                 )}

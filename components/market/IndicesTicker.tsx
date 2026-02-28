@@ -34,14 +34,14 @@ export const IndicesTicker = () => {
         const changePct = ticker.change_percent ?? (ticker.net_change / (ticker.last_price - ticker.net_change) * 100 || 0);
 
         return (
-            <div className="flex items-center gap-2.5 px-4 shrink-0 border-r border-white/[0.04] h-full cursor-pointer hover:bg-white/[0.03] transition-colors group">
-                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.1em] group-hover:text-zinc-400 transition-colors">
+            <div className="flex items-center gap-3 px-4 shrink-0 border-r border-white/5 h-full cursor-pointer hover:bg-white/[0.04] transition-colors group">
+                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.12em] group-hover:text-zinc-300 transition-colors">
                     {index.symbol.replace("NIFTY ", "").replace("INDIA ", "")}
                 </span>
-                <span className={cn("text-[10px] font-black font-mono tracking-tight", isPositive ? "text-up" : "text-down")}>
+                <span className={cn("text-[10px] font-black tracking-tight text-numeral", isPositive ? "text-up" : "text-down")}>
                     {ticker.last_price > 0 ? ticker.last_price.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : "—"}
                 </span>
-                <span className={cn("text-[9px] font-bold font-mono", isPositive ? "text-up/70" : "text-down/70")}>
+                <span className={cn("text-[8px] font-bold text-numeral", isPositive ? "text-up/60" : "text-down/60")}>
                     {isPositive ? "▲" : "▼"} {Math.abs(changePct).toFixed(2)}%
                 </span>
             </div>
@@ -49,9 +49,9 @@ export const IndicesTicker = () => {
     };
 
     return (
-        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-full group/ticker">
+        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-[22px] bg-black/60 backdrop-blur-md group/ticker border-b border-white/5">
             {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0c0f13] to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/60 to-transparent z-10 pointer-events-none" />
 
             <div
                 className="flex animate-marquee h-full items-center"
@@ -65,7 +65,7 @@ export const IndicesTicker = () => {
                 ))}
             </div>
 
-            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0c0f13] via-[#0c0f13]/80 to-transparent z-10 pointer-events-none flex items-center justify-end pr-2" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black/60 via-black/40 to-transparent z-10 pointer-events-none flex items-center justify-end pr-2" />
 
             {/* Settings Trigger */}
             <div className="absolute right-2 top-0 bottom-0 z-20 flex items-center">
