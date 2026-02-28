@@ -10,13 +10,12 @@ import { motion, AnimatePresence } from "framer-motion";
 export const WorkspaceTabs = () => {
     const { activeWorkspaceId, workspaces, setActiveWorkspace, deleteWorkspace } = useLayoutStore();
     const [showCustomizer, setShowCustomizer] = React.useState(false);
-
     const orderedWorkspaces = Object.values(workspaces);
-    const protectedIds = ['standard', 'scalping', 'analysis', 'options', 'groww-classic', 'cyber-scalp'];
+    const protectedIds = ['standard'];
 
     return (
         <div className="flex items-center gap-1.5 h-full px-3 overflow-x-auto no-scrollbar py-2">
-            {orderedWorkspaces.map((ws) => {
+            {orderedWorkspaces.map((ws: any) => {
                 const isActive = activeWorkspaceId === ws.id;
                 const isProtected = protectedIds.includes(ws.id);
 
