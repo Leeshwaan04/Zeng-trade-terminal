@@ -31,38 +31,34 @@ export async function GET(req: NextRequest) {
 
     try {
         const url = `${KITE_API_BASE}/instruments/historical/${instrument_token}/${interval}?from=${from}&to=${to}`;
+        console.log(`[Kite History] Fetching: ${url}`);
+        console.log(`[Kite History] Auth: token ${apiKey}:<redacted>${accessToken?.slice(-4)}`);
 
         const response = await fetch(url, {
             headers: {
                 "X-Kite-Version": "3",
                 "Authorization": `token ${apiKey}:${accessToken}`
             },
-            // Reduce cache time for historical data
             next: { revalidate: 60 }
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[Kite History] Error ${response.status}:`, errorText);
-
-            // GRACEFUL FALLBACK: 
-            // The Historical API is a paid add-on (₹2000/mo). If the user doesn't have it, 
-            // Kite returns 403 Forbidden. We intercept this and return mock data 
-            // so the UI charts don't break.
-            if (response.status === 403) {
-                console.warn("[Kite History] 403 Forbidden detected. Missing Historical API subscription. Falling back to Mock Data.");
-                return NextResponse.json(generateMockData(from, to, interval, basePrice));
-            }
-
-            return NextResponse.json({ error: "Failed to fetch from Kite", details: errorText }, { status: response.status });
+            console.error(`[Kite History] Error ${response.status}: ${errorText}`);
+            console.error(`[Kite History] URL was: ${url}`);
+            return NextResponse.json(
+                { error: `Kite Historical API error (${response.status})`, details: errorText },
+                { status: response.status }
+            );
         }
 
         const data = await response.json();
+        console.log(`[Kite History] SUCCESS: ${data?.data?.candles?.length || 0} candles returned`);
         return NextResponse.json(data);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("[Kite History] Server exception:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
 }
 

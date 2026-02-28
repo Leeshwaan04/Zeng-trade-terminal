@@ -90,6 +90,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
     const [data, setData] = useState<Candle[]>([]);
     const [secondaryData, setSecondaryData] = useState<Candle[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const activeBroker = useAuthStore(state => state.activeBroker) || 'KITE';
 
@@ -97,6 +98,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
     useEffect(() => {
         const fetchHistory = async () => {
             setIsLoading(true);
+            setFetchError(null);
             try {
                 // Calculate date range based on Interval
                 // Kite API has strict limits on historical data duration per request:
@@ -166,6 +168,10 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
                         })).sort((a: any, b: any) => a.time - b.time);
                         setData(candles);
                     }
+                } else if (pRes && !pRes.ok) {
+                    const errJson = await pRes.json().catch(() => ({ error: `HTTP ${pRes.status}` }));
+                    console.error('[Chart] Historical API error:', errJson);
+                    setFetchError(`Historical API: ${errJson.error || errJson.details || `HTTP ${pRes.status}`}`);
                 }
 
                 // Process Secondary
@@ -184,8 +190,9 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
                     setSecondaryData([]);
                 }
 
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Chart data fetch error:", err);
+                setFetchError(`Fetch error: ${err.message}`);
             } finally {
                 setIsLoading(false);
             }
@@ -1025,6 +1032,15 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
                             </span>
                         </>
                     )}
+                </div>
+            )}
+
+            {/* ─── Fetch Error Banner ───────────────────────────── */}
+            {fetchError && (
+                <div className="absolute bottom-10 left-3 right-[80px] z-20 px-3 py-2 rounded bg-red-900/80 border border-red-500/50 backdrop-blur-sm">
+                    <p className="text-[11px] font-mono text-red-200">
+                        ⚠️ {fetchError}
+                    </p>
                 </div>
             )}
 
