@@ -58,17 +58,17 @@ export const DepthOfMarket = ({ symbol }: DepthOfMarketProps) => {
     };
 
     return (
-        <div className="flex flex-col h-full w-full bg-black border border-white/5 font-mono text-xs select-none">
+        <div className="flex flex-col h-full w-full bg-background border border-border font-mono text-xs select-none">
             {/* Header */}
-            <div className="flex bg-[#111] border-b border-white/10 p-2 items-center justify-between shadow-md z-10">
-                <div className="font-bold text-white tracking-widest">{symbol} DOM</div>
-                <div className="text-[#00e5ff] font-bold">{ltp.toFixed(2)}</div>
+            <div className="flex bg-surface-1 border-b border-border p-2 items-center justify-between shadow-md z-10">
+                <div className="font-bold text-foreground tracking-widest">{symbol} DOM</div>
+                <div className="text-primary font-bold">{ltp.toFixed(2)}</div>
             </div>
 
             {/* DOM Table Headers */}
-            <div className="flex text-zinc-400 bg-[#0a0a0a] border-b border-white/5 py-1">
+            <div className="flex text-muted-foreground bg-muted/30 border-b border-border py-1">
                 <div className="flex-1 text-center font-semibold text-up text-[10px]">BID SIZE</div>
-                <div className="w-[80px] text-center font-bold text-white text-[10px]">PRICE</div>
+                <div className="w-[80px] text-center font-bold text-foreground text-[10px]">PRICE</div>
                 <div className="flex-1 text-center font-semibold text-down text-[10px]">ASK SIZE</div>
             </div>
 
@@ -83,8 +83,8 @@ export const DepthOfMarket = ({ symbol }: DepthOfMarketProps) => {
                             <div
                                 key={level.price}
                                 className={cn(
-                                    "flex group cursor-pointer hover:bg-white/5 transition-colors border-b border-white/5 relative",
-                                    level.isLtp ? "bg-white/10 border-y border-white/20" : ""
+                                    "flex group cursor-pointer hover:bg-muted/50 transition-colors border-b border-border relative",
+                                    level.isLtp ? "bg-primary/10 border-y border-primary/20" : ""
                                 )}
                             >
                                 {/* BID SIDE */}
@@ -107,9 +107,9 @@ export const DepthOfMarket = ({ symbol }: DepthOfMarketProps) => {
 
                                 {/* PRICE COLUMN */}
                                 <div className={cn(
-                                    "w-[80px] text-center py-1 font-bold z-10 bg-black/40 backdrop-blur-sm",
-                                    level.isLtp ? "text-[#00e5ff] text-sm" : "text-zinc-300",
-                                    "border-x border-white/5 shadow-inner"
+                                    "w-[80px] text-center py-1 font-bold z-10 bg-background/40 backdrop-blur-sm",
+                                    level.isLtp ? "text-primary text-sm" : "text-foreground/80",
+                                    "border-x border-border shadow-inner"
                                 )}>
                                     {level.price.toFixed(2)}
                                 </div>

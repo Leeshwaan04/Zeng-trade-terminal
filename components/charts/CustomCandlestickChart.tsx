@@ -26,6 +26,9 @@ interface CustomCandlestickChartProps {
     interval?: string;
     chartType?: "candle" | "line";
     showOIProfile?: boolean;
+    isAutoMode?: boolean;
+    setIsAutoMode?: (val: boolean) => void;
+    magnetMode?: boolean;
 }
 
 const mapIntervalToKite = (interval: string): string => {
@@ -53,7 +56,15 @@ const formatTime = (ts: number, interval: string): string => {
 };
 
 // ─── Main Component ──────────────────────────────────────────
-export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "candle", showOIProfile = false }: CustomCandlestickChartProps) => {
+export const CustomCandlestickChart = ({
+    symbol,
+    interval = "1D",
+    chartType = "candle",
+    showOIProfile = false,
+    isAutoMode = true,
+    setIsAutoMode,
+    magnetMode = false
+}: CustomCandlestickChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -72,7 +83,8 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
     const [priceOffset, setPriceOffset] = useState<number>(0);
     const [priceScaleMultiplier, setPriceScaleMultiplier] = useState<number>(1);
-    const [isYAxisDragging, setIsYAxisDragging] = useState(false);
+    const [isYAxisScaling, setIsYAxisScaling] = useState(false);
+    const [isXAxisScaling, setIsXAxisScaling] = useState(false);
     const [settingsIndId, setSettingsIndId] = useState<string | null>(null);
 
     const stepMs = useMemo(() => {
@@ -400,51 +412,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
         const volumeH = mainChartH * VOLUME_HEIGHT_RATIO;
         const priceH = mainChartH - volumeH;
 
-        // 1. Calculate base scale using primary data only (Sanitize outliers)
-        const validHighs = data.map(d => d.high).filter(h => h > 0 && !isNaN(h));
-        const validLows = data.map(d => d.low).filter(l => l > 0 && !isNaN(l));
-
-        if (validHighs.length === 0) return null;
-
-        let priceMin = Math.min(...validLows);
-        let priceMax = Math.max(...validHighs);
-        let priceRange = priceMax - priceMin;
-
-        // 2. Intelligent Expansion: Only include secondary/orders if they are within a reasonable boundary
-        // We allow the chart to expand by max 50% to accommodate others. Beyond that, they are "Out of View"
-        const boundaryFactor = 0.5;
-        const minBound = priceMin - (priceRange * boundaryFactor);
-        const maxBound = priceMax + (priceRange * boundaryFactor);
-
-        const relevantSecondary = secondaryData
-            .flatMap(d => [d.high, d.low])
-            .filter(p => p > minBound && p < maxBound);
-
-        const relevantOrderPrices = orderLines
-            .map(l => l.price)
-            .filter(p => p > minBound && p < maxBound);
-
-        priceMin = Math.min(priceMin, ...relevantSecondary, ...relevantOrderPrices);
-        priceMax = Math.max(priceMax, ...relevantSecondary, ...relevantOrderPrices);
-
-        // Final Padding
-        priceMin -= (priceMax - priceMin) * 0.05;
-        priceMax += (priceMax - priceMin) * 0.05;
-        priceRange = priceMax - priceMin || 1;
-
-        // Apply Manual Y-Axis Scaling & Panning
-        const finalPriceRange = priceRange / priceScaleMultiplier;
-        const middlePrice = priceMin + priceRange / 2;
-        priceMin = middlePrice - finalPriceRange / 2 + priceOffset;
-        priceMax = middlePrice + finalPriceRange / 2 + priceOffset;
-        priceRange = finalPriceRange;
-
-        const maxVol = Math.max(...data.map(d => d.volume)) || 1;
-
-        const yPrice = (price: number) => MARGIN.top + priceH * (1 - (price - priceMin) / priceRange);
-        const priceFromY = (y: number) => priceMin + (1 - (y - MARGIN.top) / priceH) * priceRange;
-
-        // 3. Mathematical Time Scaling
+        // 1. Mathematical Time Scaling
         const currentOffset = timeOffset ?? (data.length > 0 ? data[data.length - 1].time + stepMs * 2 : Date.now());
         const timeScale = stepMs / pxPerCandle; // ms per pixel
 
@@ -453,6 +421,42 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
         // visibleData now truly filters by timestamp rather than slice index
         const visibleData = data.filter(d => d.time >= startTime - stepMs * 10 && d.time <= endTime + stepMs * 10);
+
+        // 2. Base Price Scale Calculation
+        const validHighs = data.map(d => d.high).filter(h => h > 0 && !isNaN(h));
+        const validLows = data.map(d => d.low).filter(l => l > 0 && !isNaN(l));
+
+        let priceMin = validHighs.length > 0 ? Math.min(...validLows) : 0;
+        let priceMax = validHighs.length > 0 ? Math.max(...validHighs) : 100;
+        let priceRange = priceMax - priceMin || 1;
+
+        // 3. Auto-Scaling Logic (Fit visible candles to height)
+        if (isAutoMode && visibleData.length > 0) {
+            const visHighs = visibleData.map(d => d.high).filter(h => !isNaN(h));
+            const visLows = visibleData.map(d => d.low).filter(l => !isNaN(l));
+            if (visHighs.length > 0) {
+                priceMin = Math.min(...visLows);
+                priceMax = Math.max(...visHighs);
+                // Add padding
+                const padding = (priceMax - priceMin) * 0.1;
+                priceMin -= padding;
+                priceMax += padding;
+                priceRange = priceMax - priceMin || 1;
+            }
+        } else {
+            // Apply Manual Y-Axis Scaling & Panning
+            const baseRange = priceRange;
+            const finalPriceRange = baseRange / priceScaleMultiplier;
+            const middlePrice = priceMin + baseRange / 2;
+            priceMin = middlePrice - finalPriceRange / 2 + priceOffset;
+            priceMax = middlePrice + finalPriceRange / 2 + priceOffset;
+            priceRange = finalPriceRange;
+        }
+
+        const maxVol = Math.max(...data.map(d => d.volume)) || 1;
+
+        const yPrice = (price: number) => MARGIN.top + priceH * (1 - (price - priceMin) / priceRange);
+        const priceFromY = (y: number) => priceMin + (1 - (y - MARGIN.top) / priceH) * priceRange;
 
         const xTime = (time: number) => MARGIN.left + chartW - (currentOffset - time) / timeScale;
         const timeFromX = (x: number) => currentOffset - (MARGIN.left + chartW - x) * timeScale;
@@ -468,7 +472,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
         };
 
         return { W, H, chartW, totalChartH, mainChartH, priceH, subPaneH, volumeH, priceMin, priceMax, priceRange, maxVol, yPrice, priceFromY, gap, candleW, xCandle, xTime, timeFromX, timeScale, currentOffset, visibleData };
-    }, [data, secondaryData, dimensions, orderLines, hasSubPane, timeOffset, pxPerCandle, stepMs]);
+    }, [data, secondaryData, dimensions, orderLines, hasSubPane, timeOffset, pxPerCandle, stepMs, isAutoMode, priceScaleMultiplier, priceOffset]);
 
     // Infinite Scroll Pagination
     useEffect(() => {
@@ -1178,17 +1182,46 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
             return;
         }
 
-        // 2. Panning Mode
+        // 2. Axis Scaling Detection
+        if (x > scales.W - MARGIN.right) {
+            setIsYAxisScaling(true);
+            lastPanY.current = y;
+            if (setIsAutoMode) setIsAutoMode(false);
+            return;
+        }
+        if (y > scales.H - MARGIN.bottom) {
+            setIsXAxisScaling(true);
+            lastPanX.current = x;
+            return;
+        }
+
+        // 3. Panning Mode
         if (!drawingMode) {
             setIsPanning(true);
             lastPanX.current = x;
+            lastPanY.current = y; // Fix: Set Y for vertical panning
+            if (setIsAutoMode) setIsAutoMode(false);
             return;
         }
 
         // 3. Neon-Sketch Logic
         if (activeTool !== 'CURSOR' && activeTool !== 'MEASURE') {
-            const price = scales.priceFromY(y);
-            const snappedTime = Math.round(scales.timeFromX(x) / stepMs) * stepMs;
+            let price = scales.priceFromY(y);
+            let snappedTime = Math.round(scales.timeFromX(x) / stepMs) * stepMs;
+
+            // Magnet Mode: Snap to nearest candle wick
+            if (magnetMode) {
+                const hoverCandle = scales.visibleData.find(d => Math.abs(d.time - snappedTime) < stepMs);
+                if (hoverCandle) {
+                    const points = [hoverCandle.high, hoverCandle.low, hoverCandle.open, hoverCandle.close];
+                    // Find closest point to click price
+                    const closest = points.reduce((prev, curr) => Math.abs(curr - price) < Math.abs(prev - price) ? curr : prev);
+                    if (Math.abs(scales.yPrice(closest) - y) < 30) {
+                        price = closest;
+                        snappedTime = hoverCandle.time;
+                    }
+                }
+            }
 
             setCurrentDrawing({
                 symbol,
@@ -1208,13 +1241,18 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
         setMousePos({ x, y });
         if (syncCrosshair) setSyncedMousePos({ x, y });
 
-        if (isYAxisDragging && lastPanY.current !== null) {
+        if (isYAxisScaling && lastPanY.current !== null) {
             const dy = y - lastPanY.current;
-            // Dragging up (dy < 0) squeezes the chart (smaller scale)
-            // Dragging down (dy > 0) stretches the chart (larger scale)
-            // It feels more natural inverted if dragging the axis
-            setPriceScaleMultiplier(prev => Math.max(0.1, Math.min(prev * (1 + dy * 0.01), 10)));
+            // Inverted for natural "pulling" feel
+            setPriceScaleMultiplier(prev => Math.max(0.1, Math.min(prev * (1 + dy * 0.015), 50)));
             lastPanY.current = y;
+            return;
+        }
+
+        if (isXAxisScaling && lastPanX.current !== null) {
+            const dx = x - lastPanX.current;
+            setPxPerCandle(prev => Math.max(0.5, Math.min(prev * (1 + dx * 0.01), 150)));
+            lastPanX.current = x;
             return;
         }
 
@@ -1263,7 +1301,8 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
     const handleMouseUp = useCallback(() => {
         setIsPanning(false);
-        setIsYAxisDragging(false);
+        setIsYAxisScaling(false);
+        setIsXAxisScaling(false);
         lastPanX.current = null;
         lastPanY.current = null;
 
@@ -1283,7 +1322,8 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
     }, [draggingLine, currentDrawing, addDrawing, setActiveTool]);
     const handleMouseLeave = useCallback(() => {
         setIsPanning(false);
-        setIsYAxisDragging(false);
+        setIsYAxisScaling(false);
+        setIsXAxisScaling(false);
         lastPanX.current = null;
         lastPanY.current = null;
         setMousePos(null);
@@ -1295,6 +1335,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
     const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
         if (!scales) return;
+        if (setIsAutoMode) setIsAutoMode(false);
 
         // Semantic zoom: anchor on the time under the cursor
         const rect = canvasRef.current?.getBoundingClientRect();
@@ -1302,7 +1343,7 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
         const timeUnderCursor = scales.timeFromX(x);
 
         // Zoom intensity (prevent aggressive zooming based on trackpad vs mouse wheel)
-        const zoomDelta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY) * 0.05, 0.5);
+        const zoomDelta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY) * 0.02, 0.4);
         const zoomFactor = 1 + zoomDelta;
 
         setPxPerCandle(prev => {
@@ -1310,12 +1351,12 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
 
             // Adjust timeOffset so `timeUnderCursor` stays at `x`
             const newTimeScale = stepMs / newPx;
-            const newOffset = timeUnderCursor + (MARGIN.left + scales.chartW - x) * newTimeScale;
+            const newOffset = timeUnderCursor + (scales.chartW - x) * newTimeScale;
             setTimeOffset(newOffset);
 
             return newPx;
         });
-    }, [scales, stepMs, MARGIN.left]);
+    }, [scales, stepMs]);
 
     // Apply synced position from external charts
     useEffect(() => {
@@ -1344,6 +1385,11 @@ export const CustomCandlestickChart = ({ symbol, interval = "1D", chartType = "c
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
                 onWheel={handleWheel}
+                onDoubleClick={() => {
+                    setPriceOffset(0);
+                    setPriceScaleMultiplier(1);
+                    if (setIsAutoMode) setIsAutoMode(true);
+                }}
             />
 
             {/* ─── OHLCV Overlay ──────────────────────────────── */}

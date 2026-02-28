@@ -48,6 +48,10 @@ interface ChartControlsProps {
     hideSnapshot?: boolean;
     showOIProfile?: boolean;
     onToggleOIProfile?: () => void;
+    isAutoMode?: boolean;
+    onToggleAuto?: () => void;
+    magnetMode?: boolean;
+    onToggleMagnet?: () => void;
 }
 
 export const ChartControls = ({
@@ -66,7 +70,11 @@ export const ChartControls = ({
     hideIndicators = false,
     hideSnapshot = false,
     showOIProfile = false,
-    onToggleOIProfile
+    onToggleOIProfile,
+    isAutoMode = true,
+    onToggleAuto,
+    magnetMode = false,
+    onToggleMagnet
 }: ChartControlsProps) => {
     const intervals = ["1m", "5m", "15m", "30m", "1H", "4H", "1D", "1W"];
     const tickerData = useMarketStore(state => state.tickers[symbol]);
@@ -170,7 +178,16 @@ export const ChartControls = ({
                 <ToolButton icon={Square} label="Rectangle" />
                 <ToolButton icon={Minus} label="Horizontal Line" />
                 <ToolButton icon={MessageCircle} label="Annotation" />
-                <ToolButton icon={Magnet} label="Magnet" />
+                <button
+                    onClick={onToggleMagnet}
+                    className={cn(
+                        "p-1.5 rounded transition-colors",
+                        magnetMode ? "bg-primary/20 text-primary border border-primary/30" : "text-[#555] hover:text-white hover:bg-white/5"
+                    )}
+                    title="Magnet Mode"
+                >
+                    <Magnet className="w-3.5 h-3.5" />
+                </button>
 
                 {/* OI Profile Toggle */}
                 <div className="w-[1px] h-6 bg-white/10 mx-1" />
@@ -185,7 +202,18 @@ export const ChartControls = ({
                     <BarChartBig className="w-3.5 h-3.5" />
                 </button>
 
-                {/* Indicators Toggle */}
+                <button
+                    onClick={onToggleAuto}
+                    className={cn(
+                        "flex items-center gap-1.5 px-2 py-0.5 rounded transition-all text-[10px] font-black uppercase tracking-tighter",
+                        isAutoMode
+                            ? "bg-primary/20 border border-primary/40 text-primary"
+                            : "bg-white/5 border border-white/10 text-zinc-500 hover:text-zinc-300 hover:bg-white/10"
+                    )}
+                    title="Toggle Auto Scale"
+                >
+                    Auto
+                </button>
                 <button
                     onClick={() => setIndicatorsOpen(true)}
                     className="p-1.5 rounded text-[#555] hover:text-[#00E5FF] hover:bg-white/5 transition-colors"

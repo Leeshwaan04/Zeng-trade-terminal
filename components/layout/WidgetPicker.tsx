@@ -22,14 +22,14 @@ interface WidgetCardProps {
 const WidgetCard = ({ label, desc, icon, color, gradient, onClick }: WidgetCardProps) => (
     <button
         onClick={onClick}
-        className="group relative flex flex-col p-4 rounded-xl border border-white/5 bg-[#12161f] hover:bg-[#1a202c] transition-all hover:scale-[1.02] hover:border-primary/40 active:scale-[0.98] text-left"
+        className="group relative flex flex-col p-4 rounded-xl border border-border bg-surface-1 hover:bg-muted transition-all hover:scale-[1.02] hover:border-primary/40 active:scale-[0.98] text-left"
     >
         <div className={cn("mb-3 p-2 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br shadow-lg", gradient)}>
             <div className="text-white group-hover:scale-110 transition-transform">
                 {icon}
             </div>
         </div>
-        <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1 group-hover:text-primary transition-colors">
+        <div className="text-[11px] font-black text-foreground uppercase tracking-wider mb-1 group-hover:text-primary transition-colors">
             {label}
         </div>
         <div className="text-[9px] text-zinc-500 leading-tight">
@@ -60,26 +60,25 @@ export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="w-full max-w-4xl bg-[#0a0f18] border border-white/10 rounded-2xl shadow-3xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="w-full max-w-4xl bg-background border border-border rounded-2xl shadow-3xl overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
-                            <LayoutGrid className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black text-white uppercase tracking-tight">Widget Gallery</h2>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest opacity-60">Add specialized tools to your layout</p>
+                            <h2 className="text-lg font-black text-foreground uppercase tracking-tight">Widget Gallery</h2>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Add specialized tools to your layout</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/5 rounded-full transition-colors group"
+                        className="p-2 hover:bg-muted rounded-full transition-colors group"
                     >
-                        <X className="w-6 h-6 text-zinc-500 group-hover:text-white" />
+                        <X className="w-6 h-6 text-muted-foreground group-hover:text-foreground" />
                     </button>
                 </div>
 
@@ -101,11 +100,11 @@ export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-white/2 border-t border-white/5 flex items-center justify-between">
-                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                <div className="px-6 py-4 bg-muted/10 border-t border-border flex items-center justify-between">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                         Total Available: {WIDGETS_COLLECTION.length}
                     </div>
-                    <p className="text-[10px] text-zinc-600">
+                    <p className="text-[10px] text-muted-foreground/60">
                         Pro Tip: Drag and drop widgets to reorder them in your grid.
                     </p>
                 </div>

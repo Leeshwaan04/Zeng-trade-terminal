@@ -18,6 +18,8 @@ export const TradingChart = ({ symbol, widgetId }: TradingChartProps) => {
     const [chartType, setChartType] = useState<"candle" | "line">("candle");
     const [showOrderTicket, setShowOrderTicket] = useState(false);
     const [showOIProfile, setShowOIProfile] = useState(false);
+    const [isAutoMode, setIsAutoMode] = useState(true);
+    const [magnetMode, setMagnetMode] = useState(false);
 
     const { syncInterval, syncedInterval, setSyncedInterval } = useLayoutStore();
 
@@ -54,6 +56,10 @@ export const TradingChart = ({ symbol, widgetId }: TradingChartProps) => {
                         hideSnapshot={false}
                         showOIProfile={showOIProfile}
                         onToggleOIProfile={() => setShowOIProfile(!showOIProfile)}
+                        isAutoMode={isAutoMode}
+                        onToggleAuto={() => setIsAutoMode(!isAutoMode)}
+                        magnetMode={magnetMode}
+                        onToggleMagnet={() => setMagnetMode(!magnetMode)}
                     />
                 </div>
             </div>
@@ -72,6 +78,9 @@ export const TradingChart = ({ symbol, widgetId }: TradingChartProps) => {
                         interval={timeframe}
                         chartType={chartType}
                         showOIProfile={showOIProfile}
+                        isAutoMode={isAutoMode}
+                        setIsAutoMode={setIsAutoMode}
+                        magnetMode={magnetMode}
                     />
 
                     {/* Floating Order Ticket Overlay */}
