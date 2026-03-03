@@ -49,7 +49,7 @@ export const IndicesTicker = () => {
     };
 
     return (
-        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-[22px] bg-background/60 backdrop-blur-md group/ticker border-b border-border/10">
+        <div data-testid="indices-ticker" className="w-full flex items-center overflow-hidden relative h-full bg-transparent group/ticker">
             {/* Fade edges */}
             <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
 

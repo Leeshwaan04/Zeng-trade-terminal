@@ -30,14 +30,24 @@ export const PnLTicker = () => {
     return (
         <div className="h-full flex items-center bg-background/50 px-3 gap-4 select-none shrink-0">
             {/* Fused P&L Section */}
-            <div className="flex items-center gap-3 p-1.5 -ml-1.5 rounded-lg hover:bg-primary/10 transition-colors cursor-default group border border-transparent hover:border-border/50">
-                <div className={cn("p-1.5 rounded-md transition-transform group-hover:scale-105", isProfit ? "bg-up/10" : "bg-down/10")}>
+            <div className="flex items-center gap-3 p-1.5 -ml-1.5 rounded-lg hover:bg-foreground/5 transition-all cursor-default group border border-transparent hover:border-border/50 relative overflow-hidden">
+                {/* Dynamic Pulse Background */}
+                <div className={cn(
+                    "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                    isProfit ? "bg-up/5" : "bg-down/5"
+                )} />
+                <div className={cn(
+                    "absolute -left-4 -right-4 h-[1px] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-20 blur-[2px] transition-all duration-1000",
+                    isProfit ? "bg-up animate-pulse" : "bg-down animate-pulse"
+                )} />
+
+                <div className={cn("p-1.5 rounded-md transition-transform group-hover:scale-105 relative z-10", isProfit ? "bg-up/10" : "bg-down/10")}>
                     {isProfit ? <TrendingUp className="w-4 h-4 text-up" /> : <TrendingDown className="w-4 h-4 text-down" />}
                 </div>
-                <div className="flex flex-col">
-                    <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest group-hover:text-muted-foreground transition-colors">Fused P&L</span>
+                <div className="flex flex-col relative z-10">
+                    <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest group-hover:text-muted-foreground transition-colors leading-none mb-1">Live Feed P&L</span>
                     <span className={cn(
-                        "text-sm font-mono font-bold tracking-tight",
+                        "text-sm font-mono font-bold tracking-tight transition-all duration-300",
                         isProfit ? "text-up drop-shadow-[0_0_8px_color-mix(in_srgb,var(--up)_30%,transparent)]" : "text-down drop-shadow-[0_0_8px_color-mix(in_srgb,var(--down)_30%,transparent)]"
                     )}>
                         {dailyPnL > 0 ? "+" : ""}{formatCurrency(dailyPnL)}

@@ -32,6 +32,8 @@ import { MobileNavBar } from "@/components/layout/MobileNavBar";
 import { CursorFollower } from "@/components/ui/CursorFollower";
 import { PiPWindow } from "@/components/charts/PiPWindow";
 import { AccountManager } from "@/components/trading/AccountManager";
+import { HeaderGuide } from "@/components/layout/HeaderGuide";
+import { useSafetyStore } from "@/hooks/useSafetyStore";
 
 const INSTRUMENT_TOKENS = MARKET_INSTRUMENTS.map(i => i.token);
 
@@ -65,6 +67,7 @@ export default function AppShell() {
     } = useLayoutStore();
 
     const [isResizing, setIsResizing] = useState(false);
+    const { isArmed } = useSafetyStore();
 
     useEffect(() => {
         const layoutParam = searchParams.get('layout');
@@ -85,10 +88,17 @@ export default function AppShell() {
     return (
         <div className="h-screen w-full flex flex-col overflow-hidden selection:bg-primary/30 selection:text-primary relative font-sans">
             {/* ─── Global Background Effects ─── */}
-            <div className="absolute inset-0 mesh-gradient z-0 transition-colors duration-500" />
+            <div className={cn(
+                "absolute inset-0 mesh-gradient z-0 transition-colors duration-1000",
+                isArmed ? "bg-red-500/10" : "bg-primary/5"
+            )} />
+
             <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] pointer-events-none z-0 mix-blend-overlay" />
             <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
-            <div className="absolute bottom-[-10%] right-[10%] w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none z-0 animate-float" />
+
+            {isArmed && (
+                <div className="absolute inset-0 border-[4px] border-red-500/10 pointer-events-none z-50 animate-pulse" />
+            )}
 
             <PiPWindow />
             <AuthInitializer />
@@ -98,81 +108,100 @@ export default function AppShell() {
             <SettingsDialog />
             <Toaster />
 
-            {/* Header - Antigravity Glass Refactor */}
+            {/* Mission Control Header - CPO Innovation */}
             <div className="pt-3 px-3 w-full shrink-0 z-30">
-                <header data-testid="app-header" className="h-[52px] rounded-2xl border border-border/10 flex items-center justify-between gap-4 bg-background/60 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] w-full transition-all relative">
+                <header data-testid="app-header" className={cn(
+                    "h-[52px] rounded-2xl border flex items-center justify-between bg-background/60 backdrop-blur-3xl transition-all duration-700 relative overflow-hidden",
+                    "shadow-[0_16px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.05)]",
+                    isArmed ? "border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-red-950/20" : "border-border/10"
+                )}>
                     {/* Inner Edge Highlight */}
                     <div className="absolute inset-0 rounded-2xl border border-white/[0.02] pointer-events-none" />
-                    {/* LEFT SECTION (Logo + Tabs) */}
-                    <div className="flex items-center h-full min-w-0">
-                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-border/10 h-full transition-colors hover:bg-foreground/5">
-                            <div className="w-6 h-6 bg-gradient-to-br from-[var(--up)] to-[var(--primary)] rounded-md flex items-center justify-center shadow-[0_0_15px_color-mix(in_srgb,var(--up)_20%,transparent)]">
+
+                    {/* ZONE ALPHA: Identity & Flow Control */}
+                    <div className="flex items-center h-full min-w-0 flex-1">
+                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-border/10 h-full transition-colors hover:bg-foreground/5 relative">
+                            <HeaderGuide />
+                            <div className="w-6 h-6 bg-gradient-to-br from-[var(--up)] to-[var(--primary)] rounded-md flex items-center justify-center shadow-[0_0_15px_color-mix(in_srgb,var(--up)_20%,transparent)] relative z-10">
                                 <Terminal className="w-3.5 h-3.5 text-black" />
                             </div>
-                            <div className="flex items-center gap-1.5 px-1 pr-2">
-                                <span className="text-[13px] font-black tracking-tight text-foreground drop-shadow-sm">ZenG</span>
-                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.15em]">TRADE</span>
+                            <div className="flex flex-col justify-center relative z-10">
+                                <span className="text-[12px] font-black tracking-tight text-foreground leading-none">ZenG</span>
+                                <span className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mt-0.5 leading-none">TERMINAL</span>
                             </div>
+                            {/* Zone Marker Alpha */}
+                            <div className="absolute top-0 right-0 w-[2px] h-full bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
 
-                        {/* Workspace Tabs - Flat underline style */}
-                        <div className="flex-1 min-w-0 h-full flex items-end overflow-hidden">
+                        {/* Workspace Navigation */}
+                        <div className="flex-1 min-w-0 h-full flex items-end">
                             <WorkspaceTabs />
                         </div>
                     </div>
 
-                    {/* MIDDLE SECTION (P&L + Market Status) */}
-                    <div className="hidden lg:flex items-center gap-5 shrink-0">
-                        <div className="flex items-center gap-4 px-4 h-full border-x border-border/10 cursor-pointer hover:bg-foreground/5 transition-colors group">
-                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">P&L</span>
-                            <div className="flex items-center gap-1.5">
+                    {/* ZONE SIGMA: Intelligence & Vitals */}
+                    <div className="hidden xl:flex items-center gap-2 px-4 h-full border-x border-border/10 bg-black/20 overflow-hidden relative group/sigma">
+                        <div className="flex items-center gap-4 px-2">
+                            <div className="flex flex-col items-center">
                                 <PnLTicker />
-                                <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
                             </div>
-                        </div>
-                        <div className="flex items-center">
+                            <div className="h-6 w-[1px] bg-border/20 mx-1" />
                             <MarketSentiment />
                         </div>
+
+                        {/* System Pulse Indicator */}
+                        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-shimmer" />
                     </div>
 
-                    {/* RIGHT SECTION (Actions + Profile) */}
-                    <div className="flex items-center h-full shrink-0 relative">
-                        {/* Tools Menu Trigger */}
-                        <div className="relative h-full flex items-center">
+                    {/* ZONE OMEGA: Tactical Execution */}
+                    <div className="flex items-center h-full shrink-0">
+                        {/* Tactical Tools */}
+                        <div className="flex items-center h-full border-r border-border/10">
                             <button
-                                className="hidden md:flex items-center gap-1.5 h-full px-4 border-x border-border/10 text-[9px] font-black text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all uppercase tracking-widest"
+                                className="flex items-center gap-1.5 h-full px-4 text-[9px] font-black text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all uppercase tracking-widest"
                                 onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
                             >
                                 <Settings2 className="w-3.5 h-3.5" />
-                                Tools
+                                <span className="hidden sm:inline">Tactical</span>
                             </button>
                             <ToolsMenu isOpen={isToolsMenuOpen} onClose={() => setIsToolsMenuOpen(false)} />
+
+                            <button
+                                className="flex items-center gap-1.5 h-full px-4 text-[9px] font-black text-primary hover:bg-primary/10 transition-all uppercase tracking-widest"
+                                onClick={() => setIsWidgetPickerOpen(true)}
+                            >
+                                <LayoutGrid className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">+ Widgets</span>
+                            </button>
+                            <WidgetPicker isOpen={isWidgetPickerOpen} onClose={() => setIsWidgetPickerOpen(false)} />
                         </div>
 
-                        {/* Widget Picker Trigger */}
-                        <button
-                            className="flex items-center gap-1.5 h-full px-4 text-[9px] font-black text-primary hover:bg-primary/10 transition-all uppercase tracking-widest border-r border-border/10"
-                            onClick={() => setIsWidgetPickerOpen(true)}
-                        >
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                            + Widgets
-                        </button>
+                        {/* Security & System Controls */}
+                        <div className="flex items-center gap-1 px-3 h-full">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1">
+                                        <ThemeSelector />
+                                        <SafetyToggle />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>System Security & Aesthetic Control</TooltipContent>
+                            </Tooltip>
 
-                        <WidgetPicker isOpen={isWidgetPickerOpen} onClose={() => setIsWidgetPickerOpen(false)} />
-
-                        <div className="h-full flex items-center gap-1 px-2">
-                            <ThemeSelector />
-                            <SafetyToggle />
+                            <div className="h-6 w-[1px] bg-border/10 mx-1" />
                             <ProfileMenu />
                         </div>
                     </div>
                 </header>
+
+                {/* Holographic Indices Shell */}
+                <div className="h-[28px] mx-4 mt-[-8px] relative z-20">
+                    <div className="absolute inset-0 bg-background/40 backdrop-blur-xl border-x border-b border-border/5 rounded-b-xl shadow-[0_8px_16px_rgba(0,0,0,0.1)]">
+                        <IndicesTicker />
+                    </div>
+                </div>
             </div>
 
-            {/* Indices Ticker Bar - Moved below floating header and made subtle */}
-            <div className="h-[28px] mt-1 border-b border-border/5 bg-transparent flex items-center z-10 shrink-0">
-                <IndicesTicker />
-            </div>
 
             {/* Main Grid Layout - DYNAMIC MANAGER */}
             <main className="flex-1 overflow-hidden relative z-0 flex flex-col">
