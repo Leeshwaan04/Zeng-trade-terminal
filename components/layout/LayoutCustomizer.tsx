@@ -346,31 +346,31 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md animate-in fade-in duration-200"
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-[780px] max-h-[90vh] bg-zinc-950 border border-white/10 rounded-2xl shadow-[0_25px_100px_-15px_rgba(0,229,255,0.15),0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-3 duration-300">
+            <div className="w-[780px] max-h-[90vh] bg-background border border-border rounded-2xl shadow-[var(--shadow-plush)] overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-3 duration-300">
 
                 {/* ═══ Header ═══ */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-gradient-to-r from-zinc-950 to-zinc-900">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                             <LayoutGrid className="w-4 h-4 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-bold text-white tracking-tight">Customize Layout</h2>
-                            <p className="text-[9px] text-zinc-600 font-mono">Build your perfect trading workspace</p>
+                            <h2 className="text-sm font-bold text-foreground tracking-tight">Customize Layout</h2>
+                            <p className="text-[9px] text-muted-foreground font-mono">Build your perfect trading workspace</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => { handleTemplateChange("3-col"); setLayoutName(""); setActiveProfile(null); }}
-                            className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors"
+                            className="p-2 hover:bg-surface-4 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                             title="Reset"
                         >
                             <RotateCcw className="w-4 h-4" />
                         </button>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-foreground/5 rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
@@ -383,7 +383,7 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                         <div>
                             <div className="flex items-center gap-2 mb-3">
                                 <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">AI-Optimized Profiles</label>
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">AI-Optimized Profiles</label>
                                 <span className="text-[8px] bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Smart</span>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
@@ -395,7 +395,7 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                             "relative flex flex-col p-3 rounded-xl border transition-all text-left overflow-hidden group/profile",
                                             activeProfile === profile.id
                                                 ? "border-primary/50 bg-primary/5 shadow-[0_0_20px_-5px_rgba(0,229,255,0.3)]"
-                                                : "border-white/5 bg-zinc-900/30 hover:bg-zinc-900/60 hover:border-white/15"
+                                                : "border-border bg-surface-1/50 hover:bg-surface-2 hover:border-border/60"
                                         )}
                                     >
                                         {/* Gradient accent */}
@@ -406,19 +406,19 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
 
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <span className={cn(
-                                                "p-1 rounded-md bg-gradient-to-br",
+                                                "p-1 rounded-md bg-gradient-to-br shadow-inner",
                                                 profile.gradient,
                                                 "text-white"
                                             )}>
                                                 {profile.icon}
                                             </span>
-                                            <span className="text-[10px] font-black text-white uppercase tracking-wide">{profile.name}</span>
+                                            <span className="text-[10px] font-black text-foreground uppercase tracking-wide">{profile.name}</span>
                                         </div>
-                                        <p className="text-[8px] text-zinc-500 leading-relaxed">{profile.description}</p>
+                                        <p className="text-[8px] text-muted-foreground leading-relaxed">{profile.description}</p>
 
                                         {activeProfile === profile.id && (
-                                            <div className="mt-2 pt-2 border-t border-white/5">
-                                                <p className="text-[8px] text-zinc-400 leading-relaxed">{profile.explanation}</p>
+                                            <div className="mt-2 pt-2 border-t border-border/50">
+                                                <p className="text-[8px] text-muted-foreground leading-relaxed">{profile.explanation}</p>
                                             </div>
                                         )}
                                     </button>
@@ -428,18 +428,18 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
 
                         {/* ═══ Layout Name ═══ */}
                         <div>
-                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Layout Name</label>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Layout Name</label>
                             <input
                                 value={layoutName}
                                 onChange={(e) => setLayoutName(e.target.value)}
                                 placeholder="e.g., My Scalping Setup"
-                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
+                                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
                             />
                         </div>
 
                         {/* ═══ Grid Template ═══ */}
                         <div>
-                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Grid Template</label>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Grid Template</label>
                             <div className="grid grid-cols-6 gap-2">
                                 {GRID_TEMPLATES.map(template => (
                                     <button
@@ -449,11 +449,11 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                             "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
                                             selectedTemplate === template.id
                                                 ? "border-primary/50 bg-primary/5 shadow-[0_0_15px_-5px_rgba(0,229,255,0.3)]"
-                                                : "border-white/5 bg-zinc-900/30 hover:border-white/10 hover:bg-zinc-900/50"
+                                                : "border-border bg-surface-1/50 hover:border-border/60 hover:bg-surface-2"
                                         )}
                                     >
                                         <GridPreview templateId={template.id} isActive={selectedTemplate === template.id} />
-                                        <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wide text-center leading-tight">{template.label}</span>
+                                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wide text-center leading-tight">{template.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -461,9 +461,9 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
 
                         {/* ═══ Live Layout Preview ═══ */}
                         <div>
-                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Widget Assignment</label>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Widget Assignment</label>
                             <div
-                                className="grid gap-2 bg-black/80 rounded-xl border border-white/5 p-3 min-h-[250px]"
+                                className="grid gap-2 bg-muted/30 rounded-xl border border-border p-3 min-h-[250px]"
                                 style={{
                                     gridTemplateColumns: currentTemplate.cols,
                                     gridTemplateRows: currentTemplate.rows,
@@ -483,17 +483,17 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                                 "rounded-xl border-2 border-dashed p-3 flex flex-col cursor-pointer transition-all min-h-[90px] relative group/slot",
                                                 isSelected
                                                     ? "border-primary/60 bg-primary/5 shadow-[inset_0_0_20px_-10px_rgba(0,229,255,0.15)]"
-                                                    : "border-white/10 bg-zinc-900/20 hover:border-white/20 hover:bg-zinc-900/40"
+                                                    : "border-border/60 bg-muted/40 hover:border-border hover:bg-muted/60"
                                             )}
                                         >
                                             {meta && (
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className={meta.color}>{meta.icon}</span>
-                                                    <span className="text-[10px] font-bold text-white uppercase tracking-wide">{meta.label}</span>
+                                                    <span className="text-[10px] font-bold text-foreground uppercase tracking-wide">{meta.label}</span>
                                                 </div>
                                             )}
                                             {meta && (
-                                                <p className="text-[8px] text-zinc-600 leading-relaxed">{meta.desc}</p>
+                                                <p className="text-[8px] text-muted-foreground leading-relaxed">{meta.desc}</p>
                                             )}
 
                                             {/* Tabs */}
@@ -502,13 +502,13 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                                     {area.widgets.map(w => {
                                                         const wMeta = WIDGET_META[w.type];
                                                         return (
-                                                            <div key={w.id} className="flex items-center gap-1 bg-zinc-800/60 px-1.5 py-0.5 rounded-md text-[8px] text-zinc-400 border border-white/5">
+                                                            <div key={w.id} className="flex items-center gap-1 bg-surface-3 border border-border px-1.5 py-0.5 rounded-md text-[8px] text-muted-foreground">
                                                                 <span className={wMeta.color}>{wMeta.icon}</span>
                                                                 {wMeta.label}
                                                                 {area.widgets.length > 1 && (
                                                                     <button
                                                                         onClick={(e) => { e.stopPropagation(); handleRemoveWidgetFromSlot(area.id, w.id); }}
-                                                                        className="ml-0.5 text-zinc-600 hover:text-down"
+                                                                        className="ml-0.5 text-muted-foreground hover:text-down"
                                                                     >
                                                                         <X className="w-2.5 h-2.5" />
                                                                     </button>
@@ -520,8 +520,8 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                             )}
 
                                             {!isSelected && (
-                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/slot:opacity-100 transition-opacity rounded-xl">
-                                                    <span className="text-[9px] text-zinc-400 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10">Click to edit</span>
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/slot:opacity-100 transition-opacity rounded-xl bg-background/50 backdrop-blur-[1px]">
+                                                    <span className="text-[9px] text-foreground bg-surface-3 px-3 py-1.5 rounded-lg border border-border shadow-sm">Click to edit</span>
                                                 </div>
                                             )}
                                         </div>
@@ -534,12 +534,12 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                         {selectedSlot && (
                             <div className="animate-in slide-in-from-bottom-3 duration-200">
                                 <div className="flex items-center justify-between mb-3">
-                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                         Choose Widget
                                     </label>
                                     <button
                                         onClick={() => setSelectedSlot(null)}
-                                        className="text-[9px] text-zinc-600 hover:text-primary transition-colors font-bold uppercase tracking-wider"
+                                        className="text-[9px] text-muted-foreground hover:text-primary transition-colors font-bold uppercase tracking-wider"
                                     >Done</button>
                                 </div>
 
@@ -556,20 +556,20 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                                     className={cn(
                                                         "flex flex-col gap-1 p-2.5 rounded-xl border transition-all text-left",
                                                         isPrimary
-                                                            ? "border-primary/40 bg-primary/10 text-white shadow-[0_0_15px_-5px_rgba(0,229,255,0.2)]"
-                                                            : "border-white/5 bg-zinc-900/40 hover:bg-zinc-800/50 hover:border-white/10 text-zinc-400 hover:text-white"
+                                                            ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_15px_-5px_rgba(0,229,255,0.2)]"
+                                                            : "border-border/60 bg-surface-2 hover:bg-surface-3 hover:border-border/80 text-muted-foreground hover:text-foreground"
                                                     )}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className={meta.color}>{meta.icon}</span>
                                                         <span className="text-[9px] font-bold uppercase tracking-wide">{meta.label}</span>
                                                     </div>
-                                                    <p className="text-[7px] text-zinc-600 leading-relaxed pl-5.5">{meta.desc}</p>
+                                                    <p className="text-[7px] text-muted-foreground leading-relaxed pl-5.5">{meta.desc}</p>
                                                 </button>
                                                 {!isPrimary && (
                                                     <button
                                                         onClick={() => handleAddWidgetToSlot(selectedSlot!, type)}
-                                                        className="text-[8px] text-zinc-600 hover:text-primary transition-colors flex items-center gap-1 justify-center py-0.5"
+                                                        className="text-[8px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 justify-center py-0.5"
                                                     >
                                                         <Plus className="w-2.5 h-2.5" /> Add as tab
                                                     </button>
@@ -586,10 +586,10 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Lightbulb className="w-3.5 h-3.5 text-yellow-400" />
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Smart Suggestions</label>
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Smart Suggestions</label>
                                     <button
                                         onClick={() => setShowSuggestions(false)}
-                                        className="ml-auto text-[8px] text-zinc-600 hover:text-white"
+                                        className="ml-auto text-[8px] text-muted-foreground hover:text-foreground"
                                     >Hide</button>
                                 </div>
                                 <div className="space-y-2">
@@ -605,39 +605,32 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                                                 className={cn(
                                                     "flex items-center gap-3 p-3 rounded-xl border transition-all",
                                                     isApplied
-                                                        ? "border-up/30 bg-up/5"
-                                                        : "border-white/5 bg-zinc-900/30 hover:bg-zinc-900/50"
+                                                        ? "border-up/30 bg-up/10"
+                                                        : "border-border bg-surface-1/50 hover:bg-surface-2"
                                                 )}
                                             >
                                                 {/* Trigger → Recommend visual */}
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <span className={triggerMeta.color}>{triggerMeta.icon}</span>
-                                                    <ArrowRight className="w-3 h-3 text-zinc-600" />
+                                                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
                                                     <span className={recommendMeta.color}>{recommendMeta.icon}</span>
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-bold text-white">Add {recommendMeta.label}</span>
-                                                        <span className={cn("text-[7px] px-1.5 py-0.5 rounded-full border font-bold uppercase", linkMeta.color)}>
-                                                            <Link2 className="w-2 h-2 inline mr-0.5" />
+                                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                                        <span className="text-[10px] font-black text-foreground uppercase tracking-wide">{recommendMeta.label}</span>
+                                                        <span className={cn("text-[7px] font-bold px-1.5 py-0.5 rounded-[2px] uppercase tracking-widest border", linkMeta.color)}>
                                                             {linkMeta.label}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[8px] text-zinc-500 mt-0.5">{s.reason}</p>
+                                                    <p className="text-[8px] text-muted-foreground leading-relaxed truncate">{s.reason}</p>
                                                 </div>
 
                                                 <button
                                                     onClick={() => handleApplySuggestion(s)}
-                                                    disabled={isApplied}
-                                                    className={cn(
-                                                        "shrink-0 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all",
-                                                        isApplied
-                                                            ? "bg-up/20 text-up"
-                                                            : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
-                                                    )}
+                                                    className="h-6 px-3 bg-surface-3 hover:bg-primary/20 text-muted-foreground hover:text-primary border border-border/80 hover:border-primary/40 rounded-md text-[9px] font-bold transition-all uppercase tracking-wider"
                                                 >
-                                                    {isApplied ? "✓ Added" : "Apply"}
+                                                    Add
                                                 </button>
                                             </div>
                                         );
@@ -649,15 +642,15 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                 </div>
 
                 {/* ═══ Footer ═══ */}
-                <div className="px-6 py-4 border-t border-white/5 bg-gradient-to-r from-zinc-900/50 to-zinc-950 flex items-center justify-between">
-                    <div className="text-[10px] text-zinc-600 font-mono flex items-center gap-3">
+                <div className="px-6 py-4 border-t border-border bg-muted/20 flex items-center justify-between">
+                    <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-3">
                         <span>{areas.length} panels</span>
-                        <span className="text-zinc-800">·</span>
+                        <span className="text-border">·</span>
                         <span>{areas.reduce((acc, a) => acc + a.widgets.length, 0)} widgets</span>
                         {activeProfile && (
                             <>
-                                <span className="text-zinc-800">·</span>
-                                <span className="text-yellow-400/80 flex items-center gap-1">
+                                <span className="text-border">·</span>
+                                <span className="text-up flex items-center gap-1">
                                     <Sparkles className="w-2.5 h-2.5" />
                                     {AI_PROFILES.find(p => p.id === activeProfile)?.name} profile
                                 </span>
@@ -667,7 +660,7 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-[10px] font-bold text-zinc-400 hover:text-white border border-white/5 rounded-xl hover:bg-white/5 transition-all uppercase tracking-widest"
+                            className="px-4 py-2 text-[10px] font-bold text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-foreground/5 transition-all uppercase tracking-widest"
                         >
                             Cancel
                         </button>
@@ -675,10 +668,10 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
                             onClick={handleSave}
                             disabled={!layoutName.trim()}
                             className={cn(
-                                "px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all",
+                                "px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-lg",
                                 layoutName.trim()
-                                    ? "bg-primary text-black hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] hover:scale-[1.02] active:scale-[0.98]"
-                                    : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                                    ? "bg-primary text-primary-foreground hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+                                    : "bg-surface-3 text-muted-foreground cursor-not-allowed"
                             )}
                         >
                             <Save className="w-3.5 h-3.5" />
@@ -696,8 +689,8 @@ export const LayoutCustomizer = ({ isOpen, onClose }: LayoutCustomizerProps) => 
    ═══════════════════════════════════════════════════════════ */
 
 const GridPreview = ({ templateId, isActive }: { templateId: string; isActive: boolean }) => {
-    const color = isActive ? "bg-primary/50" : "bg-zinc-700";
-    const border = isActive ? "border-primary/30" : "border-white/5";
+    const color = isActive ? "bg-primary/50" : "bg-muted-foreground/30";
+    const border = isActive ? "border-primary/30" : "border-border";
 
     const previewMap: Record<string, React.ReactNode> = {
         "2-col": (

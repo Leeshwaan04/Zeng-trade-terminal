@@ -169,20 +169,20 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                         "flex flex-col items-end gap-0.5 px-1.5 py-0.5 rounded-sm border tabular-nums transition-colors duration-300",
                         isUp ? "bg-up/10 border-up/20" : "bg-down/10 border-down/20"
                     )}>
-                        <div className="flex items-center gap-1 font-mono font-bold text-[11px]">
+                        <div className="flex items-center gap-1 font-mono font-black text-[11px]">
                             {isUp ? <ArrowUpRight className="w-3 h-3 text-up" /> : <div className="w-3 h-3 rotate-180"><ArrowUpRight className="w-3 h-3 text-down" /></div>}
                             <span className={isUp ? "text-up" : "text-down"}>
                                 {ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </span>
                         </div>
-                        <span className={cn("text-[8px] font-sans font-bold", isUp ? "text-up" : "text-down")}>
+                        <span className={cn("text-[8px] font-sans font-black", isUp ? "text-up" : "text-down")}>
                             {isUp ? '+' : ''}{change.toFixed(2)}%
                         </span>
                     </div>
                 </div>
                 <div className="flex items-center justify-between text-[9px] text-muted-foreground mt-1.5">
-                    <span className="font-mono uppercase tracking-widest font-bold text-[8px]">LTP: <span className={cn("font-bold text-[10px] transition-colors", isUp ? "text-up" : "text-down")}>{ltp.toFixed(2)}</span></span>
-                    <div className="flex gap-2 font-mono uppercase tracking-widest font-bold text-[8px]">
+                    <span className="font-mono uppercase tracking-widest font-black text-[8px]">LTP: <span className={cn("font-black text-[10px] transition-colors", isUp ? "text-up" : "text-down")}>{ltp.toFixed(2)}</span></span>
+                    <div className="flex gap-2 font-mono uppercase tracking-widest font-black text-[8px]">
                         <span>OI: <span className="text-foreground">{(currentTicker?.oi || 0).toLocaleString()}</span></span>
                         <span>Vol: <span className="text-foreground">{(currentTicker?.volume || 0).toLocaleString()}</span></span>
                     </div>
@@ -199,7 +199,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                             "py-1.5 rounded-[4px] text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-1.5 border border-transparent",
                             side === "buy"
                                 ? "bg-up text-black shadow-[0_0_15px_rgba(34,197,94,0.2)] border-up/30"
-                                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]"
+                                : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 dark:hover:bg-white/[0.02]"
                         )}
                     >
                         BUY
@@ -210,7 +210,7 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                             "py-1.5 rounded-[4px] text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-1.5 border border-transparent",
                             side === "sell"
                                 ? "bg-down text-black shadow-[0_0_15px_rgba(239,68,68,0.2)] border-down/30"
-                                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]"
+                                : "text-muted-foreground hover:text-foreground hover:bg-foreground/5 dark:hover:bg-white/[0.02]"
                         )}
                     >
                         SELL
@@ -306,22 +306,22 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                 {/* Margin Info Box */}
                 <div className="bg-surface-1 rounded-md border border-border overflow-hidden">
                     <div className="px-2 py-1.5 border-b border-border bg-surface-2 flex justify-between items-center">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Margin Required</span>
-                        <RefreshCcw className="w-2.5 h-2.5 text-zinc-500 cursor-pointer hover:rotate-180 transition-transform duration-500 hover:text-primary" />
+                        <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Margin Required</span>
+                        <RefreshCcw className="w-2.5 h-2.5 text-muted-foreground cursor-pointer hover:rotate-180 transition-transform duration-500 hover:text-primary" />
                     </div>
                     <div className="p-2 space-y-0.5">
                         <div className="flex justify-between items-center text-[10px]">
-                            <span className="text-muted-foreground font-bold uppercase tracking-widest text-[8px]">Total Required</span>
+                            <span className="text-muted-foreground font-black uppercase tracking-widest text-[8px]">Total Required</span>
                             <span className={cn(
-                                "font-mono font-bold tabular-nums tracking-tighter",
+                                "font-mono font-black tabular-nums tracking-tighter",
                                 requiredMargin > marginAvailable ? "text-down" : "text-foreground"
                             )}>
                                 ₹{requiredMargin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
-                        <div className="flex justify-between items-center text-[9px] text-zinc-600">
-                            <span className="uppercase tracking-widest font-bold text-[7px]">Current Available</span>
-                            <span className="font-mono tabular-nums font-bold tracking-tighter text-foreground">
+                        <div className="flex justify-between items-center text-[9px] text-muted-foreground">
+                            <span className="uppercase tracking-widest font-black text-[7px]">Current Available</span>
+                            <span className="font-mono tabular-nums font-black tracking-tighter text-foreground">
                                 ₹{marginAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>

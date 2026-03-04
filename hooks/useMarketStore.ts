@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { MARKET_INSTRUMENTS } from '@/lib/market-config';
 
 export interface TickerData {
     symbol: string;
@@ -162,7 +163,14 @@ export const useMarketStore = create<MarketState>((set) => ({
         set((state) => {
             const newTickers = { ...state.tickers };
             for (const data of dataArray) {
-                newTickers[data.symbol] = data;
+                let symbol = data.symbol;
+                if (!symbol && data.instrument_token) {
+                    const mappedInst = MARKET_INSTRUMENTS.find(i => i.token === Number(data.instrument_token) || i.groww_token === data.instrument_token);
+                    if (mappedInst) symbol = mappedInst.symbol;
+                }
+                if (symbol) {
+                    newTickers[symbol] = { ...data, symbol };
+                }
             }
             return { tickers: newTickers };
         }),

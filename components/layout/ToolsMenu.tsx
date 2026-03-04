@@ -19,23 +19,23 @@ interface ToolItemProps {
 const ToolItem = ({ label, sub, icon: Icon, badge, onClick }: ToolItemProps) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-all group text-left border border-transparent hover:border-border"
+        className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-surface-4 transition-all group text-left border border-transparent hover:border-border"
     >
-        <div className="p-2 rounded-[4px] bg-surface-1 border border-border group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+        <div className="p-2 rounded-[4px] bg-surface-1 border border-border group-hover:border-primary/40 group-hover:bg-primary/10 transition-all shadow-sm">
             <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
         <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">{label}</span>
+                <span className="text-[10px] font-black text-foreground uppercase tracking-widest">{label}</span>
                 {badge && (
                     <span className="text-[7px] font-bold px-1 py-0.5 rounded-[2px] bg-primary/10 border border-primary/20 text-primary uppercase tracking-widest leading-none">
                         {badge}
                     </span>
                 )}
             </div>
-            <div className="text-[8px] text-muted-foreground font-medium tracking-wide">{sub}</div>
+            <div className="text-[8px] text-muted-foreground font-bold tracking-wide">{sub}</div>
         </div>
-        <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-500 transition-all mr-1" />
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-all mr-1" />
     </button>
 );
 
@@ -44,7 +44,7 @@ export const ToolsMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
     return (
         <div
-            className="absolute top-full right-0 mt-2 w-72 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 z-[110]"
+            className="absolute top-full right-0 mt-2 w-72 bg-popover/95 backdrop-blur-xl border border-border rounded-lg shadow-[var(--shadow-institutional)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 z-[110]"
             onMouseLeave={onClose}
         >
             <div className="px-3 py-2.5 border-b border-border bg-surface-1 flex items-center justify-between">

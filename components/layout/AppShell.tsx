@@ -11,6 +11,7 @@ import { LayoutManager } from "@/components/layout/LayoutManager";
 import { WorkspaceTabs } from "@/components/layout/WorkspaceTabs";
 import { WidgetPicker } from "@/components/layout/WidgetPicker";
 import { ToolsMenu } from "@/components/layout/ToolsMenu";
+import { LayoutCustomizer } from "@/components/layout/LayoutCustomizer";
 import { CommandCenter } from "@/components/ui/command-center";
 import { GlobalHotkeys } from "@/components/trading/GlobalHotkeys";
 import { useLayoutSwipe } from "@/hooks/useLayoutSwipe";
@@ -40,6 +41,7 @@ const INSTRUMENT_TOKENS = MARKET_INSTRUMENTS.map(i => i.token);
 export default function AppShell() {
     const [isWidgetPickerOpen, setIsWidgetPickerOpen] = useState(false);
     const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
+    const [isLayoutCustomizerOpen, setIsLayoutCustomizerOpen] = useState(false);
 
     // Connect to Kite WebSocket for live data
     useKiteTicker({
@@ -90,14 +92,14 @@ export default function AppShell() {
             {/* ─── Global Background Effects ─── */}
             <div className={cn(
                 "absolute inset-0 mesh-gradient z-0 transition-colors duration-1000",
-                isArmed ? "bg-red-500/10" : "bg-primary/5"
+                isArmed ? "bg-red-500/10" : "bg-primary/5 dark:bg-primary/5"
             )} />
 
-            <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] pointer-events-none z-0 mix-blend-overlay" />
-            <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
+            <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] dark:opacity-[0.05] pointer-events-none z-0 mix-blend-overlay" />
+            <div className="absolute top-[-10%] left-[10%] w-[800px] h-[800px] bg-primary/5 dark:bg-primary/5 rounded-full blur-[180px] pointer-events-none z-0 animate-pulse-slow" />
 
             {isArmed && (
-                <div className="absolute inset-0 border-[4px] border-red-500/10 pointer-events-none z-50 animate-pulse" />
+                <div className="absolute inset-0 border-[6px] border-red-600/15 dark:border-red-500/10 pointer-events-none z-50 animate-pulse-glow" />
             )}
 
             <PiPWindow />
@@ -112,22 +114,24 @@ export default function AppShell() {
             <div className="pt-3 px-3 w-full shrink-0 z-30">
                 <header data-testid="app-header" className={cn(
                     "h-[52px] rounded-2xl border flex items-center justify-between bg-background/60 backdrop-blur-3xl transition-all duration-700 relative overflow-hidden",
-                    "shadow-[0_16px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.05)]",
-                    isArmed ? "border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-red-950/20" : "border-border/10"
+                    "shadow-[0_16px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.2)]",
+                    isArmed
+                        ? "border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] bg-red-500/10 dark:bg-red-950/20"
+                        : "border-border/40 dark:border-border/10"
                 )}>
                     {/* Inner Edge Highlight */}
-                    <div className="absolute inset-0 rounded-2xl border border-white/[0.02] pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl border border-border/10 pointer-events-none" />
 
                     {/* ZONE ALPHA: Identity & Flow Control */}
                     <div className="flex items-center h-full min-w-0 flex-1">
-                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-border/10 h-full transition-colors hover:bg-foreground/5 relative">
+                        <div className="flex items-center gap-2.5 px-4 shrink-0 group cursor-pointer border-r border-border h-full transition-colors hover:bg-surface-3 relative">
                             <HeaderGuide />
                             <div className="w-6 h-6 bg-gradient-to-br from-[var(--up)] to-[var(--primary)] rounded-md flex items-center justify-center shadow-[0_0_15px_color-mix(in_srgb,var(--up)_20%,transparent)] relative z-10">
                                 <Terminal className="w-3.5 h-3.5 text-black" />
                             </div>
                             <div className="flex flex-col justify-center relative z-10">
                                 <span className="text-[12px] font-black tracking-tight text-foreground leading-none">ZenG</span>
-                                <span className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mt-0.5 leading-none">TERMINAL</span>
+                                <span className="text-[8px] font-black text-primary/80 dark:text-primary uppercase tracking-[0.2em] mt-0.5 leading-none">TERMINAL</span>
                             </div>
                             {/* Zone Marker Alpha */}
                             <div className="absolute top-0 right-0 w-[2px] h-full bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -135,12 +139,12 @@ export default function AppShell() {
 
                         {/* Workspace Navigation */}
                         <div className="flex-1 min-w-0 h-full flex items-end">
-                            <WorkspaceTabs />
+                            <WorkspaceTabs onAddClick={() => setIsLayoutCustomizerOpen(true)} />
                         </div>
                     </div>
 
                     {/* ZONE SIGMA: Intelligence & Vitals */}
-                    <div className="hidden xl:flex items-center gap-2 px-4 h-full border-x border-border/10 bg-black/20 overflow-hidden relative group/sigma">
+                    <div className="hidden xl:flex items-center gap-2 px-4 h-full border-x border-border bg-muted/20 overflow-hidden relative group/sigma">
                         <div className="flex items-center gap-4 px-2">
                             <div className="flex flex-col items-center">
                                 <PnLTicker />
@@ -173,7 +177,6 @@ export default function AppShell() {
                                 <LayoutGrid className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">+ Widgets</span>
                             </button>
-                            <WidgetPicker isOpen={isWidgetPickerOpen} onClose={() => setIsWidgetPickerOpen(false)} />
                         </div>
 
                         {/* Security & System Controls */}
@@ -315,6 +318,13 @@ export default function AppShell() {
             </footer >
 
             <MobileNavBar />
+
+            {/* Global Modals - Moved here to prevent clipping and stacking context issues */}
+            <WidgetPicker isOpen={isWidgetPickerOpen} onClose={() => setIsWidgetPickerOpen(false)} />
+            <LayoutCustomizer
+                isOpen={isLayoutCustomizerOpen}
+                onClose={() => setIsLayoutCustomizerOpen(false)}
+            />
         </div >
     );
 }

@@ -112,7 +112,7 @@ export const ProfileMenu = () => {
                     </div>
                 </div>
 
-                <div className="p-3 bg-foreground/[0.03] border-b border-border/10">
+                <div className="p-3 bg-surface-2 border-b border-border/10">
                     <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-60">Trading Broker</div>
                     <div className="grid grid-cols-2 gap-2">
                         <button
@@ -121,7 +121,7 @@ export const ProfileMenu = () => {
                                 "py-2 rounded border text-[9px] font-black transition-all uppercase tracking-tighter",
                                 activeBroker === "KITE"
                                     ? "bg-primary/20 border-primary text-primary shadow-[0_0_8px_rgba(59,130,246,0.3)]"
-                                    : "bg-background/40 border-border/10 text-muted-foreground hover:border-border/20"
+                                    : "bg-surface-3 border-border/10 text-muted-foreground hover:border-border/20"
                             )}
                         >
                             Kite Zerodha
@@ -132,7 +132,7 @@ export const ProfileMenu = () => {
                                 "py-2 rounded border text-[9px] font-black transition-all uppercase tracking-tighter",
                                 activeBroker === "GROWW"
                                     ? "bg-groww/20 border-groww text-groww shadow-[0_0_8px_rgba(0,186,173,0.3)]"
-                                    : "bg-background/40 border-border/10 text-muted-foreground hover:border-border/20"
+                                    : "bg-surface-3 border-border/10 text-muted-foreground hover:border-border/20"
                             )}
                         >
                             Groww Trade
@@ -167,7 +167,7 @@ const MenuItem = ({ icon: Icon, label, onClick, destructive }: { icon: any, labe
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all",
             destructive
                 ? "text-down hover:bg-down/10 hover:text-down"
-                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                : "text-muted-foreground hover:bg-surface-4 hover:text-foreground"
         )}
     >
         <Icon className="w-3.5 h-3.5" />

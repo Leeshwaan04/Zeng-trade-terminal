@@ -100,7 +100,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                     "px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap rounded-t-md border-b-2",
                                     activeWatchlistId === wl.id
                                         ? "text-primary border-primary bg-primary/5"
-                                        : "text-zinc-600 border-transparent hover:text-zinc-400"
+                                        : "text-muted-foreground border-transparent hover:text-foreground"
                                 )}
                             >
                                 {wl.name}
@@ -112,7 +112,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                             const name = prompt("Enter Watchlist Name:");
                             if (name) addWatchlist(name);
                         }}
-                        className="p-1 text-zinc-600 hover:text-white transition-colors"
+                        className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                         title="Add Watchlist"
                     >
                         <Plus className="w-3.5 h-3.5" />
@@ -120,9 +120,9 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                 </div>
 
                 {/* Inline Search & Add */}
-                <div className="px-3 py-2 bg-black/20 relative">
+                <div className="px-3 py-2 bg-surface-2 relative">
                     <div className="relative flex items-center group">
-                        <Search className="absolute left-2.5 w-3 h-3 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                        <Search className="absolute left-2.5 w-3 h-3 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             value={filter}
@@ -131,7 +131,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                             className="w-full bg-surface-3 border border-border rounded-sm py-1.5 pl-8 pr-12 text-[10px] font-mono focus:outline-none focus:border-primary/40 text-foreground placeholder:text-muted-foreground transition-all font-bold"
                         />
                         <div className="absolute right-2.5 flex items-center gap-2">
-                            <span className="text-[8px] text-zinc-700 font-mono font-black uppercase">
+                            <span className="text-[8px] text-muted-foreground font-mono font-black uppercase">
                                 {filteredItems.length} FIXTURES
                             </span>
                         </div>
@@ -156,12 +156,12 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                     className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-primary/5 border-b border-white/5 last:border-0 transition-colors group"
                                 >
                                     <div className="flex flex-col items-start">
-                                        <span className="text-[10px] font-black group-hover:text-primary transition-colors">{res.symbol}</span>
-                                        <span className="text-[8px] text-zinc-500 font-bold">{res.description}</span>
+                                        <span className="text-[10px] font-black group-hover:text-primary transition-colors text-foreground">{res.symbol}</span>
+                                        <span className="text-[8px] text-muted-foreground font-bold">{res.description}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-sm bg-white/5 text-zinc-400">{res.exchange}</span>
-                                        <Plus className="w-3 h-3 text-zinc-700 group-hover:text-primary" />
+                                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-sm bg-surface-3 text-muted-foreground">{res.exchange}</span>
+                                        <Plus className="w-3 h-3 text-muted-foreground group-hover:text-primary" />
                                     </div>
                                 </button>
                             ))}
@@ -171,12 +171,12 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
             </div>
 
             {/* Column Headers */}
-            <div className="grid grid-cols-[1fr_65px_65px_60px_40px] px-2 py-1 border-b border-white/5 bg-[#0c0f13]">
-                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest">Instrument</span>
-                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest text-right">LTP</span>
-                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest text-right">Chg%</span>
-                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest text-right">Vol/OI</span>
-                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest text-right pr-1"></span>
+            <div className="grid grid-cols-[1fr_65px_65px_60px_40px] px-2 py-1 border-b border-border/10 bg-surface-2">
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">Instrument</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest text-right">LTP</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest text-right">Chg%</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest text-right">Vol/OI</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest text-right pr-1"></span>
             </div>
 
             {/* Items */}
@@ -198,11 +198,11 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                         setWorkspaceSymbol(item.symbol);
                                     }
                                 }}
-                                className="group relative grid grid-cols-[1fr_65px_65px_60px_40px] items-center px-2 py-1 hover:bg-white/[0.02] border-b border-white/[0.01] transition-all cursor-pointer overflow-hidden"
+                                className="group relative grid grid-cols-[1fr_65px_65px_60px_40px] items-center px-2 py-1.5 hover:bg-foreground/5 dark:hover:bg-white/[0.02] border-b border-border/5 transition-all cursor-pointer overflow-hidden"
                             >
                                 <div className="flex flex-col min-w-0">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-[10px] font-bold text-zinc-200 group-hover:text-primary transition-colors truncate uppercase tracking-tighter">
+                                        <span className="text-[10px] font-black text-foreground group-hover:text-primary transition-colors truncate uppercase tracking-tighter">
                                             {item.symbol}
                                         </span>
                                         {item.segment !== "EQ" && (
@@ -211,7 +211,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-[8px] text-zinc-700 font-bold uppercase tracking-tight -mt-0.5">
+                                    <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tight -mt-0.5">
                                         {item.exchange}
                                     </span>
                                 </div>
@@ -279,7 +279,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                                         </button>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); removeFromWatchlist(activeWatchlistId, item.symbol); }}
-                                            className="h-5 w-5 flex items-center justify-center text-zinc-500 hover:text-down transition-colors"
+                                            className="h-5 w-5 flex items-center justify-center text-muted-foreground hover:text-down transition-colors"
                                         >
                                             <Trash2 className="w-3.5 h-3.5" />
                                         </button>
@@ -291,9 +291,9 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
 
                     {activeList?.items.length === 0 && (
                         <div className="p-10 flex flex-col items-center justify-center text-center">
-                            <Search className="w-6 h-6 mb-3 text-zinc-800" />
-                            <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">Empty Watchlist</span>
-                            <span className="text-[9px] text-zinc-800 mt-1">Search above to add symbols</span>
+                            <Search className="w-6 h-6 mb-3 text-muted-foreground" />
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Empty Watchlist</span>
+                            <span className="text-[9px] text-muted-foreground mt-1">Search above to add symbols</span>
                         </div>
                     )}
                 </div>
@@ -309,7 +309,7 @@ export const WatchlistWidget = ({ widgetId }: { widgetId?: string }) => {
                         Delete
                     </button>
                 </div>
-                <button className="p-1 text-zinc-700 hover:text-zinc-400 transition-colors">
+                <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
                     <Settings className="w-3.5 h-3.5" />
                 </button>
             </div>

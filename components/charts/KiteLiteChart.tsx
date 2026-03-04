@@ -18,7 +18,7 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
     const datafeedRef = useRef<KiteDatafeed | null>(null);
 
     // Get live data from market store
-    const lastTick = useMarketStore((s) => s.tickers[getInstrumentToken(symbol) || 0]);
+    const lastTick = useMarketStore((s) => s.tickers[symbol]);
 
     useEffect(() => {
         if (!chartContainerRef.current) return;
@@ -62,12 +62,21 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
             const from = now - 30 * 24 * 60 * 60 * 1000; // 30 days
             const bars = await datafeed.getHistory(from, now);
             if (seriesRef.current && bars.length > 0) {
-                // Remove duplicates and sort by time
-                const uniqueBars = Array.from(new Map(bars.map(b => [b.time, b])).values())
+                // Filter invalid and deduplicate
+                const uniqueBars = Array.from(new Map(bars.filter(b => !isNaN(b.time) && !isNaN(b.close)).map(b => [b.time, b])).values())
                     .sort((a, b) => a.time - b.time) as CandlestickData[];
 
-                seriesRef.current.setData(uniqueBars);
-                chartRef.current?.timeScale().fitContent();
+                if (uniqueBars.length > 0) {
+                    try {
+                        seriesRef.current.setData(uniqueBars);
+                        chartRef.current?.timeScale().fitContent();
+
+                        // Set the initial currentBarRef to the last historical bar to prevent time crashes
+                        currentBarRef.current = uniqueBars[uniqueBars.length - 1];
+                    } catch (e) {
+                        console.error("[KiteLiteChart] lightweight-charts setData crash:", e);
+                    }
+                }
             }
         };
 
@@ -94,10 +103,16 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
     useEffect(() => {
         if (lastTick && seriesRef.current) {
             const now = Date.now();
-            // Floor time to interval start (simplification: using 60s for all sub-hour, otherwise 1d)
             const intervalSeconds = interval.includes("minute") ? parseInt(interval) * 60 : 86400;
-            const barTime = (Math.floor(now / (intervalSeconds * 1000)) * intervalSeconds) as any;
+            let barTime = (Math.floor(now / (intervalSeconds * 1000)) * intervalSeconds) as any;
             const price = lastTick.last_price;
+
+            if (!price) return;
+
+            // Ensure we never update a bar in the past (Lightweight charts throws an error)
+            if (currentBarRef.current && barTime < currentBarRef.current.time) {
+                barTime = currentBarRef.current.time; // snap to current bar to just update its close price
+            }
 
             if (!currentBarRef.current || currentBarRef.current.time !== barTime) {
                 // New Bar
@@ -118,7 +133,11 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
                 };
             }
 
-            seriesRef.current.update(currentBarRef.current);
+            try {
+                seriesRef.current.update(currentBarRef.current);
+            } catch (error) {
+                console.error("[KiteLiteChart] Live Update Error:", error);
+            }
         }
     }, [lastTick, interval]);
 

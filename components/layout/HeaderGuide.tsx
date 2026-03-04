@@ -12,9 +12,9 @@ export function HeaderGuide() {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <div className="absolute -bottom-1 -left-1 group-hover:scale-110 transition-transform cursor-help">
-                    <div className="w-3 h-3 bg-primary rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]">
-                        <Info className="w-2 h-2 text-black" />
+                <div className="absolute inset-x-0 inset-y-0 group-hover:bg-primary/5 transition-colors cursor-help z-20">
+                    <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(var(--primary-rgb),0.6)] animate-pulse-slow">
+                        <Info className="w-2.5 h-2.5 text-black" />
                     </div>
                 </div>
             </PopoverTrigger>

@@ -188,60 +188,77 @@
 }
 
 .light {
-  /* ─── LIGHT MODE (Corporate Slate) ─── */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* ─── LIGHT MODE (Executive Slate) ─── */
+  --background: #f1f5f9;
+  --foreground: #020617;
 
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #020617;
 
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #020617;
 
-  --primary: #0284c7;
+  --primary: #0f172a;
+  /* Institutional Deep Slate */
   --primary-foreground: #ffffff;
 
-  --secondary: #f1f5f9;
+  --secondary: #e2e8f0;
   --secondary-foreground: #475569;
 
-  --muted: #f8fafc;
-  --muted-foreground: #94a3b8;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  /* Slate 600 for better contrast */
 
-  --accent: #e2e8f0;
+  --accent: #f1f5f9;
   --accent-foreground: #0f172a;
 
-  --destructive: #ef4444;
+  --destructive: #be123c;
   --destructive-foreground: #ffffff;
 
-  --border: rgba(0, 0, 0, 0.1);
+  --border: rgba(15, 23, 42, 0.08);
+  /* Sophisticated Slate Border */
   --input: #e2e8f0;
-  --ring: rgba(2, 132, 199, 0.4);
+  --ring: rgba(15, 23, 42, 0.2);
 
-  --up: #16a34a;
-  --down: #dc2626;
-  --up-muted: rgba(22, 163, 74, 0.15);
-  --down-muted: rgba(220, 38, 38, 0.15);
+  /* Calibrated Semantic Colors for Light Mode (CDO v2.0) */
+  --up: #047857;
+  /* Emerald 700 - Deepened for white backgrounds */
+  --down: #e11d48;
+  /* Rose 600 */
+  --up-muted: rgba(4, 120, 87, 0.1);
+  --down-muted: rgba(225, 29, 72, 0.1);
 
-  --surface-0: #f8fafc;
+  /* Institutional Surface Elevation Tiers */
+  --surface-0: #f1f5f9;
+  /* Base Canvas */
   --surface-1: #ffffff;
-  --surface-2: #f1f5f9;
-  --surface-3: #e2e8f0;
-  --surface-4: #cbd5e1;
+  /* Default Card/Widget */
+  --surface-2: #f8fafc;
+  /* Subtle Inset */
+  --surface-3: #f1f5f9;
+  /* Active Item background */
+  --surface-4: #e2e8f0;
+  /* Hover state / Border focus */
 
   --chart-bg: #ffffff;
-  --chart-grid: rgba(0, 0, 0, 0.05);
-  --chart-crosshair: rgba(2, 132, 199, 0.5);
-  --chart-watermark: rgba(0, 0, 0, 0.03);
-  --chart-volume-bull: rgba(22, 163, 74, 0.2);
-  --chart-volume-bear: rgba(220, 38, 38, 0.2);
+  --chart-grid: rgba(15, 23, 42, 0.04);
+  --chart-crosshair: rgba(15, 23, 42, 0.3);
+  --chart-watermark: rgba(15, 23, 42, 0.02);
+  --chart-volume-bull: rgba(5, 150, 105, 0.15);
+  --chart-volume-bear: rgba(225, 29, 72, 0.15);
 
-  --order-entry-buy: #0284c7;
-  --order-entry-sell: #dc2626;
-  --order-label-bg: rgba(255, 255, 255, 0.9);
+  --order-entry-buy: #10b981;
+  --order-entry-sell: #f43f5e;
 
-  --glass-blur: 16px;
-  --neon-cyan: #0284c7;
-  --neon-purple: #9333ea;
+  /* Institutional Soft-Plush Shadows */
+  --shadow-institutional: 0 10px 40px -10px rgba(15, 23, 42, 0.12), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  --shadow-plush: 0 20px 50px -12px rgba(15, 23, 42, 0.15);
+  --order-label-bg: rgba(255, 255, 255, 0.95);
+
+  --glass-blur: 24px;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --neon-cyan: #0ea5e9;
+  --neon-purple: #8b5cf6;
 }
 
 @theme inline {

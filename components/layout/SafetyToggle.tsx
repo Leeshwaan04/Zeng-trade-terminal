@@ -15,8 +15,8 @@ export const SafetyToggle = () => {
             className={cn(
                 "group relative flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all duration-500 overflow-hidden",
                 isArmed
-                    ? "bg-red-500/10 border-red-500/40 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:border-red-500/60"
-                    : "bg-emerald-500/10 border-emerald-500/40 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:border-emerald-500/60"
+                    ? "bg-red-500/10 dark:bg-red-500/10 border-red-500/40 dark:border-red-500/40 text-red-600 dark:text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:border-red-500/60 transition-colors"
+                    : "bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/40 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:border-emerald-500/60 transition-colors"
             )}
         >
             {/* Animated Background Glow Layer */}
@@ -41,22 +41,22 @@ export const SafetyToggle = () => {
 
             {/* Tooltip on Hover */}
             {/* Tooltip on Hover */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 px-3 py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-lg text-left shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <div className="flex items-center gap-1.5 mb-1 pb-1 border-b border-white/10">
-                    <AlertTriangle className="w-3 h-3 text-amber-500" />
-                    <span className="text-[10px] font-bold text-zinc-300">EXECUTION SAFETY</span>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 px-3 py-2 bg-background/95 dark:bg-black/80 backdrop-blur-md border border-border dark:border-white/10 rounded-lg text-left shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                <div className="flex items-center gap-1.5 mb-1 pb-1 border-b border-border dark:border-white/10">
+                    <AlertTriangle className="w-3 h-3 text-amber-500 hover:text-amber-600 transition-colors" />
+                    <span className="text-[10px] font-bold text-foreground">EXECUTION SAFETY</span>
                 </div>
                 <div className="space-y-1">
                     <div className="flex justify-between items-center text-[9px]">
                         <span className="text-emerald-500 font-bold">SAFE</span>
-                        <span className="text-zinc-500">Orders Blocked</span>
+                        <span className="text-muted-foreground">Orders Blocked</span>
                     </div>
                     <div className="flex justify-between items-center text-[9px]">
                         <span className="text-red-500 font-bold animate-pulse">ARMED</span>
-                        <span className="text-zinc-500">Live Execution</span>
+                        <span className="text-muted-foreground">Live Execution</span>
                     </div>
                 </div>
-                <div className="mt-1.5 text-[8px] text-zinc-600 leading-tight">
+                <div className="mt-1.5 text-[8px] text-muted-foreground leading-tight">
                     Prevents accidental "fat finger" trades. Toggle to ARM before striking.
                 </div>
             </div>

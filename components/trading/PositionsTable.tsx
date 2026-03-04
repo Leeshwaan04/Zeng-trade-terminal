@@ -23,7 +23,7 @@ const PositionRow = memo(({ position }: { position: NormalizedPosition }) => {
     const isProfit = pnl >= 0;
 
     return (
-        <div className="relative grid grid-cols-[0.4fr_1.1fr_1fr_1fr_1fr_1fr_0.5fr] text-right py-1 px-2 border-b border-border/[0.01] hover:bg-primary/5 items-center font-mono group transition-all duration-200">
+        <div className="relative grid grid-cols-[0.4fr_1.1fr_1fr_1fr_1fr_1fr_0.5fr] text-right py-1 px-2 border-b border-border/10 hover:bg-surface-3 items-center font-mono group transition-all duration-200">
             {/* Broker Tag */}
             <div className="text-left">
                 <span className={cn(
@@ -130,12 +130,12 @@ export const PositionsTable = () => {
                 <div className="flex items-center gap-2.5">
                     <button
                         onClick={() => refreshPortfolio(true)}
-                        className={cn("text-zinc-600 hover:text-white transition-colors", isRefreshing && "animate-spin")}
+                        className={cn("text-muted-foreground hover:text-foreground transition-colors", isRefreshing && "animate-spin")}
                     >
                         <RefreshCw className="w-3 h-3" />
                     </button>
-                    <button className="text-zinc-600 hover:text-white transition-colors"><BarChart3 className="w-3 h-3" /></button>
-                    <button className="text-zinc-600 hover:text-white transition-colors"><Maximize2 className="w-3 h-3" /></button>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors"><BarChart3 className="w-3 h-3" /></button>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors"><Maximize2 className="w-3 h-3" /></button>
                 </div>
             </div>
 

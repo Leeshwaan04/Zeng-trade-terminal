@@ -4,6 +4,7 @@ import React from "react";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { Zap, Shield, BarChart3, Activity } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export const LoginScreen = () => {
     const login = useAuthStore((s) => s.login);
@@ -50,6 +51,7 @@ export const LoginScreen = () => {
                             color="from-[#ff5722] to-[#ff8a65]"
                             icon={<Zap className="w-5 h-5" />}
                             onClick={login}
+                            ready={true} // Added ready prop for BrokerCard
                         />
                     </div>
                 </div>
@@ -80,9 +82,10 @@ interface BrokerCardProps {
     icon: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
+    ready?: boolean; // Added ready prop
 }
 
-const BrokerCard = ({ name, status, color, icon, onClick, disabled }: BrokerCardProps) => {
+const BrokerCard = ({ name, status, color, icon, onClick, disabled, ready }: BrokerCardProps) => {
     const [rotate, setRotate] = useState({ x: 0, y: 0 });
 
     const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -113,33 +116,35 @@ const BrokerCard = ({ name, status, color, icon, onClick, disabled }: BrokerCard
                 transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
                 transition: "transform 0.1s ease-out"
             }}
-            className={`relative group overflow-hidden rounded-xl border p-4 flex flex-col items-start gap-3 ${disabled
-                ? "bg-white/[0.02] border-white/5 cursor-not-allowed opacity-60"
-                : "bg-white/[0.05] border-white/10 hover:border-white/20 hover:bg-white/10 active:scale-[0.98]"
-                }`}
+            className={cn(
+                "group relative flex flex-col p-4 rounded-xl border border-border transition-all text-left",
+                ready
+                    ? "bg-surface-1 hover:bg-muted hover:scale-[1.02] hover:border-primary/40 active:scale-[0.98]"
+                    : "bg-surface-2/50 opacity-50 grayscale cursor-not-allowed"
+            )}
         >
-            <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 ${!disabled && 'group-hover:opacity-10'} transition-opacity duration-500`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 ${!disabled && 'group-hover:opacity-5'} transition-opacity duration-500`} />
 
             <div className="flex items-center justify-between w-full pointer-events-none">
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${color} text-white shadow-lg`}>
                     {icon}
                 </div>
                 {status === "Ready" ? (
-                    <span className="text-[9px] font-bold text-zinc-300 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+                    <span className="text-[9px] font-bold text-foreground/70 bg-foreground/5 px-2 py-0.5 rounded-full border border-border">
                         READY
                     </span>
                 ) : (
-                    <span className="text-[9px] font-medium text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded-full">
+                    <span className="text-[9px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
                         SOON
                     </span>
                 )}
             </div>
 
             <div className="flex flex-col items-start gap-0.5 z-10 pointer-events-none">
-                <span className="text-sm font-bold text-zinc-200 group-hover:text-white transition-colors group-hover:text-glow">
+                <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                     {name}
                 </span>
-                <span className="text-[10px] text-zinc-500 font-medium group-hover:text-[var(--primary)] transition-colors">
+                <span className="text-[10px] text-muted-foreground font-medium group-hover:text-primary/70 transition-colors">
                     {disabled ? "Integration Pending" : "Initiate Link"}
                 </span>
             </div>

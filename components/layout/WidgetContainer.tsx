@@ -51,9 +51,9 @@ export const WidgetContainer = ({
                         <div className="h-7 border-b border-border flex items-center px-3 bg-surface-1 justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{activeWidget.title}</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{activeWidget.title}</span>
                             </div>
-                            <div className="text-[8px] text-zinc-700 font-mono uppercase tracking-widest">External Window</div>
+                            <div className="text-[8px] text-muted-foreground font-mono uppercase tracking-widest">External Window</div>
                         </div>
                         <div className="flex-1 overflow-hidden relative">
                             <TerminalErrorBoundary name={activeWidget.title}>
@@ -77,7 +77,7 @@ export const WidgetContainer = ({
                     "glass-panel border border-border",
                     isActive
                         ? "ring-2 ring-primary/40 z-20 shadow-[0_0_30px_rgba(59,130,246,0.2)] scale-[1.002]"
-                        : "hover:border-white/20 z-0",
+                        : "hover:border-primary/50 z-0",
                     allowOverflow ? "overflow-visible" : "overflow-hidden"
                 )}
                 onClick={onActivate}
@@ -110,7 +110,7 @@ export const WidgetContainer = ({
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pr-1 pb-1">
                         <button
                             onClick={handlePopout}
-                            className={`p-1 rounded hover:bg-white/10 transition-colors ${isPoppedOut ? 'text-primary' : 'text-zinc-700 hover:text-zinc-400'}`}
+                            className={`p-1 rounded hover:bg-surface-4 transition-colors ${isPoppedOut ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                             title={isPoppedOut ? "Restore to Grid" : "Pop Out Window"}
                         >
                             <ExternalLink className="w-3 h-3" />
@@ -135,11 +135,11 @@ export const WidgetContainer = ({
                 <div className="flex-1 overflow-hidden relative z-10">
                     {isPoppedOut ? (
                         <div className="h-full w-full flex flex-col items-center justify-center gap-3">
-                            <div className="p-6 rounded-xl bg-zinc-900/50 border border-white/5 animate-pulse">
-                                <ExternalLink className="w-8 h-8 text-zinc-700" />
+                            <div className="p-6 rounded-xl bg-surface-2 border border-border animate-pulse">
+                                <ExternalLink className="w-8 h-8 text-muted-foreground" />
                             </div>
                             <div className="text-center">
-                                <div className="text-[10px] font-medium text-zinc-600">Popped Out</div>
+                                <div className="text-[10px] font-medium text-muted-foreground">Popped Out</div>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();

@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 import { LayoutCustomizer } from "./LayoutCustomizer";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const WorkspaceTabs = () => {
+export const WorkspaceTabs = ({ onAddClick }: { onAddClick?: () => void }) => {
     const { activeWorkspaceId, workspaces, setActiveWorkspace, deleteWorkspace } = useLayoutStore();
-    const [showCustomizer, setShowCustomizer] = React.useState(false);
     const orderedWorkspaces = Object.values(workspaces);
     const protectedIds = ['standard'];
 
@@ -25,15 +24,15 @@ export const WorkspaceTabs = () => {
                         className={cn(
                             "group relative flex items-center h-8 px-4 gap-2 cursor-pointer select-none rounded-full transition-all duration-300",
                             isActive
-                                ? "text-white"
-                                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]"
+                                ? "text-primary dark:text-white"
+                                : "text-muted-foreground hover:text-foreground hover:bg-surface-4"
                         )}
                         onClick={() => setActiveWorkspace(ws.id)}
                     >
                         {isActive && (
                             <motion.div
                                 layoutId="active-pill"
-                                className="absolute inset-0 bg-white/10 border border-white/10 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_8px_16px_rgba(0,0,0,0.4)]"
+                                className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-full shadow-[var(--shadow-institutional)]"
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
@@ -53,7 +52,7 @@ export const WorkspaceTabs = () => {
                                         deleteWorkspace(ws.id);
                                     }
                                 }}
-                                className="relative z-10 opacity-0 group-hover:opacity-60 hover:!opacity-100 text-zinc-500 hover:text-down transition-all ml-1"
+                                className="relative z-10 opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground hover:text-down transition-all ml-1"
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -62,16 +61,13 @@ export const WorkspaceTabs = () => {
                 );
             })}
 
-            {/* Add Button */}
             <button
-                onClick={() => setShowCustomizer(true)}
-                className="flex items-center justify-center p-2 rounded-full text-zinc-500 hover:text-white hover:bg-white/10 transition-all shrink-0 ml-1 border border-white/5 active:scale-90"
+                onClick={onAddClick}
+                className="flex items-center justify-center p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface-4 transition-all shrink-0 ml-1 border border-border/40  active:scale-90"
                 title="Add Workspace"
             >
                 <Plus className="w-4 h-4" />
             </button>
-
-            <LayoutCustomizer isOpen={showCustomizer} onClose={() => setShowCustomizer(false)} />
         </div>
     );
 };

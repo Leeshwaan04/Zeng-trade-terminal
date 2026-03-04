@@ -65,8 +65,8 @@ export const WidgetHeader = ({
                 </span>
                 {symbol && (
                     <>
-                        <div className="h-3 w-[1px] bg-white/10" />
-                        <span className="text-[10px] font-bold text-zinc-400 truncate">
+                        <div className="h-3 w-[1px] bg-border mr-1" />
+                        <span className="text-[10px] font-bold text-muted-foreground truncate">
                             {symbol}
                         </span>
                     </>
@@ -79,12 +79,12 @@ export const WidgetHeader = ({
 
                 {/* YouTube-Style Layout Controls (Only for Charts) */}
                 {isChart && (
-                    <div className="flex items-center gap-0.5 border-r border-white/5 pr-1 mr-1">
+                    <div className="flex items-center gap-0.5 border-r border-foreground/5 dark:border-white/5 pr-1 mr-1">
                         <button
                             onClick={() => togglePiP(id)}
                             className={cn(
                                 "p-1.5 rounded-sm transition-colors",
-                                pipWidgetId === id ? "bg-primary/20 text-primary" : "text-zinc-500 hover:bg-white/5 hover:text-white"
+                                pipWidgetId === id ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-surface-4 hover:text-foreground"
                             )}
                             title="Picture-in-Picture"
                         >
@@ -94,7 +94,7 @@ export const WidgetHeader = ({
                             onClick={() => toggleTheaterMode(id)}
                             className={cn(
                                 "p-1.5 rounded-sm transition-colors",
-                                theaterModeWidgetId === id ? "bg-primary/20 text-primary" : "text-zinc-500 hover:bg-white/5 hover:text-white"
+                                theaterModeWidgetId === id ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-surface-4 hover:text-foreground"
                             )}
                             title="Theater Mode"
                         >
@@ -106,12 +106,12 @@ export const WidgetHeader = ({
                 {/* Color Linking Dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button data-testid="color-link-trigger" className="p-1.5 hover:bg-white/5 rounded-sm text-zinc-500 hover:text-white transition-colors">
+                        <button data-testid="color-link-trigger" className="p-1.5 hover:bg-surface-4 rounded-sm text-muted-foreground hover:text-foreground transition-colors">
                             <MoreHorizontal className="w-3 h-3" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem className="text-xs font-medium text-zinc-400 cursor-default" onSelect={(e) => e.preventDefault()}>
+                        <DropdownMenuItem className="text-xs font-medium text-muted-foreground cursor-default" onSelect={(e) => e.preventDefault()}>
                             Link Color
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -120,7 +120,7 @@ export const WidgetHeader = ({
                                 key={color.id}
                                 className={cn(
                                     "flex items-center gap-2 text-[11px] font-bold cursor-pointer group",
-                                    colorGroup === color.id ? "bg-white/5 text-white" : "text-zinc-400 hover:text-white"
+                                    colorGroup === color.id ? "bg-surface-4 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-surface-3"
                                 )}
                                 onClick={() => setWidgetColorGroup(id, color.id)}
                             >
@@ -146,12 +146,11 @@ export const WidgetHeader = ({
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Standard Window Controls */}
-                <div className="flex items-center gap-0.5 pl-2 border-l border-white/5 ml-2">
+                <div className="flex items-center gap-0.5 pl-2 border-l border-border ml-2">
                     {onMaximize && (
                         <button
                             onClick={onMaximize}
-                            className="p-1.5 hover:bg-white/5 rounded-sm text-zinc-500 hover:text-white transition-colors"
+                            className="p-1.5 hover:bg-surface-4 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <Maximize2 className="w-3 h-3" />
                         </button>
@@ -159,7 +158,7 @@ export const WidgetHeader = ({
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="p-1.5 hover:bg-red-500/10 rounded-sm text-zinc-500 hover:text-red-500 transition-colors"
+                            className="p-1.5 hover:bg-red-500/10 rounded-sm text-muted-foreground hover:text-red-500 transition-colors"
                         >
                             <X className="w-3 h-3" />
                         </button>
