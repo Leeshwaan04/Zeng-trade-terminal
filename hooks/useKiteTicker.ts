@@ -46,25 +46,41 @@ export function useKiteTicker({
         return Array.from(merged);
     }, [instrumentTokens, subscribedTokens]);
 
-    const tokensParam = allTokens.join(",");
-
-    // Check for mock mode in URL
+    // ── Connection URL: EC2 WebSocket (preferred) or Vercel SSE (fallback) ──
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
     const isMock = typeof window !== "undefined" &&
         (new URLSearchParams(window.location.search).get("mock") === "true" ||
             new URLSearchParams(window.location.search).get("testAuth") === "1");
 
-    // Build absolute URL for the SSE stream
-    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-    const sseUrl = tokensParam
-        ? `${origin}/api/ws/stream?tokens=${tokensParam}&mode=${mode}&broker=${broker}${isMock ? "&mock=true" : ""}`
-        : "";
+    const accessToken = typeof window !== "undefined"
+        ? document.cookie.split("; ").find(r => r.startsWith("kite_access_token="))?.split("=")[1]
+        : undefined;
 
-    // Start worker when: logged in OR in mock mode, AND we have tokens to subscribe
+    // EC2 WebSocket URL (set NEXT_PUBLIC_EC2_WS_URL in Vercel env)
+    const ec2WsBase = process.env.NEXT_PUBLIC_EC2_WS_URL; // e.g. wss://ws.zengtrade.in/ws
+
+    // Prefer EC2 WS when: authenticated + EC2 URL configured + tokens exist
+    const useEC2 = !!ec2WsBase && isLoggedIn && allTokens.length > 0 && !isMock;
+
+    const connectionUrl = (() => {
+        if (!allTokens.length) return "";
+        if (useEC2 && accessToken) {
+            // Direct WebSocket to EC2 proxy (bypasses Vercel, no 300s timeout)
+            return `${ec2WsBase}?access_token=${accessToken}&tokens=${allTokens.join(",")}&mode=${mode}`;
+        }
+        // Fallback: Vercel SSE stream (works without EC2, subject to 300s limit)
+        return `${origin}/api/ws/stream?tokens=${allTokens.join(",")}&mode=${mode}&broker=${broker}${isMock ? "&mock=true" : ""}`;
+    })();
+
+    // Connection type: 'ws' for EC2, 'sse' for Vercel
+    const connectionType = useEC2 ? "ws" : "sse";
+
+    // Start when: logged in OR mock mode, AND we have tokens
     const shouldConnect = enabled && allTokens.length > 0 && (isLoggedIn || isMock);
 
     const { status: workerStatus } = useWorkerTicker({
-        url: sseUrl,
-        type: "sse",
+        url: connectionUrl,
+        type: connectionType,
         enabled: shouldConnect,
     });
 
