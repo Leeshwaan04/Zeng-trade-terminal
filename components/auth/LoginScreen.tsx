@@ -5,6 +5,7 @@ import { useAuthStore } from "@/hooks/useAuthStore";
 import { Zap, Shield, BarChart3, Activity } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ThemeSelector } from "@/components/ui/theme-selector";
 
 export const LoginScreen = () => {
     const login = useAuthStore((s) => s.login);
@@ -30,7 +31,7 @@ export const LoginScreen = () => {
                 {/* Logo */}
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-[var(--up)] to-[var(--primary)] rounded-xl flex items-center justify-center shadow-[0_0_40px_color-mix(in_srgb,var(--up)_30%,transparent)]">
-                        <Zap className="w-6 h-6 text-black" />
+                        <Zap className="w-6 h-6 text-background" />
                     </div>
                     <div className="flex flex-col items-center text-center">
                         <h1 className="text-2xl font-black text-foreground tracking-tight">
@@ -61,14 +62,16 @@ export const LoginScreen = () => {
                     Redirects to broker's secure login.
                 </p>
 
-                {/* Version */}
-                <div className="flex flex-col items-center gap-2 text-[9px] text-muted-foreground/50 font-mono">
+                {/* Version + Theme Switcher */}
+                <div className="flex flex-col items-center gap-3 text-[9px] text-muted-foreground/50 font-mono">
                     <div className="flex items-center gap-2">
                         <span>v0.4.0-kite</span>
                         <span>•</span>
                         <span>Kite Connect v3 Engine</span>
                     </div>
                     <span>Powered by deep market integration</span>
+                    {/* Theme picker so users can choose before entering the terminal */}
+                    <ThemeSelector className="mt-2" />
                 </div>
             </div>
         </div>
