@@ -69,16 +69,16 @@ export const ProfileMenu = () => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "h-8 w-8 rounded-full border transition-all flex items-center justify-center bg-foreground/5",
+                    "h-8 w-8 rounded-full border-2 transition-all flex items-center justify-center bg-primary/10",
                     isOpen
-                        ? "border-primary ring-2 ring-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                        : "border-border/10 hover:border-primary/40 hover:shadow-lg"
+                        ? "border-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]"
+                        : "border-primary/30 hover:border-primary/60 hover:bg-primary/15"
                 )}
             >
                 {user && 'user_shortname' in user && user.user_shortname ? (
                     <span className="text-[10px] font-black text-primary">{user.user_shortname.substring(0, 2).toUpperCase()}</span>
                 ) : (
-                    <UserCircle className="w-5 h-5 text-muted-foreground" />
+                    <UserCircle className="w-4 h-4 text-primary" />
                 )}
             </button>
 
