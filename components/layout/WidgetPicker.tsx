@@ -37,7 +37,7 @@ const WidgetCard = ({ label, desc, icon, color, gradient, onClick, ready }: Widg
         </div>
         <div className={cn("text-[11px] font-black uppercase tracking-wider mb-1 transition-colors", ready ? "text-foreground group-hover:text-primary" : "text-zinc-500")}>
             {label}
-            {!ready && <span className="ml-2 text-[7px] bg-zinc-800 px-1 py-0.5 rounded">COMMING SOON</span>}
+            {!ready && <span className="ml-2 text-[7px] bg-muted text-muted-foreground px-1 py-0.5 rounded">COMING SOON</span>}
         </div>
         <div className="text-[9px] text-zinc-500 leading-tight">
             {desc}

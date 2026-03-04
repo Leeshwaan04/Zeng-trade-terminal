@@ -9,7 +9,7 @@ export const HyperChartWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =
     const [interval, setInterval] = useState("15minute");
 
     return (
-        <div className="flex flex-col h-full w-full bg-black text-white overflow-hidden">
+        <div className="flex flex-col h-full w-full bg-background overflow-hidden">
             {/* Top Header */}
             <ChartHeader
                 symbol={symbol}
@@ -23,7 +23,7 @@ export const HyperChartWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =
                 <ChartToolbar symbol={symbol} />
 
                 {/* Chart Area */}
-                <div className="flex-1 relative bg-black">
+                <div className="flex-1 relative">
                     <KiteLiteChart symbol={symbol} interval={interval} />
 
                     {/* Watermark */}

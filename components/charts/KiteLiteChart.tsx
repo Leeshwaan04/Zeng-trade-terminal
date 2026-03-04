@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { createChart, IChartApi, ISeriesApi, CandlestickData } from "lightweight-charts";
-import { KiteDatafeed, ChartCandle } from "@/lib/charting/Datafeed";
+import React, { useEffect, useRef } from "react";
+import { createChart, CandlestickSeries, IChartApi, ISeriesApi, CandlestickData } from "lightweight-charts";
+import { KiteDatafeed } from "@/lib/charting/Datafeed";
 import { useMarketStore } from "@/hooks/useMarketStore";
-import { getInstrumentToken } from "@/lib/market-config";
 
 interface KiteLiteChartProps {
     symbol: string;
@@ -15,129 +14,147 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-    const datafeedRef = useRef<KiteDatafeed | null>(null);
+    const currentBarRef = useRef<CandlestickData | null>(null);
 
     // Get live data from market store
     const lastTick = useMarketStore((s) => s.tickers[symbol]);
 
+    // ── Chart Initialization ─────────────────────────────────
     useEffect(() => {
-        if (!chartContainerRef.current) return;
+        const container = chartContainerRef.current;
+        if (!container) return;
 
-        // Initialize Chart
-        chartRef.current = createChart(chartContainerRef.current, {
+        // Detect current theme colors from CSS variables
+        const style = getComputedStyle(document.documentElement);
+        const isDark = document.documentElement.classList.contains("dark");
+        const bg = isDark ? "#0a0f1a" : "#f8fafc";
+        const textColor = isDark ? "#94a3b8" : "#475569";
+        const gridColor = isDark ? "#1e293b" : "#e2e8f0";
+
+        const chart = createChart(container, {
             layout: {
-                background: { color: "#000000" },
-                textColor: "#d1d5db",
+                background: { color: bg },
+                textColor,
+                fontFamily: "'JetBrains Mono', 'Inter', monospace",
             },
             grid: {
-                vertLines: { color: "#1a1a1a" },
-                horzLines: { color: "#1a1a1a" },
+                vertLines: { color: gridColor },
+                horzLines: { color: gridColor },
             },
             crosshair: {
                 mode: 0, // CrosshairMode.Normal
-                vertLine: { color: "#00E5FF", width: 1, style: 2 },
-                horzLine: { color: "#00E5FF", width: 1, style: 2 },
+                vertLine: { color: "#6366f1", width: 1, style: 2 },
+                horzLine: { color: "#6366f1", width: 1, style: 2 },
             },
             timeScale: {
-                borderColor: "#333",
+                borderColor: gridColor,
                 timeVisible: true,
+                secondsVisible: false,
             },
+            rightPriceScale: {
+                borderColor: gridColor,
+            },
+            width: container.clientWidth,
+            height: container.clientHeight,
         });
 
-        // Add Candlestick Series
-        seriesRef.current = (chartRef.current as any).addCandlestickSeries({
-            upColor: "#4ade80",
-            downColor: "#f87171",
+        chartRef.current = chart;
+
+        // ── v5 API: addSeries(CandlestickSeries, opts) ────────
+        const series = chart.addSeries(CandlestickSeries, {
+            upColor: "#22c55e",
+            downColor: "#ef4444",
             borderVisible: false,
-            wickUpColor: "#4ade80",
-            wickDownColor: "#f87171",
+            wickUpColor: "#22c55e",
+            wickDownColor: "#ef4444",
         });
 
-        // Set Initial History
+        seriesRef.current = series;
+
+        // ── Load Historical Data ──────────────────────────────
         const datafeed = new KiteDatafeed(symbol, interval);
-        datafeedRef.current = datafeed;
-
         const loadData = async () => {
-            const now = Date.now();
-            const from = now - 30 * 24 * 60 * 60 * 1000; // 30 days
-            const bars = await datafeed.getHistory(from, now);
-            if (seriesRef.current && bars.length > 0) {
-                // Filter invalid and deduplicate
-                const uniqueBars = Array.from(new Map(bars.filter(b => !isNaN(b.time) && !isNaN(b.close)).map(b => [b.time, b])).values())
-                    .sort((a, b) => a.time - b.time) as CandlestickData[];
+            try {
+                const now = Date.now();
+                const from = now - 30 * 24 * 60 * 60 * 1000; // 30 days
+                const bars = await datafeed.getHistory(from, now);
 
-                if (uniqueBars.length > 0) {
-                    try {
-                        seriesRef.current.setData(uniqueBars);
-                        chartRef.current?.timeScale().fitContent();
+                if (bars.length > 0) {
+                    const uniqueBars = Array.from(
+                        new Map(
+                            bars
+                                .filter((b) => !isNaN(b.time as number) && !isNaN(b.close))
+                                .map((b) => [b.time, b])
+                        ).values()
+                    ).sort((a, b) => (a.time as number) - (b.time as number)) as CandlestickData[];
 
-                        // Set the initial currentBarRef to the last historical bar to prevent time crashes
+                    if (uniqueBars.length > 0) {
+                        series.setData(uniqueBars);
+                        chart.timeScale().fitContent();
                         currentBarRef.current = uniqueBars[uniqueBars.length - 1];
-                    } catch (e) {
-                        console.error("[KiteLiteChart] lightweight-charts setData crash:", e);
                     }
                 }
+            } catch (e) {
+                console.error("[KiteLiteChart] Historical data load error:", e);
             }
         };
 
         loadData();
 
-        // Responsive
-        const handleResize = () => {
-            chartRef.current?.applyOptions({
-                width: chartContainerRef.current?.clientWidth,
-                height: chartContainerRef.current?.clientHeight,
+        // ── Responsive Resize ─────────────────────────────────
+        const ro = new ResizeObserver(() => {
+            if (!container) return;
+            chart.applyOptions({
+                width: container.clientWidth,
+                height: container.clientHeight,
             });
-        };
-        window.addEventListener("resize", handleResize);
+        });
+        ro.observe(container);
 
         return () => {
-            window.removeEventListener("resize", handleResize);
-            chartRef.current?.remove();
+            ro.disconnect();
+            chart.remove();
+            chartRef.current = null;
+            seriesRef.current = null;
+            currentBarRef.current = null;
         };
     }, [symbol, interval]);
 
-    // Update real-time from store with Candle Aggregation
-    const currentBarRef = useRef<CandlestickData | null>(null);
-
+    // ── Real-Time Tick Updates ─────────────────────────────────
     useEffect(() => {
-        if (lastTick && seriesRef.current) {
-            const now = Date.now();
-            const intervalSeconds = interval.includes("minute") ? parseInt(interval) * 60 : 86400;
-            let barTime = (Math.floor(now / (intervalSeconds * 1000)) * intervalSeconds) as any;
-            const price = lastTick.last_price;
+        if (!lastTick || !seriesRef.current) return;
 
-            if (!price) return;
+        const price = lastTick.last_price;
+        if (!price) return;
 
-            // Ensure we never update a bar in the past (Lightweight charts throws an error)
-            if (currentBarRef.current && barTime < currentBarRef.current.time) {
-                barTime = currentBarRef.current.time; // snap to current bar to just update its close price
-            }
+        const intervalSeconds = interval.includes("minute")
+            ? parseInt(interval) * 60
+            : 86400;
 
-            if (!currentBarRef.current || currentBarRef.current.time !== barTime) {
-                // New Bar
-                currentBarRef.current = {
-                    time: barTime,
-                    open: price,
-                    high: price,
-                    low: price,
-                    close: price,
-                };
-            } else {
-                // Update existing bar
-                currentBarRef.current = {
-                    ...currentBarRef.current,
-                    high: Math.max(currentBarRef.current.high, price),
-                    low: Math.min(currentBarRef.current.low, price),
-                    close: price,
-                };
-            }
+        let barTime = (Math.floor(Date.now() / (intervalSeconds * 1000)) * intervalSeconds) as any;
 
-            try {
-                seriesRef.current.update(currentBarRef.current);
-            } catch (error) {
-                console.error("[KiteLiteChart] Live Update Error:", error);
-            }
+        // Never go backwards in time (lightweight-charts throws)
+        if (currentBarRef.current && barTime < (currentBarRef.current.time as number)) {
+            barTime = currentBarRef.current.time;
+        }
+
+        if (!currentBarRef.current || currentBarRef.current.time !== barTime) {
+            // New bar
+            currentBarRef.current = { time: barTime, open: price, high: price, low: price, close: price };
+        } else {
+            // Update existing bar
+            currentBarRef.current = {
+                ...currentBarRef.current,
+                high: Math.max(currentBarRef.current.high, price),
+                low: Math.min(currentBarRef.current.low, price),
+                close: price,
+            };
+        }
+
+        try {
+            seriesRef.current.update(currentBarRef.current);
+        } catch (error) {
+            console.error("[KiteLiteChart] Live tick update error:", error);
         }
     }, [lastTick, interval]);
 

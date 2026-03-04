@@ -305,8 +305,8 @@ export default function AppShell() {
                     <button
                         onClick={toggleAccountManager}
                         className={cn(
-                            "flex items-center gap-1.5 transition-colors hover:text-white",
-                            isAccountManagerOpen ? "text-primary" : "text-zinc-500"
+                            "flex items-center gap-1.5 transition-colors hover:text-foreground",
+                            isAccountManagerOpen ? "text-primary" : "text-muted-foreground"
                         )}
                     >
                         <Terminal className="w-3 h-3" />
