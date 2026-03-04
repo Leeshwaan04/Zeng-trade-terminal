@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useMemo, createContext, useContext } from "react";
-import { useResizeObserver } from "@/hooks/use-resize-observer"; // We need to create this or use existing raw observer
 
 export interface ChartData {
     time: number;
@@ -233,7 +232,7 @@ export const ChartEngine = ({ data, height = "100%", children, onMouseMove }: Ch
         <ChartContext.Provider value={{ width: dimensions.width, height: dimensions.height, data, scales: scales as any, mouse }}>
             <div
                 ref={containerRef}
-                className="relative w-full overflow-hidden bg-black select-none cursor-crosshair"
+                className="relative w-full overflow-hidden bg-background select-none cursor-crosshair"
                 style={{ height }}
                 onWheel={handleWheel}
                 onMouseDown={handleMouseDown}
