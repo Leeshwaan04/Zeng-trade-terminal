@@ -2,9 +2,11 @@
 
 /**
  * useKiteTicker — connects to the SSE streaming endpoint
- * and dispatches live ticks to the market store.
+ * and dispatches live ticks to the market store via the background worker.
+ *
+ * Works in both authenticated (real Kite data) and mock mode (demo data).
  */
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { useWorkerTicker } from "@/hooks/useWorkerTicker";
@@ -19,10 +21,10 @@ interface UseKiteTickerOptions {
 
 export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
-// Create a reverse map for faster lookup
+// Reverse map: token → symbol for fast tick resolution
 const TOKEN_TO_SYMBOL: Record<number, string> = {};
 MARKET_INSTRUMENTS.forEach(inst => {
-    TOKEN_TO_SYMBOL[inst.token] = inst.symbol;
+    if (inst.token > 0) TOKEN_TO_SYMBOL[inst.token] = inst.symbol;
 });
 
 export function useKiteTicker({
@@ -32,43 +34,43 @@ export function useKiteTicker({
     enabled = true,
 }: UseKiteTickerOptions) {
     const subscribedTokens = useMarketStore((s) => s.subscribedTokens);
-    const setConnectionStatus = useMarketStore((s) => s.setConnectionStatus);
-    const updateTicker = useMarketStore((s) => s.updateTicker);
     const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
     const [status, setStatus] = useState<ConnectionStatus>("disconnected");
-    const [activeTokens, setActiveTokens] = useState<number[]>([]);
 
-    // Sync prop tokens with store tokens
-    useEffect(() => {
-        // We merge the initial "instrumentTokens" passed as props with the dynamic "subscribedTokens" from store
-        // This ensures both the base layout widgets AND the search results get data.
-        const allTokens = new Set([...instrumentTokens, ...Array.from(subscribedTokens)]);
-        const tokenArray = Array.from(allTokens).filter(t => t > 0);
+    // Merge prop tokens + dynamically subscribed tokens (from Watchlist etc.)
+    const allTokens = useMemo(() => {
+        const merged = new Set([
+            ...instrumentTokens.filter(t => t > 0),
+            ...Array.from(subscribedTokens).filter(t => t > 0),
+        ]);
+        return Array.from(merged);
+    }, [instrumentTokens, subscribedTokens]);
 
-        // Deep compare to avoid reconnect loops
-        if (JSON.stringify(tokenArray.sort()) !== JSON.stringify(activeTokens.sort())) {
-            setActiveTokens(tokenArray);
-        }
-    }, [instrumentTokens, subscribedTokens, activeTokens]); // activeTokens in dep array for comparison logic inside effect is okay? No, better use ref or careful set. 
-    // Actually, simpler: just calculate derived token list.
-
-    const tokensParam = activeTokens.join(",");
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
+    const tokensParam = allTokens.join(",");
 
     // Check for mock mode in URL
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-    const isMock = urlParams.get('mock') === 'true' || urlParams.get('testAuth') === '1';
-    const url = `${origin}/api/ws/stream?tokens=${tokensParam}&mode=${mode}&broker=${broker}${isMock ? '&mock=true' : ''}`;
+    const isMock = typeof window !== "undefined" &&
+        (new URLSearchParams(window.location.search).get("mock") === "true" ||
+            new URLSearchParams(window.location.search).get("testAuth") === "1");
+
+    // Build absolute URL for the SSE stream
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const sseUrl = tokensParam
+        ? `${origin}/api/ws/stream?tokens=${tokensParam}&mode=${mode}&broker=${broker}${isMock ? "&mock=true" : ""}`
+        : "";
+
+    // Start worker when: logged in OR in mock mode, AND we have tokens to subscribe
+    const shouldConnect = enabled && allTokens.length > 0 && (isLoggedIn || isMock);
 
     const { status: workerStatus } = useWorkerTicker({
-        url,
-        type: 'sse',
-        enabled: isLoggedIn && activeTokens.length > 0 && enabled
+        url: sseUrl,
+        type: "sse",
+        enabled: shouldConnect,
     });
 
     useEffect(() => {
         setStatus(workerStatus);
     }, [workerStatus]);
 
-    return { status, disconnect: () => { } };
+    return { status, allTokens };
 }

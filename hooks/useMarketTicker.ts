@@ -67,10 +67,10 @@ export function useMarketTicker({
     if (activeBroker === "ANGEL") return { status: angel.status, disconnect: () => { } };
     if (activeBroker === "FYERS") return { status: fyers.status, disconnect: () => { } };
     if (activeBroker === "5PAISA") return { status: p5.status, disconnect: () => { } };
-    if (activeBroker === "GROWW") return { status: groww.status, disconnect: groww.disconnect };
+    if (activeBroker === "GROWW") return { status: groww.status, disconnect: () => { } };
 
     return {
         status: kite.status,
-        disconnect: kite.disconnect
+        disconnect: () => { }
     };
 }

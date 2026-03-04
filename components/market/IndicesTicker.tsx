@@ -94,7 +94,7 @@ export const IndicesTicker = () => {
                                     />
                                     <label
                                         htmlFor={`ticker-${item.symbol}`}
-                                        className="text-[10px] font-bold text-zinc-300 cursor-pointer hover:text-white"
+                                        className="text-[10px] font-bold text-foreground cursor-pointer hover:text-primary"
                                     >
                                         # {item.symbol.replace("NIFTY ", "").replace("INDIA ", "")}
                                     </label>
@@ -102,9 +102,9 @@ export const IndicesTicker = () => {
                             ))}
                         </div>
 
-                        <div className="pt-4 border-t border-white/5">
+                        <div className="pt-4 border-t border-border">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ticker Speed</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ticker Speed</span>
                                 <span className="text-[9px] font-mono font-bold text-primary">{speedMultiplier}x</span>
                             </div>
                             <Slider

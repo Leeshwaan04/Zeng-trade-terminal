@@ -81,7 +81,7 @@ export function useWorkerTicker({ url, type, enabled = true, isSecondary = false
     }, [url, type, updateTickers, updateSecondaryTickers, updateUnifiedMargin, setConnectionStatus, activeBroker, isSecondary]);
 
     useEffect(() => {
-        if (enabled && url && url.startsWith('http')) {
+        if (enabled && url) {
             initWorker();
         }
         return () => {
