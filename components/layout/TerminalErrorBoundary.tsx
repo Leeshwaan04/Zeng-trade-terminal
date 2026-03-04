@@ -33,7 +33,7 @@ export class TerminalErrorBoundary extends Component<Props, State> {
     public render() {
         if (this.state.hasError) {
             return (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-950/50 backdrop-blur-xl border border-down/20 rounded-xl p-6 text-center">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-surface-2 backdrop-blur-xl border border-down/30 rounded-xl p-6 text-center">
                     <div className="p-3 bg-down/10 rounded-full mb-4">
                         <AlertTriangle className="w-8 h-8 text-down animate-pulse" />
                     </div>
@@ -45,7 +45,7 @@ export class TerminalErrorBoundary extends Component<Props, State> {
                     </p>
                     <button
                         onClick={this.handleReset}
-                        className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-lg font-black text-[10px] uppercase hover:bg-zinc-200 transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-down/10 text-down border border-down/30 hover:bg-down/20 rounded-lg font-black text-[10px] uppercase transition-all"
                     >
                         <RefreshCcw className="w-3.5 h-3.5" />
                         Re-Initialize Module
@@ -54,7 +54,7 @@ export class TerminalErrorBoundary extends Component<Props, State> {
                     {process.env.NODE_ENV === 'development' && (
                         <div className="mt-8 text-left w-full overflow-hidden">
                             <p className="text-[8px] font-mono text-down/60 uppercase font-black mb-1">Debugger Trace</p>
-                            <div className="p-2 bg-black rounded border border-white/5 text-[9px] font-mono text-zinc-500 overflow-auto max-h-20 custom-scrollbar">
+                            <div className="p-2 bg-muted rounded border border-border text-[9px] font-mono text-muted-foreground overflow-auto max-h-20 custom-scrollbar">
                                 {this.state.error?.message}
                             </div>
                         </div>
