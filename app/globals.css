@@ -338,6 +338,45 @@
       filter: blur(12px);
     }
   }
+
+  @keyframes flash-up {
+    0% {
+      background-color: transparent;
+    }
+
+    30% {
+      background-color: color-mix(in srgb, var(--up) 20%, transparent);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes flash-down {
+    0% {
+      background-color: transparent;
+    }
+
+    30% {
+      background-color: color-mix(in srgb, var(--down) 20%, transparent);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  --animate-flash-up: flash-up 0.6s ease-out forwards;
+  --animate-flash-down: flash-down 0.6s ease-out forwards;
+}
+
+.animate-flash-up {
+  animation: flash-up 0.6s ease-out forwards;
+}
+
+.animate-flash-down {
+  animation: flash-down 0.6s ease-out forwards;
 }
 
 /* ─── NEURAL GLASS SYSTEM ─── */

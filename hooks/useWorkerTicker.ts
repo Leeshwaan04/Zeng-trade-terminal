@@ -4,6 +4,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { useMarketStore } from '@/hooks/useMarketStore';
+import { useToast } from '@/hooks/use-toast';
 
 interface UseWorkerTickerProps {
     url: string;
@@ -22,6 +23,7 @@ export function useWorkerTicker({ url, type, enabled = true, isSecondary = false
     const setBroker = useAuthStore((s) => s.setBroker);
 
     const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting' | 'error'>('disconnected');
+    const { toast } = useToast();
 
     const initWorker = useCallback(() => {
         if (workerRef.current) {
@@ -52,8 +54,12 @@ export function useWorkerTicker({ url, type, enabled = true, isSecondary = false
                     }
                     break;
                 case 'CYBER_PAUSE_TRIGGERED':
-                    // Holistic Emotional Guardrail Triggered
-                    alert(`🚨 CYBER-PAUSE: ${payload.reason}. Terminal locked to prevent revenge trading.`);
+                    // Holistic Emotional Guardrail Triggered — styled toast, not blocking alert
+                    toast({
+                        title: "🚨 CYBER-PAUSE ACTIVATED",
+                        description: `${payload.reason}. Terminal locked to prevent revenge trading.`,
+                        variant: "destructive",
+                    });
                     setConnectionStatus('DISCONNECTED');
                     break;
                 case 'METRICS':

@@ -32,18 +32,40 @@ export const IndicesTicker = () => {
         const ticker = tickers[index.symbol] || { last_price: 0, net_change: 0, change_percent: 0 };
         const isPositive = (ticker.net_change ?? 0) >= 0;
         const changePct = ticker.change_percent ?? (ticker.net_change / (ticker.last_price - ticker.net_change) * 100 || 0);
+        const hasData = ticker.last_price > 0;
+        const prevPrice = React.useRef(ticker.last_price);
+        const [flash, setFlash] = React.useState<"up" | "down" | null>(null);
+
+        React.useEffect(() => {
+            if (ticker.last_price > 0 && ticker.last_price !== prevPrice.current) {
+                setFlash(ticker.last_price > prevPrice.current ? "up" : "down");
+                const t = setTimeout(() => setFlash(null), 600);
+                prevPrice.current = ticker.last_price;
+                return () => clearTimeout(t);
+            }
+        }, [ticker.last_price]);
 
         return (
-            <div className="flex items-center gap-3 px-4 shrink-0 border-r border-border/10 h-full cursor-pointer hover:bg-foreground/5 transition-colors group">
+            <div className={cn(
+                "flex items-center gap-3 px-4 shrink-0 border-r border-border/10 h-full cursor-pointer hover:bg-foreground/5 transition-colors group rounded-sm",
+                flash === "up" && "animate-flash-up",
+                flash === "down" && "animate-flash-down",
+            )}>
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.12em] group-hover:text-foreground transition-colors">
                     {index.symbol.replace("NIFTY ", "").replace("INDIA ", "")}
                 </span>
-                <span className={cn("text-[10px] font-black tracking-tight text-numeral", isPositive ? "text-up" : "text-down")}>
-                    {ticker.last_price > 0 ? ticker.last_price.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : "—"}
-                </span>
-                <span className={cn("text-[8px] font-bold text-numeral", isPositive ? "text-up/60" : "text-down/60")}>
-                    {isPositive ? "▲" : "▼"} {Math.abs(changePct).toFixed(2)}%
-                </span>
+                {hasData ? (
+                    <>
+                        <span className={cn("text-[10px] font-black tracking-tight text-numeral", isPositive ? "text-up" : "text-down")}>
+                            {ticker.last_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className={cn("text-[8px] font-bold text-numeral", isPositive ? "text-up/60" : "text-down/60")}>
+                            {isPositive ? "▲" : "▼"} {Math.abs(changePct).toFixed(2)}%
+                        </span>
+                    </>
+                ) : (
+                    <span className="text-[10px] font-mono text-muted-foreground/40 tracking-widest animate-pulse">—</span>
+                )}
             </div>
         );
     };

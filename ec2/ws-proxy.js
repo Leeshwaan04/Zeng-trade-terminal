@@ -357,10 +357,20 @@ wss.on("connection", (ws, req) => {
 });
 
 // ── REST API Server ───────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+    "https://zengtrade.in",
+    "https://www.zengtrade.in",
+    "http://localhost:3000",
+];
+
 const apiServer = http.createServer(async (req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    const origin = req.headers.origin || "";
+    const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Access-Token");
     res.setHeader("Content-Type", "application/json");
+    if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
 
     const url = new URL(req.url, `http://localhost:${API_PORT}`);
 

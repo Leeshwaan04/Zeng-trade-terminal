@@ -138,7 +138,7 @@ export default function AppShell() {
                         </div>
 
                         {/* Workspace Navigation */}
-                        <div className="flex-1 min-w-0 h-full flex items-end">
+                        <div className="flex-1 min-w-0 h-full flex items-center overflow-hidden">
                             <WorkspaceTabs onAddClick={() => setIsLayoutCustomizerOpen(true)} />
                         </div>
                     </div>
@@ -151,6 +151,24 @@ export default function AppShell() {
                             </div>
                             <div className="h-6 w-[1px] bg-border/20 mx-1" />
                             <MarketSentiment />
+                        </div>
+
+                        {/* Live Connection Status Dot */}
+                        <div className="flex items-center gap-1.5 ml-2">
+                            <div className={cn(
+                                "w-1.5 h-1.5 rounded-full transition-colors duration-500",
+                                connectionStatus === 'CONNECTED' ? "bg-up shadow-[0_0_6px_var(--up)] animate-pulse" :
+                                    connectionStatus === 'CONNECTING' ? "bg-yellow-400 animate-pulse" :
+                                        "bg-down/60"
+                            )} />
+                            <span className={cn(
+                                "text-[8px] font-black uppercase tracking-widest transition-colors",
+                                connectionStatus === 'CONNECTED' ? "text-up" :
+                                    connectionStatus === 'CONNECTING' ? "text-yellow-400" :
+                                        "text-muted-foreground"
+                            )}>
+                                {connectionStatus === 'CONNECTED' ? 'Live' : connectionStatus === 'CONNECTING' ? 'Sync' : 'Offline'}
+                            </span>
                         </div>
 
                         {/* System Pulse Indicator */}

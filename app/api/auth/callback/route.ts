@@ -6,6 +6,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeToken } from "@/lib/kite-client";
+import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
     const host = req.headers.get("host");
@@ -13,6 +14,16 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const requestToken = searchParams.get("request_token");
     const status = searchParams.get("status");
+    const stateParam = searchParams.get("state");
+
+    // ─── CSRF State Validation ────────────────────────────────
+    const cookieStore = await cookies();
+    const storedState = cookieStore.get("kite_oauth_state")?.value;
+    // Only enforce state check if one was stored (graceful for older sessions)
+    if (storedState && stateParam !== storedState) {
+        console.warn(`[AuthCallback] CSRF state mismatch. Expected: ${storedState}, Got: ${stateParam}`);
+        return NextResponse.redirect(new URL(`/terminal?auth_error=csrf_mismatch`, req.url));
+    }
 
     console.log(`[AuthCallback] DEBUG INFO:`);
     console.log(` - URL: ${req.url}`);
