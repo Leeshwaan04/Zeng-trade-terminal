@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useOrderStore } from "@/hooks/useOrderStore";
 import { useStrategyStore } from "@/hooks/useStrategyStore";
+import { BSResult } from "@/lib/black-scholes";
 
 interface OptionChainItem extends KiteInstrument {
     // Extended with live data from ticker
@@ -25,10 +26,27 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
     const [expiry, setExpiry] = useState<string | null>(null);
     const [allExpiries, setAllExpiries] = useState<string[]>([]);
 
+    // Web Worker State for Greeks
+    const workerRef = React.useRef<Worker | null>(null);
+    const [chainGreeks, setChainGreeks] = useState<Record<number, { ce: BSResult, pe: BSResult }>>({});
+
     // Get Spot Price from Market Store
     const spotSymbol = symbol === "NIFTY" ? "NIFTY 50" : symbol;
     const spotTick = useMarketStore(state => state.tickers[spotSymbol]);
     const spotPrice = spotTick?.last_price || 0;
+
+    // Initialize Web Worker
+    useEffect(() => {
+        workerRef.current = new Worker(new URL('../../workers/greeks.worker.ts', import.meta.url));
+        workerRef.current.onmessage = (e: MessageEvent) => {
+            if (e.data.type === 'CHAIN_GREEKS_RESULT' && e.data.success) {
+                setChainGreeks(e.data.payload);
+            }
+        };
+        return () => {
+            workerRef.current?.terminate();
+        };
+    }, []);
 
     // Fetch Chain Data
     useEffect(() => {
@@ -105,6 +123,23 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
 
     useKiteTicker({ instrumentTokens: allTokens });
 
+    // Fire Web Worker on Spot Tick
+    useEffect(() => {
+        if (!workerRef.current || visibleRows.length === 0 || spotPrice === 0) return;
+
+        workerRef.current.postMessage({
+            id: Date.now(),
+            type: "COMPUTE_CHAIN_GREEKS",
+            payload: {
+                strikes: visibleRows.map(r => r.strike),
+                spotPrice,
+                timeToExpiry: 5 / 365, // Mock 5 days
+                riskFreeRate: 0.07,
+                impliedVol: 0.2
+            }
+        });
+    }, [visibleRows, spotPrice]);
+
     // Render Helpers
     const tickers = useMarketStore(state => state.tickers);
 
@@ -155,16 +190,18 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
 
             {/* Chain Table Header */}
             <div className="grid grid-cols-[1fr_40px_1fr] md:grid-cols-[1fr_60px_1fr] gap-0 text-center bg-surface-2 uppercase tracking-wide text-muted-foreground py-1 border-b border-border">
-                <div className="grid grid-cols-3">
+                <div className="grid grid-cols-4">
+                    <span>Delta</span>
                     <span>OI</span>
                     <span>LTP</span>
                     <span>Call</span>
                 </div>
                 <div className="font-bold text-foreground">Strike</div>
-                <div className="grid grid-cols-3">
+                <div className="grid grid-cols-4">
                     <span>Put</span>
                     <span>LTP</span>
                     <span>OI</span>
+                    <span>Delta</span>
                 </div>
             </div>
 
@@ -187,7 +224,8 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
                                 isATM && "bg-primary/5"
                             )}>
                                 {/* CALLS */}
-                                <div className="grid grid-cols-3 items-center py-1 border-r border-border/20" onClick={() => handleTrade(row.ce, 'BUY')}>
+                                <div className="grid grid-cols-4 items-center py-1 border-r border-border/20" onClick={() => handleTrade(row.ce, 'BUY')}>
+                                    <span className="text-[9px] text-blue-400 opacity-80">{chainGreeks[row.strike]?.ce.delta.toFixed(2) || "-"}</span>
                                     <span className="text-[9px] opacity-70">{ceData?.oi || "-"}</span>
                                     <span className={cn(
                                         "font-medium",
@@ -202,13 +240,14 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
                                 </div>
 
                                 {/* PUTS */}
-                                <div className="grid grid-cols-3 items-center py-1 border-l border-border/20" onClick={() => handleTrade(row.pe, 'BUY')}>
+                                <div className="grid grid-cols-4 items-center py-1 border-l border-border/20" onClick={() => handleTrade(row.pe, 'BUY')}>
                                     <span className="hidden md:inline text-[9px] opacity-50">PE</span>
                                     <span className={cn(
                                         "font-medium",
                                         (peData?.net_change || 0) >= 0 ? "text-up" : "text-down"
                                     )}>{peData?.last_price?.toFixed(1) || "-"}</span>
                                     <span className="text-[9px] opacity-70">{peData?.oi || "-"}</span>
+                                    <span className="text-[9px] text-orange-400 opacity-80">{chainGreeks[row.strike]?.pe.delta.toFixed(2) || "-"}</span>
                                 </div>
                             </div>
                         );

@@ -21,6 +21,8 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     const [isBlitz, setIsBlitz] = useState(false);
     const [blitzSlices, setBlitzSlices] = useState("5");
     const [blitzInterval, setBlitzInterval] = useState("3");
+    const [blitzRandomize, setBlitzRandomize] = useState(false);
+    const [blitzMode, setBlitzMode] = useState<'FIXED' | 'VWAP_SYNC'>('FIXED');
     const [submitting, setSubmitting] = useState(false);
     const submitLock = React.useRef(false);
     const lastSubmitTimeRef = React.useRef(0);
@@ -137,7 +139,9 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                     executeBlitz(orderParams, {
                         enabled: true,
                         slices,
-                        interval
+                        interval,
+                        randomizeSizing: blitzRandomize,
+                        participationMode: blitzMode
                     });
                     toast({ title: "⚡ Blitz Initiated", description: `Executing ${quantity} qty over ${slices} slices` });
                 } else {
@@ -232,9 +236,31 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
 
                 {/* Blitz Controls */}
                 {isBlitz && (
-                    <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
-                        <InputGroup label="Slices" value={blitzSlices} setValue={setBlitzSlices} unit="Count" />
-                        <InputGroup label="Interval" value={blitzInterval} setValue={setBlitzInterval} unit="Sec" />
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="grid grid-cols-2 gap-2">
+                            <InputGroup label="Slices" value={blitzSlices} setValue={setBlitzSlices} unit="Count" />
+                            <InputGroup label="Interval" value={blitzInterval} setValue={setBlitzInterval} unit="Sec" />
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setBlitzRandomize(!blitzRandomize)}
+                                className={cn(
+                                    "flex-1 py-1 rounded-[4px] text-[8px] font-black tracking-widest transition-all border",
+                                    blitzRandomize ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-400" : "bg-surface-2 border-border text-muted-foreground"
+                                )}
+                            >
+                                ANTI-DETECT {blitzRandomize ? "ON" : "OFF"}
+                            </button>
+                            <button
+                                onClick={() => setBlitzMode(blitzMode === 'FIXED' ? 'VWAP_SYNC' : 'FIXED')}
+                                className={cn(
+                                    "flex-1 py-1 rounded-[4px] text-[8px] font-black tracking-widest transition-all border",
+                                    blitzMode === 'VWAP_SYNC' ? "bg-orange-500/20 border-orange-500/50 text-orange-400" : "bg-surface-2 border-border text-muted-foreground"
+                                )}
+                            >
+                                {blitzMode === 'VWAP_SYNC' ? "VWAP SYNC" : "FIXED RATE"}
+                            </button>
+                        </div>
                     </div>
                 )}
 

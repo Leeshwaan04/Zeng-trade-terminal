@@ -98,6 +98,13 @@ export default function AppShell() {
     }, [positions, tickers]);
 
     useEffect(() => {
+        const handleOnline = () => {
+            console.info("🌐 Network restored. Processing offline action queue...");
+            useOrderStore.getState().processQueue();
+        };
+
+        window.addEventListener('online', handleOnline);
+
         const layoutParam = searchParams.get('layout');
         if (layoutParam && (layoutParam === 'algo' || layoutParam === 'algorithmic')) {
             setActiveWorkspace('algorithmic');
@@ -105,6 +112,8 @@ export default function AppShell() {
 
         // Pre-fetch instruments to hydrate cache
         fetch('/api/kite/instruments').catch(() => { });
+
+        return () => window.removeEventListener('online', handleOnline);
     }, [searchParams, setActiveWorkspace]);
 
     if (!isLoggedIn) {

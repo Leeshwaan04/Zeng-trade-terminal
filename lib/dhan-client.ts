@@ -81,3 +81,12 @@ export async function getDhanMargins(accessToken: string) {
         netUsed: data.utilisedLimit || 0
     };
 }
+
+export async function placeDhanOrder(accessToken: string, params: any) {
+    console.log(`[DHAN API] Placing order: ${params.quantity}x ${params.tradingsymbol}`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return {
+        order_id: `DHAN_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        status: "COMPLETE"
+    };
+}

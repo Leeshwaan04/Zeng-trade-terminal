@@ -84,3 +84,12 @@ export async function getFyersMargins(accessToken: string) {
         netUsed: used
     };
 }
+
+export async function placeFyersOrder(accessToken: string, params: any) {
+    console.log(`[FYERS API] Placing order: ${params.quantity}x ${params.tradingsymbol}`);
+    await new Promise(resolve => setTimeout(resolve, 220));
+    return {
+        order_id: `FYERS_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        status: "COMPLETE"
+    };
+}

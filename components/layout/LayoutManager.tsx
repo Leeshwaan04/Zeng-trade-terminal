@@ -62,26 +62,14 @@ export const LayoutManager = () => {
 
     // Ref to track initial sizes during drag
     const initialSizesRef = useRef<string[]>([]);
+    const [mobileActiveTabIdx, setMobileActiveTabIdx] = useState(0);
 
     if (!isMounted || !activeWorkspace) return null;
 
-    // Mobile Responsive Logic
-    // If mobile, force single column and stack all areas vertically
+    // Mobile Responsive Logic -> Now handled with a completely separate return flow at the bottom
     let effectiveCols = activeWorkspace.gridTemplateColumns;
     let effectiveRows = activeWorkspace.gridTemplateRows;
     let effectiveAreas = activeWorkspace.areas;
-
-    if (isMobile) {
-        effectiveCols = "1fr";
-        // Stack areas: each area gets a row.
-        effectiveRows = `repeat(${activeWorkspace.areas.length}, 450px)`;
-
-        // Remap areas to be vertical stack
-        effectiveAreas = activeWorkspace.areas.map((area, index) => ({
-            ...area,
-            gridArea: `${index + 1} / 1 / ${index + 2} / 2`
-        }));
-    }
 
     const colSizes = isMobile ? [] : activeWorkspace.gridTemplateColumns.split(" ");
     const rowSizes = isMobile ? [] : activeWorkspace.gridTemplateRows.split(" ");
@@ -245,6 +233,68 @@ export const LayoutManager = () => {
                 </div>
             );
         }
+    }
+
+    if (isMobile) {
+        const activeAreaForMobile = activeWorkspace.areas[mobileActiveTabIdx] || activeWorkspace.areas[0];
+        const widgetConfig = activeAreaForMobile?.widgets.find(w => w.id === activeAreaForMobile.activeWidgetId) || activeAreaForMobile?.widgets[0];
+
+        return (
+            <div className="flex flex-col w-full h-full bg-background relative overflow-hidden">
+                {/* Mobile Tab Bar */}
+                <div className="flex items-center gap-2 p-2 overflow-x-auto border-b border-border/10 shrink-0 hide-scrollbar bg-surface-1">
+                    {activeWorkspace.areas.map((area, index) => {
+                        const widget = area.widgets.find(w => w.id === area.activeWidgetId) || area.widgets[0];
+                        const isActive = mobileActiveTabIdx === index;
+                        return (
+                            <button
+                                key={area.id}
+                                onClick={() => setMobileActiveTabIdx(index)}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors flex items-center gap-2 shrink-0 ${isActive ? "bg-primary text-black" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                                    }`}
+                            >
+                                {widget?.type.replace('_', ' ')}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Active Area */}
+                <div className="flex-1 min-h-0 relative">
+                    {widgetConfig && (
+                        <div className="w-full h-full">
+                            <WidgetContainer
+                                widgets={activeAreaForMobile.widgets}
+                                activeWidgetId={activeAreaForMobile.activeWidgetId}
+                                onWidgetSelect={(widgetId) => setActiveWidget(activeAreaForMobile.id, widgetId)}
+                                isActive={true}
+                                onActivate={() => { }}
+                                allowOverflow={widgetConfig.type === "CHART"}
+                            >
+                                {widgetConfig.type === "CHART" && <MultiChartWidget widgetConfig={widgetConfig} />}
+                                {widgetConfig.type === "WATCHLIST" && <WatchlistWidget widgetId={widgetConfig.id} />}
+                                {widgetConfig.type === "ORDER_BOOK" && <OrderBookWidget symbol={widgetConfig.symbol} />}
+                                {widgetConfig.type === "DOM" && <DepthOfMarket symbol={widgetConfig.symbol || "NIFTY 50"} />}
+                                {widgetConfig.type === "POSITIONS" && <PositionsTable />}
+                                {widgetConfig.type === "ORDER_ENTRY" && <OrderEntryPanel symbol={widgetConfig.symbol || "NIFTY 50"} />}
+                                {widgetConfig.type === "STRATEGY_BUILDER" && <StrategyBuilder />}
+                                {widgetConfig.type === "PAYOFF_DIAGRAM" && <PayoffDiagram />}
+                                {widgetConfig.type === "OPTION_CHAIN" && <NeuralOptionChain symbol={widgetConfig.symbol} />}
+                                {widgetConfig.type === "PORTFOLIO_HEATMAP" && <PortfolioHeatmap />}
+                                {widgetConfig.type === "ALGO_RULES" && <AlgoRulesPanel />}
+                                {widgetConfig.type === "AUTOMATE_BUILDER" && <AutomateBuilder />}
+                                {widgetConfig.type === "WHALE_SONAR" && <WhaleSonarWidget />}
+                                {widgetConfig.type === "HYPER_CHART" && <HyperChartWidget symbol={widgetConfig.symbol || "NIFTY 50"} />}
+                                {widgetConfig.type === "OI_ANALYSIS" && <MultiStrikeOIWidget symbol={widgetConfig.symbol || "NIFTY 50"} />}
+                                {widgetConfig.type === "FII_DII" && <FiiDiiWidget />}
+                                {widgetConfig.type === "GTT_MANAGER" && <GTTManager />}
+                                {widgetConfig.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
+                            </WidgetContainer>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     }
 
     return (
