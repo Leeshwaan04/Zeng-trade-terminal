@@ -1,7 +1,7 @@
 /**
  * Auth utility — extracts Kite credentials from cookies for API routes.
  */
-import { cookies } from "next/headers";
+// Dynamic import to prevent build-time leakage into client bundles
 
 export interface AuthCredentials {
     apiKey?: string;
@@ -11,6 +11,7 @@ export interface AuthCredentials {
 }
 
 export async function getAllAuthCredentials(): Promise<AuthCredentials[]> {
+    const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     const creds: AuthCredentials[] = [];
 
