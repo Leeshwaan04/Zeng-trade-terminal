@@ -57,6 +57,7 @@ const WIDGETS_COLLECTION = [
     { type: "HISTORY", label: "Order History", desc: "Comprehensive log of past trades", icon: <History className="w-5 h-5" />, color: "text-zinc-400", gradient: "from-zinc-500/20 to-zinc-600/40", ready: true },
     { type: "PORTFOLIO", label: "Portfolio", desc: "Consolidated view of all holdings", icon: <PieChart className="w-5 h-5" />, color: "text-indigo-400", gradient: "from-indigo-500/20 to-indigo-600/40", ready: true },
     { type: "GTT_MANAGER", label: "GTT Manager", desc: "Institutional GTT lifecycle control", icon: <Clock className="w-5 h-5" />, color: "text-amber-400", gradient: "from-amber-500/20 to-amber-600/40", ready: true },
+    { type: "MARGIN_AGGREGATOR", label: "Margin Aggregator", desc: "Consolidated view of Kite, Dhan & Fyers margins", icon: <PieChart className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
     { type: "WHALE_SONAR", label: "Whale Sonar", desc: "Institutional flow detection (BETA)", icon: <Activity className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: false },
     { type: "HEATMAP", label: "Heatmap", desc: "Segment visually (BETA)", icon: <LayoutGrid className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: false },
 ];

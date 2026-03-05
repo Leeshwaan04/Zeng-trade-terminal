@@ -3,7 +3,7 @@
  * Fetches user funds and margins
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthCredentials } from "@/lib/auth-utils";
+import { getAllAuthCredentials, AuthCredentials } from "@/lib/auth-utils";
 import { getMargins, KiteError } from "@/lib/kite-client";
 
 export async function GET(request: NextRequest) {
@@ -69,41 +69,65 @@ export async function GET(request: NextRequest) {
         });
     }
 
-    const auth = await getAuthCredentials();
-    if (!auth) {
+    const allAuth = await getAllAuthCredentials();
+    if (allAuth.length === 0) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     try {
-        const margins = await getMargins(auth.apiKey!, auth.accessToken!);
+        const brokerMargins: Record<string, any> = {};
 
-        // Cyber-Infinity Aggregation Logic
-        const equity = margins.equity?.available?.live_balance || 0;
-        const commodity = margins.commodity?.available?.live_balance || 0;
-        const totalAvailable = equity + commodity;
+        const results = await Promise.allSettled(allAuth.map(async (auth: AuthCredentials) => {
+            let marginData: any;
+            if (auth.broker === "GROWW") {
+                // Groww margins mock for now as client is external
+                marginData = { equity: { available: { live_balance: 500000 }, utilised: { debits: 0 } } };
+            } else if (auth.broker === "DHAN") {
+                const { getDhanMargins } = await import("@/lib/dhan-client");
+                marginData = await getDhanMargins(auth.accessToken);
+            } else if (auth.broker === "FYERS") {
+                const { getFyersMargins } = await import("@/lib/fyers-client");
+                marginData = await getFyersMargins(auth.accessToken);
+            } else {
+                const margins = await getMargins(auth.apiKey!, auth.accessToken!);
+                marginData = {
+                    equity: margins.equity,
+                    commodity: margins.commodity,
+                    totalAvailable: (margins.equity?.available?.live_balance || 0) + (margins.commodity?.available?.live_balance || 0),
+                    netUsed: (margins.equity?.utilised?.debits || 0) + (margins.commodity?.utilised?.debits || 0)
+                };
+            }
+            return { broker: auth.broker, data: marginData };
+        }));
 
-        const equityUsed = margins.equity?.utilised?.debits || 0;
-        const commodityUsed = margins.commodity?.utilised?.debits || 0;
-        const netUsed = equityUsed + commodityUsed;
+        let totalAvailable = 0;
+        let totalUsed = 0;
 
-        const util_percent = totalAvailable > 0 ? (netUsed / (totalAvailable + netUsed)) * 100 : 0;
+        results.forEach((res: PromiseSettledResult<{ broker: string, data: any }>) => {
+            if (res.status === "fulfilled") {
+                const { broker, data } = res.value;
+                brokerMargins[broker] = {
+                    available: data.totalAvailable || data.equity?.available?.live_balance || 0,
+                    used: data.netUsed || data.equity?.utilised?.debits || 0,
+                };
+                totalAvailable += brokerMargins[broker].available;
+                totalUsed += brokerMargins[broker].used;
+            }
+        });
+
+        const util_percent = totalAvailable > 0 ? (totalUsed / (totalAvailable + totalUsed)) * 100 : 0;
 
         return NextResponse.json({
             status: "success",
             data: {
-                ...margins,
+                brokers: brokerMargins,
                 totalAvailable,
-                netUsed,
+                netUsed: totalUsed,
                 util_percent
             }
         });
     } catch (error: any) {
-        if (error instanceof KiteError) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: error.httpStatus }
-            );
-        }
-        return NextResponse.json({ error: "Failed to fetch margins" }, { status: 500 });
+        console.error("[MarginsAggregation] Failed:", error);
+        return NextResponse.json({ error: "Failed to fetch aggregated margins" }, { status: 500 });
     }
 }

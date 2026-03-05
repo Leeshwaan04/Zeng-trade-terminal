@@ -9,14 +9,37 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "No auth code returned" }, { status: 400 });
     }
 
+    const cookieStore = await cookies();
+    const tempCreds = cookieStore.get("zeng_temp_creds")?.value;
+
+    let clientId = process.env.DHAN_CLIENT_ID;
+    let clientSecret = process.env.DHAN_CLIENT_SECRET;
+
+    if (tempCreds) {
+        try {
+            const parsed = JSON.parse(tempCreds);
+            if (parsed.broker === "DHAN") {
+                clientId = parsed.apiKey;
+                clientSecret = parsed.apiSecret;
+            }
+        } catch (e) {
+            console.error("[DhanCallback] Failed to parse temp credentials:", e);
+        }
+    }
+
+    if (!clientId || !clientSecret) {
+        console.error("[DhanCallback] Missing DHAN configuration");
+        return NextResponse.redirect(new URL("/terminal?auth_error=missing_config", request.url));
+    }
+
     try {
         // Exchange code for token
         const res = await fetch("https://auth.dhan.co/oauth/token", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                client_id: process.env.DHAN_CLIENT_ID,
-                client_secret: process.env.DHAN_CLIENT_SECRET,
+                client_id: clientId,
+                client_secret: clientSecret,
                 grant_type: "authorization_code",
                 code,
                 redirect_uri: process.env.DHAN_REDIRECT_URI || "http://localhost:3000/api/dhan/auth/callback",

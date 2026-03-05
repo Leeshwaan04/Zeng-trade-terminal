@@ -25,6 +25,9 @@ interface ChartContextType {
         gap: number;
     } | null;
     mouse: { x: number; y: number } | null;
+    registerDraggable: (id: string, config: { y: number; onDrag: (newY: number) => void; onEnd: () => void }) => void;
+    unregisterDraggable: (id: string) => void;
+    activeDraggable: string | null;
 }
 
 const ChartContext = createContext<ChartContextType | null>(null);
@@ -42,7 +45,10 @@ interface ChartLayerProps {
 }
 
 export const ChartLayer = ({ zIndex = 0, draw }: ChartLayerProps) => {
-    const { width, height, data, scales, mouse } = useChart();
+    const {
+        width, height, data, scales, mouse,
+        registerDraggable, unregisterDraggable, activeDraggable
+    } = useChart();
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -64,7 +70,10 @@ export const ChartLayer = ({ zIndex = 0, draw }: ChartLayerProps) => {
         ctx.clearRect(0, 0, width, height);
 
         // Draw
-        draw(ctx, { width, height, data, scales, mouse });
+        draw(ctx, {
+            width, height, data, scales, mouse,
+            registerDraggable, unregisterDraggable, activeDraggable
+        });
 
     }, [width, height, data, scales, mouse, draw]);
 
@@ -104,7 +113,17 @@ export const ChartEngine = ({ data, height = "100%", children, onMouseMove }: Ch
     // ─── Interaction State ───────────────────────────────────────
     const [transform, setTransform] = useState({ k: 1, x: 0 }); // k = scale (zoom), x = pan offset
     const [isDragging, setIsDragging] = useState(false);
+    const [activeDraggable, setActiveDraggable] = useState<string | null>(null);
+    const draggables = useRef<Record<string, any>>({});
     const lastMouseX = useRef(0);
+    const lastMouseY = useRef(0);
+
+    const registerDraggable = (id: string, config: any) => {
+        draggables.current[id] = config;
+    };
+    const unregisterDraggable = (id: string) => {
+        delete draggables.current[id];
+    };
 
     // Calculate Scales with Transform
     const scales = useMemo(() => {
@@ -198,11 +217,38 @@ export const ChartEngine = ({ data, height = "100%", children, onMouseMove }: Ch
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect || !scales) return;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Check for Draggables first (Hit detection)
+        let foundId = null;
+        for (const [id, config] of Object.entries(draggables.current)) {
+            const dy = Math.abs(config.y - y);
+            if (dy < 10) { // 10px hit area
+                foundId = id;
+                break;
+            }
+        }
+
+        if (foundId) {
+            setActiveDraggable(foundId);
+        } else {
+            setIsDragging(true);
+        }
+
         lastMouseX.current = e.clientX;
+        lastMouseY.current = e.clientY;
     };
 
-    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseUp = () => {
+        if (activeDraggable && draggables.current[activeDraggable]) {
+            draggables.current[activeDraggable].onEnd();
+        }
+        setIsDragging(false);
+        setActiveDraggable(null);
+    };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         const rect = containerRef.current?.getBoundingClientRect();
@@ -211,7 +257,9 @@ export const ChartEngine = ({ data, height = "100%", children, onMouseMove }: Ch
         const y = e.clientY - rect.top;
         setMouse({ x, y });
 
-        if (isDragging) {
+        if (activeDraggable && draggables.current[activeDraggable]) {
+            draggables.current[activeDraggable].onDrag(y);
+        } else if (isDragging) {
             const dx = e.clientX - lastMouseX.current;
             lastMouseX.current = e.clientX;
             setTransform(prev => ({ ...prev, x: prev.x + dx }));
@@ -229,7 +277,16 @@ export const ChartEngine = ({ data, height = "100%", children, onMouseMove }: Ch
     };
 
     return (
-        <ChartContext.Provider value={{ width: dimensions.width, height: dimensions.height, data, scales: scales as any, mouse }}>
+        <ChartContext.Provider value={{
+            width: dimensions.width,
+            height: dimensions.height,
+            data,
+            scales: scales as any,
+            mouse,
+            registerDraggable,
+            unregisterDraggable,
+            activeDraggable
+        }}>
             <div
                 ref={containerRef}
                 className="relative w-full overflow-hidden bg-background select-none cursor-crosshair"

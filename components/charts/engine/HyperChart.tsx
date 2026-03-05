@@ -64,6 +64,9 @@ const HyperCrosshairLayer = () => {
 };
 
 
+import { HyperOrderLayer } from "./HyperOrderLayer";
+import { SmartZoneLayer } from "./SmartZoneLayer";
+
 export const HyperChart = ({ symbol }: { symbol: string }) => {
     // Determine data source (mock for now or from store)
     const [data, setData] = useState<any[]>([]);
@@ -147,9 +150,10 @@ export const HyperChart = ({ symbol }: { symbol: string }) => {
             <HyperGridLayer />
             <HyperCandleLayer />
             <IndicatorLayer indicators={indicators} />
+            <SmartZoneLayer />
             <DrawingLayer drawings={mockDrawings} />
+            <HyperOrderLayer symbol={symbol} />
             <HyperCrosshairLayer />
-            {/* Future: SmartZonesLayer, OrderLayer */}
         </ChartEngine>
     );
 };

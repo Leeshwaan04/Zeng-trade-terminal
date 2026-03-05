@@ -17,9 +17,30 @@ export async function GET(request: Request) {
 
     const authCode = code || searchParams.get("code");
 
+    const cookieStore = await cookies();
+    const tempCreds = cookieStore.get("zeng_temp_creds")?.value;
+
+    let appId = process.env.FYERS_APP_ID || "";
+    let secretId = process.env.FYERS_SECRET_ID || "";
+
+    if (tempCreds) {
+        try {
+            const parsed = JSON.parse(tempCreds);
+            if (parsed.broker === "FYERS") {
+                appId = parsed.apiKey;
+                secretId = parsed.apiSecret;
+            }
+        } catch (e) {
+            console.error("[FyersCallback] Failed to parse temp credentials:", e);
+        }
+    }
+
+    if (!appId || !secretId) {
+        console.error("[FyersCallback] Missing FYERS configuration");
+        return NextResponse.redirect(new URL("/terminal?auth_error=missing_config", request.url));
+    }
+
     try {
-        const appId = process.env.FYERS_APP_ID || "";
-        const secretId = process.env.FYERS_SECRET_ID || "";
         const appIdHash = crypto.createHash('sha256').update(`${appId}:${secretId}`).digest('hex');
 
         const res = await fetch("https://api-v3.fyers.in/api/v3/validate-authcode", {

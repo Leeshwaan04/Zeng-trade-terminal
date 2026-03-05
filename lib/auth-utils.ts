@@ -5,29 +5,47 @@ import { cookies } from "next/headers";
 
 export interface AuthCredentials {
     apiKey?: string;
+    apiSecret?: string;
     accessToken: string;
-    broker: "KITE" | "GROWW";
+    broker: "KITE" | "GROWW" | "DHAN" | "FYERS";
+}
+
+export async function getAllAuthCredentials(): Promise<AuthCredentials[]> {
+    const cookieStore = await cookies();
+    const creds: AuthCredentials[] = [];
+
+    // 1. Groww
+    const growwToken = cookieStore.get("groww_access_token")?.value;
+    if (growwToken) {
+        creds.push({ accessToken: growwToken, broker: "GROWW" });
+    }
+
+    // 2. Kite
+    const kiteToken = cookieStore.get("kite_access_token")?.value;
+    if (kiteToken) {
+        creds.push({
+            apiKey: process.env.KITE_API_KEY,
+            accessToken: kiteToken,
+            broker: "KITE"
+        });
+    }
+
+    // 3. Dhan
+    const dhanToken = cookieStore.get("dhan_access_token")?.value;
+    if (dhanToken) {
+        creds.push({ accessToken: dhanToken, broker: "DHAN" });
+    }
+
+    // 4. Fyers
+    const fyersToken = cookieStore.get("fyers_access_token")?.value;
+    if (fyersToken) {
+        creds.push({ accessToken: fyersToken, broker: "FYERS" });
+    }
+
+    return creds;
 }
 
 export async function getAuthCredentials(): Promise<AuthCredentials | null> {
-    const cookieStore = await cookies();
-
-    // Priority 1: Groww (if token exists)
-    const growwAccessToken = cookieStore.get("groww_access_token")?.value;
-    if (growwAccessToken) {
-        return { accessToken: growwAccessToken, broker: "GROWW" };
-    }
-
-    // Priority 2: Kite
-    const kiteAccessToken = cookieStore.get("kite_access_token")?.value;
-    const kiteApiKey = process.env.KITE_API_KEY;
-
-    if (kiteApiKey && kiteAccessToken) {
-        return { apiKey: kiteApiKey, accessToken: kiteAccessToken, broker: "KITE" };
-    }
-
-    if (!kiteApiKey) console.warn("🚨 [AuthUtils] KITE_API_KEY is missing from environment.");
-    if (!kiteAccessToken) console.warn("🚨 [AuthUtils] kite_access_token cookie is missing.");
-
-    return null;
+    const all = await getAllAuthCredentials();
+    return all.length > 0 ? all[0] : null;
 }

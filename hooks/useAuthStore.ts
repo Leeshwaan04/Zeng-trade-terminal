@@ -38,10 +38,11 @@ interface AuthState {
     // ─── Trading Mode ────────────────────────────────────────
     skipOrderConfirmation: boolean;
 
-    // ─── Broker Selection ────────────────────────────────────
-    // ─── Broker Selection ────────────────────────────────────
+    // ─── Broker Selection & Config ────────────────────────────
     activeBroker: "KITE" | "GROWW" | "DHAN" | "ANGEL" | "FYERS" | "5PAISA";
+    brokerConfigs: Record<string, { apiKey: string, apiSecret: string }>;
     setBroker: (broker: "KITE" | "GROWW" | "DHAN" | "ANGEL" | "FYERS" | "5PAISA") => void;
+    updateBrokerConfig: (broker: string, config: { apiKey: string, apiSecret: string }) => void;
 
     // ─── Actions ─────────────────────────────────────────────
     setSession: (user: UnifiedUser, accessToken: string, publicToken: string) => void;
@@ -64,8 +65,12 @@ export const useAuthStore = create<AuthState>()(
             loginTime: null,
             skipOrderConfirmation: false,
             activeBroker: "KITE",
+            brokerConfigs: {},
 
             setBroker: (broker) => set({ activeBroker: broker }),
+            updateBrokerConfig: (broker, config) => set(state => ({
+                brokerConfigs: { ...state.brokerConfigs, [broker]: config }
+            })),
 
             // ─── Set Session (called after OAuth callback) ───
             setSession: (user, accessToken, publicToken) =>
@@ -110,15 +115,26 @@ export const useAuthStore = create<AuthState>()(
 
             // ─── Login Redirect ──────────────────────────────
             login: () => {
-                const apiKey = process.env.NEXT_PUBLIC_KITE_API_KEY || process.env.KITE_API_KEY;
+                const { activeBroker, brokerConfigs } = get();
+                const config = brokerConfigs[activeBroker];
+
+                const apiKey = config?.apiKey || process.env.NEXT_PUBLIC_KITE_API_KEY || process.env.KITE_API_KEY;
+
                 if (!apiKey) {
-                    console.error("❌ [Auth] Missing KITE_API_KEY. Set NEXT_PUBLIC_KITE_API_KEY in Vercel.");
+                    console.error(`❌ [Auth] Missing API Key for ${activeBroker}. Set config or environment variables.`);
                     return;
                 }
+
                 const origin = window.location.origin;
                 const redirectUri = encodeURIComponent(`${origin}/api/auth/callback`);
-                console.log(`🚀 [Auth] Redirecting to Kite with API Key: ${apiKey.substring(0, 4)}... Orientation: ${origin}`);
-                window.location.href = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}&redirect_uri=${redirectUri}`;
+
+                if (activeBroker === "KITE") {
+                    window.location.href = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}&redirect_uri=${redirectUri}`;
+                } else if (activeBroker === "DHAN") {
+                    window.location.href = `https://auth.dhan.co/oauth/authorize?response_type=code&client_id=${apiKey}&redirect_uri=${redirectUri}&scope=orders,read`;
+                } else if (activeBroker === "FYERS") {
+                    window.location.href = `https://api-v3.fyers.in/api/v3/generate-authcode?client_id=${apiKey}&redirect_uri=${redirectUri}&response_type=code&state=zeng_fyers`;
+                }
             },
 
             // ─── Logout ──────────────────────────────────────
@@ -153,6 +169,7 @@ export const useAuthStore = create<AuthState>()(
                 loginTime: state.loginTime,
                 skipOrderConfirmation: state.skipOrderConfirmation,
                 activeBroker: state.activeBroker,
+                brokerConfigs: state.brokerConfigs,
             }),
         }
     )

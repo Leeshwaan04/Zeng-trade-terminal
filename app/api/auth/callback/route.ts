@@ -16,37 +16,33 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const stateParam = searchParams.get("state");
 
-    // ─── CSRF State Validation ────────────────────────────────
     const cookieStore = await cookies();
     const storedState = cookieStore.get("kite_oauth_state")?.value;
-    // Only enforce state check if one was stored (graceful for older sessions)
-    if (storedState && stateParam !== storedState) {
-        console.warn(`[AuthCallback] CSRF state mismatch. Expected: ${storedState}, Got: ${stateParam}`);
-        return NextResponse.redirect(new URL(`/terminal?auth_error=csrf_mismatch`, req.url));
+    const tempCreds = cookieStore.get("zeng_temp_creds")?.value;
+
+    let apiKey = process.env.KITE_API_KEY;
+    let apiSecret = process.env.KITE_API_SECRET;
+
+    if (tempCreds) {
+        try {
+            const parsed = JSON.parse(tempCreds);
+            if (parsed.broker === "KITE") {
+                apiKey = parsed.apiKey;
+                apiSecret = parsed.apiSecret;
+            }
+        } catch (e) {
+            console.error("[AuthCallback] Failed to parse temp credentials:", e);
+        }
     }
-
-    console.log(`[AuthCallback] DEBUG INFO:`);
-    console.log(` - URL: ${req.url}`);
-    console.log(` - Host Header: ${host}`);
-    console.log(` - Detected Origin: ${origin}`);
-    console.log(` - Process Env URL: ${process.env.NEXT_PUBLIC_APP_URL}`);
-    console.log(` - Status: ${status}, Token: ${requestToken?.substring(0, 5)}...`);
-
-    // ─── Error Cases ─────────────────────────────────────────
-    if (status !== "success" || !requestToken) {
-        return NextResponse.redirect(new URL(`/terminal?auth_error=login_failed`, req.url));
-    }
-
-    const apiKey = process.env.KITE_API_KEY;
-    const apiSecret = process.env.KITE_API_SECRET;
 
     if (!apiKey || !apiSecret) {
+        console.error("[AuthCallback] Missing KITE API configuration (Env or Temp Cookie)");
         return NextResponse.redirect(new URL(`/terminal?auth_error=missing_config`, req.url));
     }
 
     try {
         // ─── Token Exchange ──────────────────────────────────
-        const result = await exchangeToken(apiKey, apiSecret, requestToken);
+        const result = await exchangeToken(apiKey as string, apiSecret as string, requestToken as string);
         const data = result.data;
 
         // Build a payload for the client to consume

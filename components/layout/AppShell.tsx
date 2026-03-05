@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Settings, Terminal, LogOut, LayoutGrid, Settings2, ShieldCheck, ChevronDown } from "lucide-react";
+import { Search, Settings, Terminal, LogOut, LayoutGrid, Settings2, ShieldCheck, ChevronDown, ShieldAlert, AlertCircle, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { useKiteTicker } from "@/hooks/useKiteTicker";
@@ -18,6 +18,8 @@ import { useLayoutSwipe } from "@/hooks/useLayoutSwipe";
 import { useAccountSync } from "@/hooks/useAccountSync";
 import { PnLTicker } from "@/components/trading/PnLTicker";
 import { MarketSentiment } from "@/components/trading/MarketSentiment";
+import { useOrderStore } from "@/hooks/useOrderStore";
+import { blackScholes } from "@/lib/black-scholes";
 import { SettingsDialog } from "@/components/ui/settings-dialog";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -70,6 +72,30 @@ export default function AppShell() {
 
     const [isResizing, setIsResizing] = useState(false);
     const { isArmed } = useSafetyStore();
+    const { positions } = useOrderStore();
+    const tickers = useMarketStore(s => s.tickers);
+
+    // Live Greeks Vitals Calculation
+    const { totalDelta, totalTheta } = useMemo(() => {
+        let delta = 0;
+        let theta = 0;
+        positions.forEach(pos => {
+            const isOption = pos.symbol.includes('CE') || pos.symbol.includes('PE');
+            if (!isOption) return;
+            const baseSymbol = pos.symbol.split(/[0-9]/)[0];
+            const spotSymbol = baseSymbol === "NIFTY" ? "NIFTY 50" : baseSymbol === "BANKNIFTY" ? "NIFTY BANK" : baseSymbol;
+            const spotPrice = tickers[spotSymbol]?.last_price || 0;
+            if (spotPrice === 0) return;
+            const strikeMatch = pos.symbol.match(/[0-9]{5}/);
+            const strike = strikeMatch ? parseInt(strikeMatch[0]) : 0;
+            const type = pos.symbol.endsWith('CE') ? 'CE' : 'PE';
+            const T = 5 / 365;
+            const greeks = blackScholes(spotPrice, strike, T, 0.07, 0.2, type);
+            delta += greeks.delta * pos.quantity;
+            theta += greeks.theta * pos.quantity;
+        });
+        return { totalDelta: delta, totalTheta: theta };
+    }, [positions, tickers]);
 
     useEffect(() => {
         const layoutParam = searchParams.get('layout');
@@ -156,6 +182,29 @@ export default function AppShell() {
                             <MarketSentiment />
                         </div>
 
+                        <div className="h-6 w-[1px] bg-border/20 mx-2" />
+
+                        {/* Greeks Vitals */}
+                        <div className="flex items-center gap-4 px-2 hover:bg-white/5 transition-colors cursor-help">
+                            <div className="flex flex-col items-end">
+                                <span className="text-[7px] text-zinc-500 uppercase font-black">Delta</span>
+                                <span className={cn(
+                                    "text-[10px] font-black tabular-nums",
+                                    totalDelta >= 0 ? "text-cyan-400" : "text-red-400"
+                                )}>
+                                    {totalDelta.toFixed(1)}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-[7px] text-zinc-500 uppercase font-black">Theta</span>
+                                <span className="text-[10px] font-black text-orange-400 tabular-nums">
+                                    ₹{Math.abs(Math.round(totalTheta)).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="h-6 w-[1px] bg-border/20 mx-2" />
+
                         {/* Live Connection Status Dot */}
                         <div className="flex items-center gap-1.5 ml-2">
                             <div className={cn(
@@ -197,6 +246,19 @@ export default function AppShell() {
                             >
                                 <LayoutGrid className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">+ Widgets</span>
+                            </button>
+
+                            {/* PANIC SWITCH */}
+                            <button
+                                className="flex items-center gap-1.5 h-full px-5 text-[9px] font-black text-white bg-red-600 hover:bg-red-700 transition-all uppercase tracking-[0.2em] shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] border-l border-white/20"
+                                onClick={() => {
+                                    if (confirm("🚨 CRITICAL ACTION: FLATTEN ALL POSITIONS?\n\nThis will cancel all pending orders and close all open positions across all accounts immediately.")) {
+                                        useOrderStore.getState().flattenAll();
+                                    }
+                                }}
+                            >
+                                <ShieldAlert className="w-3.5 h-3.5 animate-pulse" />
+                                <span className="hidden lg:inline">Panic Flatten</span>
                             </button>
                         </div>
 

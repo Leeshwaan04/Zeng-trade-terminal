@@ -26,12 +26,17 @@ const PositionRow = memo(({ position }: { position: NormalizedPosition }) => {
         <div className="relative grid grid-cols-[0.4fr_1.1fr_1fr_1fr_1fr_1fr_0.5fr] text-right py-1 px-2 border-b border-border/10 hover:bg-surface-3 items-center font-mono group transition-all duration-200">
             {/* Broker Tag */}
             <div className="text-left">
-                <span className={cn(
-                    "text-[6px] font-black px-1 py-0.5 rounded-[2px] uppercase tracking-tighter border",
-                    position.broker === "KITE" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                )}>
-                    {position.broker.substring(0, 1)}
-                </span>
+                {position.broker && (
+                    <span className={cn(
+                        "text-[6px] font-black px-1 py-0.5 rounded-[2px] uppercase tracking-tighter border",
+                        position.broker === "KITE" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                            position.broker === "DHAN" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                position.broker === "FYERS" ? "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" :
+                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                    )}>
+                        {position.broker.substring(0, 1)}
+                    </span>
+                )}
             </div>
 
             {/* Symbol & Product */}

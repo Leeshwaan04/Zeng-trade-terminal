@@ -24,6 +24,7 @@ import { HyperChartWidget } from "@/components/charts/HyperChartWidget";
 import { MultiStrikeOIWidget } from "@/components/trading/MultiStrikeOIWidget";
 import { FiiDiiWidget } from "@/components/trading/FiiDiiWidget";
 import { GTTManager } from "@/components/trading/GTTManager";
+import { MarginAggregatorWidget } from "@/components/trading/MarginAggregatorWidget";
 
 export const LayoutManager = () => {
     // Hydration fix for zustand persist
@@ -239,6 +240,7 @@ export const LayoutManager = () => {
                         {targetWidget.type === "OI_ANALYSIS" && <MultiStrikeOIWidget symbol={targetWidget.symbol || "NIFTY 50"} />}
                         {targetWidget.type === "FII_DII" && <FiiDiiWidget />}
                         {targetWidget.type === "GTT_MANAGER" && <GTTManager />}
+                        {targetWidget.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
                     </WidgetContainer>
                 </div>
             );
@@ -388,6 +390,7 @@ export const LayoutManager = () => {
                                     {widgetConfig.type === "OI_ANALYSIS" && <MultiStrikeOIWidget symbol={widgetConfig.symbol || "NIFTY 50"} />}
                                     {widgetConfig.type === "FII_DII" && <FiiDiiWidget />}
                                     {widgetConfig.type === "GTT_MANAGER" && <GTTManager />}
+                                    {widgetConfig.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
                                 </WidgetContainer>
                             </SortableWidget>
                         );

@@ -21,6 +21,7 @@ export interface Order {
     status: OrderStatus;
     timestamp: number;
     rejectionReason?: string;
+    broker?: string;
 }
 
 // ─── On-Chart Order Lines ────────────────────────────────────
@@ -61,6 +62,7 @@ export interface Position {
     sell_quantity: number;
     sell_price: number;
     sell_value: number;
+    broker?: string;
 }
 
 export interface Holding {
@@ -108,6 +110,7 @@ interface OrderState {
     modifyOrder: (orderId: string, updates: { price?: number; qty?: number; triggerPrice?: number }) => Promise<void>;
     // Institutional Blitz
     executeBlitz: (orderParams: Omit<Order, 'id' | 'status' | 'timestamp'>, config: BlitzConfig) => void;
+    flattenAll: () => Promise<void>;
 }
 
 export interface BlitzConfig {
@@ -558,6 +561,20 @@ export const useOrderStore = create<OrderState>()(
             removeOrderLinesForOrder: (orderId: string) => set((state) => ({
                 activeOrderLines: state.activeOrderLines.filter(l => l.linkedOrderId !== orderId),
             })),
+
+            flattenAll: async () => {
+                const { positions, closePosition, orders, cancelOrder } = get();
+                console.warn("🆘 PANIC TRIGGERED: Flattening all positions and cancelling all orders.");
+
+                // 1. Cancel all open orders
+                const openOrders = orders.filter(o => o.status === 'OPEN');
+                await Promise.all(openOrders.map(o => cancelOrder(o.id)));
+
+                // 2. Close all positions
+                await Promise.all(positions.map(p => closePosition(p.symbol, p.last_price)));
+
+                console.info("🏁 PANIC EXECUTION COMPLETE. Account is safe.");
+            },
         }),
         {
             name: "pro-terminal-orders",

@@ -36,10 +36,10 @@ export function useAccountSync() {
             ]);
 
             // Sync Margins
-            if (marginRes && typeof marginRes.totalAvailable === 'number') {
+            if (marginRes && (marginRes.totalAvailable !== undefined || marginRes.brokers)) {
                 updateUnifiedMargin({
                     totalMargin: marginRes.totalAvailable,
-                    brokers: {
+                    brokers: marginRes.brokers || {
                         [activeBroker]: {
                             available: marginRes.totalAvailable,
                             used: marginRes.netUsed,
@@ -62,7 +62,8 @@ export function useAccountSync() {
                     triggerPrice: ko.trigger_price,
                     status: (ko.status === 'COMPLETE' ? 'EXECUTED' : ko.status) as any,
                     timestamp: ko.order_timestamp ? new Date(ko.order_timestamp).getTime() : Date.now(),
-                    rejectionReason: ko.status_message
+                    rejectionReason: ko.status_message,
+                    broker: ko.broker
                 }));
 
                 // Keep only today's relevant orders naturally managed by Kite
@@ -75,6 +76,7 @@ export function useAccountSync() {
                 const mappedPositions: Position[] = positionsRes.net.map((kp: any) => ({
                     ...kp,
                     symbol: kp.tradingsymbol, // Map tradingsymbol -> symbol
+                    broker: kp.broker
                 }));
                 // We overwrite our local dummy positions with the true backend positions
                 setPositions(mappedPositions);

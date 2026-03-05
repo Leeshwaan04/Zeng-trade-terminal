@@ -111,7 +111,20 @@ export const AccountManager = () => {
                                             <td className="px-4 py-2">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-foreground leading-tight">{pos.symbol}</span>
-                                                    <span className="text-[9px] text-muted-foreground uppercase tracking-tighter">{pos.product}</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[9px] text-muted-foreground uppercase tracking-tighter">{pos.product}</span>
+                                                        {pos.broker && (
+                                                            <span className={cn(
+                                                                "text-[6px] font-black px-1 rounded-sm uppercase tracking-tighter border",
+                                                                pos.broker === "KITE" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                                    pos.broker === "DHAN" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                                        pos.broker === "FYERS" ? "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" :
+                                                                            "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                                            )}>
+                                                                {pos.broker.substring(0, 1)}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2">
@@ -187,7 +200,22 @@ export const AccountManager = () => {
                                                 <span className="text-[10px] text-muted-foreground font-mono">{order.orderType}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-xs font-bold text-white">{order.symbol}</td>
+                                        <td className="px-4 py-2 text-xs font-bold text-white">
+                                            <div className="flex items-center gap-1.5">
+                                                <span>{order.symbol}</span>
+                                                {order.broker && (
+                                                    <span className={cn(
+                                                        "text-[6px] font-black px-1 rounded-sm uppercase tracking-tighter border",
+                                                        order.broker === "KITE" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                            order.broker === "DHAN" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                                order.broker === "FYERS" ? "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" :
+                                                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                                    )}>
+                                                        {order.broker.substring(0, 1)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-2 text-xs text-white">{order.qty}</td>
                                         <td className="px-4 py-2 text-right text-xs text-white">
                                             ₹{order.price === 0 ? "MKT" : order.price.toFixed(2)}
@@ -261,6 +289,17 @@ export const AccountManager = () => {
                                     <span className="text-foreground">
                                         {log.transactionType} {log.qty} {log.symbol} @ {log.price || "MARKET"}
                                     </span>
+                                    {log.broker && (
+                                        <span className={cn(
+                                            "text-[7px] font-black px-1 rounded-sm uppercase tracking-tighter border",
+                                            log.broker === "KITE" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                log.broker === "DHAN" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                    log.broker === "FYERS" ? "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" :
+                                                        "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                        )}>
+                                            {log.broker}
+                                        </span>
+                                    )}
                                     <div className="flex-1 px-4 border-l border-border/20 text-muted-foreground truncate italic">
                                         Routing via institutional gateway... success.
                                     </div>
