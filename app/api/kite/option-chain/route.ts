@@ -12,16 +12,17 @@ const mapSymbolToKiteName = (symbol: string) => {
 export async function GET(req: NextRequest) {
     try {
         const symbolParam = req.nextUrl.searchParams.get("symbol") || "NIFTY 50";
+        const expiryParam = req.nextUrl.searchParams.get("expiry");
         const kiteName = mapSymbolToKiteName(symbolParam);
 
-        // Fetch instruments from the cached local CSV for the nearest expiry
-        const instruments = await getOptionChain(kiteName);
+        // Fetch instruments for the specific expiry or default
+        const instruments = await getOptionChain(kiteName, expiryParam || undefined);
 
         if (!instruments || instruments.length === 0) {
             return NextResponse.json({ success: false, error: "No instruments found for " + kiteName }, { status: 404 });
         }
 
-        const expiry = instruments[0].expiry;
+        const activeExpiry = instruments[0].expiry;
 
         // Group by strike
         const strikesMap = new Map<number, any>();
@@ -42,10 +43,15 @@ export async function GET(req: NextRequest) {
         // Convert to sorted array
         const strikes = Array.from(strikesMap.values()).sort((a, b) => a.strike - b.strike);
 
+        // Also fetch all available expiries for this symbol to populate the selector
+        const { getExpiries } = await import("@/lib/kite-instruments");
+        const allExpiries = await getExpiries(kiteName);
+
         return NextResponse.json({
             success: true,
             symbol: kiteName,
-            expiry,
+            activeExpiry,
+            allExpiries,
             strikes
         });
 

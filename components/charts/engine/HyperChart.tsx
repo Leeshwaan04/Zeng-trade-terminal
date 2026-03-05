@@ -10,6 +10,7 @@ import { useMarketStore } from "@/hooks/useMarketStore";
 
 // Minimal Grid Layer
 import { ChartLayer } from "./ChartEngine";
+import { getInstrumentToken } from "@/lib/market-config";
 
 const HyperGridLayer = () => {
     const draw = (ctx: CanvasRenderingContext2D, { width, height, scales }: any) => {
@@ -88,23 +89,56 @@ export const HyperChart = ({ symbol }: { symbol: string }) => {
     ];
 
     useEffect(() => {
-        // Fetch logic... reusing existing API or store?
-        // Let's standard fetch for now to test engine
         const fetchHistory = async () => {
-            // Mock Data Generator if API fails or for demo
+            const token = getInstrumentToken(symbol);
+            if (!token) {
+                console.warn(`No token found for ${symbol}, using mock data.`);
+                generateMockData();
+                return;
+            }
+
+            try {
+                const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const today = new Date().toISOString().split('T')[0];
+
+                const url = `/api/kite/history?instrument_token=${token}&from=${dayAgo}&to=${today}&interval=minute`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.status === "success" && json.data?.candles) {
+                    const formatted = json.data.candles.map((c: any) => ({
+                        time: new Date(c[0]).getTime(),
+                        open: c[1],
+                        high: c[2],
+                        low: c[3],
+                        close: c[4],
+                        volume: c[5]
+                    }));
+                    setData(formatted);
+                } else {
+                    generateMockData();
+                }
+            } catch (e) {
+                console.error("Failed to fetch history:", e);
+                generateMockData();
+            }
+        };
+
+        const generateMockData = () => {
             const now = Date.now();
-            let price = 22000;
+            let price = symbol.includes("NIFTY") ? 22000 : 500;
             const candles = [];
             for (let i = 0; i < 100; i++) {
                 const open = price;
-                const close = price + (Math.random() - 0.5) * 100;
-                const high = Math.max(open, close) + Math.random() * 20;
-                const low = Math.min(open, close) - Math.random() * 20;
-                candles.push({ time: now + i * 60000, open, high, low, close, volume: Math.random() * 1000 });
+                const close = price + (Math.random() - 0.5) * 40;
+                const high = Math.max(open, close) + Math.random() * 10;
+                const low = Math.min(open, close) - Math.random() * 10;
+                candles.push({ time: now - (100 - i) * 60000, open, high, low, close, volume: Math.floor(Math.random() * 1000) });
                 price = close;
             }
             setData(candles);
         };
+
         fetchHistory();
     }, [symbol]);
 

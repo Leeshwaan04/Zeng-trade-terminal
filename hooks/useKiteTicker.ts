@@ -48,16 +48,19 @@ export function useKiteTicker({
 
     // ── Connection URL: EC2 WebSocket (preferred) or Vercel SSE (fallback) ──
     const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+
+    // Auto-enable mock for unauthenticated users
     const isMock = typeof window !== "undefined" &&
         (new URLSearchParams(window.location.search).get("mock") === "true" ||
-            new URLSearchParams(window.location.search).get("testAuth") === "1");
+            new URLSearchParams(window.location.search).get("testAuth") === "1" ||
+            !isLoggedIn);
 
     const accessToken = typeof window !== "undefined"
         ? document.cookie.split("; ").find(r => r.startsWith("kite_access_token="))?.split("=")[1]
         : undefined;
 
     // EC2 WebSocket URL (set NEXT_PUBLIC_EC2_WS_URL in Vercel env)
-    const ec2WsBase = process.env.NEXT_PUBLIC_EC2_WS_URL; // e.g. wss://ws.zengtrade.in/ws
+    const ec2WsBase = process.env.NEXT_PUBLIC_EC2_WS_URL;
 
     // Prefer EC2 WS when: authenticated + EC2 URL configured + tokens exist
     const useEC2 = !!ec2WsBase && isLoggedIn && allTokens.length > 0 && !isMock;
@@ -65,18 +68,15 @@ export function useKiteTicker({
     const connectionUrl = (() => {
         if (!allTokens.length) return "";
         if (useEC2 && accessToken) {
-            // Direct WebSocket to EC2 proxy (bypasses Vercel, no 300s timeout)
             return `${ec2WsBase}?access_token=${accessToken}&tokens=${allTokens.join(",")}&mode=${mode}`;
         }
-        // Fallback: Vercel SSE stream (works without EC2, subject to 300s limit)
         return `${origin}/api/ws/stream?tokens=${allTokens.join(",")}&mode=${mode}&broker=${broker}${isMock ? "&mock=true" : ""}`;
     })();
 
-    // Connection type: 'ws' for EC2, 'sse' for Vercel
     const connectionType = useEC2 ? "ws" : "sse";
 
-    // Start when: logged in OR mock mode, AND we have tokens
-    const shouldConnect = enabled && allTokens.length > 0 && (isLoggedIn || isMock);
+    // ALWAYS connect if tokens exist (either real or mock)
+    const shouldConnect = enabled && allTokens.length > 0;
 
     const { status: workerStatus } = useWorkerTicker({
         url: connectionUrl,

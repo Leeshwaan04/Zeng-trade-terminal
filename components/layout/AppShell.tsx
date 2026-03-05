@@ -76,6 +76,9 @@ export default function AppShell() {
         if (layoutParam && (layoutParam === 'algo' || layoutParam === 'algorithmic')) {
             setActiveWorkspace('algorithmic');
         }
+
+        // Pre-fetch instruments to hydrate cache
+        fetch('/api/kite/instruments').catch(() => { });
     }, [searchParams, setActiveWorkspace]);
 
     if (!isLoggedIn) {

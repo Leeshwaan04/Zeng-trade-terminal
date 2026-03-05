@@ -23,6 +23,7 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
     const [instruments, setInstruments] = useState<KiteInstrument[]>([]);
     const [loading, setLoading] = useState(true);
     const [expiry, setExpiry] = useState<string | null>(null);
+    const [allExpiries, setAllExpiries] = useState<string[]>([]);
 
     // Get Spot Price from Market Store
     const spotSymbol = symbol === "NIFTY" ? "NIFTY 50" : symbol;
@@ -35,12 +36,13 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
             setLoading(true);
             try {
                 // Normalize symbol for API (NIFTY 50 -> NIFTY, NIFTY BANK -> BANKNIFTY)
-                const apiSymbol = symbol === "NIFTY 50" ? "NIFTY" : symbol === "NIFTY BANK" ? "BANKNIFTY" : symbol;
-                const url = `/api/kite/instruments?symbol=${apiSymbol}${expiry ? `&expiry=${expiry}` : ""}`;
+                const url = `/api/kite/option-chain?symbol=${symbol}${expiry ? `&expiry=${expiry}` : ""}`;
                 const res = await fetch(url);
                 const data = await res.json();
-                if (data.status === "success") {
-                    setInstruments(data.data);
+                if (data.success) {
+                    setInstruments(data.strikes);
+                    setAllExpiries(data.allExpiries || []);
+                    if (!expiry) setExpiry(data.activeExpiry);
                 }
             } catch (e) {
                 console.error("Failed to fetch option chain", e);
@@ -132,11 +134,22 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
         <div className="flex flex-col h-full bg-background font-mono text-[10px]">
             {/* Header */}
             <div className="flex justify-between items-center p-2 border-b border-border bg-surface-1">
-                <span className="font-bold text-foreground">{symbol} OPTION CHAIN</span>
-                <span className="text-primary">{expiry || "Current Expiry"}</span>
+                <div className="flex items-center gap-3">
+                    <span className="font-bold text-foreground">{symbol}</span>
+                    {/* Expiry Selector */}
+                    <select
+                        value={expiry || ""}
+                        onChange={(e) => setExpiry(e.target.value)}
+                        className="bg-transparent border-none text-primary font-bold focus:outline-none cursor-pointer hover:underline underline-offset-4"
+                    >
+                        {allExpiries.map(e => (
+                            <option key={e} value={e} className="bg-background text-foreground">{e}</option>
+                        ))}
+                    </select>
+                </div>
                 <div>
-                    <span className="text-muted-foreground mr-2">SPOT:</span>
-                    <span className="font-bold text-foreground">{spotPrice.toFixed(2)}</span>
+                    <span className="text-muted-foreground mr-2 text-[8px] uppercase tracking-tighter">SPOT:</span>
+                    <span className="font-bold text-foreground tabular-nums">{spotPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
             </div>
 

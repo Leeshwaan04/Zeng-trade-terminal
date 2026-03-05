@@ -91,12 +91,14 @@ export const useMarketStore = create<MarketState>((set) => ({
     tickers: INITIAL_TICKERS,
     secondaryTickers: {},
     updateTicker: (data) =>
-        set((state) => ({
-            tickers: {
-                ...state.tickers,
-                [data.symbol]: data,
-            },
-        })),
+        set((state) => {
+            const newTickers = { ...state.tickers, [data.symbol]: data };
+            // Also index by token string so OptionChain lookup-by-token works
+            if (data.instrument_token) {
+                newTickers[String(data.instrument_token)] = data;
+            }
+            return { tickers: newTickers };
+        }),
     updateTickers: (dataArray) =>
         set((state) => {
             const newTickers = { ...state.tickers };
@@ -108,6 +110,10 @@ export const useMarketStore = create<MarketState>((set) => ({
                 }
                 if (symbol) {
                     newTickers[symbol] = { ...data, symbol };
+                }
+                // ALWAYS index by token string — lets OptionChain & Depth lookup by instrument_token
+                if (data.instrument_token) {
+                    newTickers[String(data.instrument_token)] = { ...data, symbol: symbol || String(data.instrument_token) };
                 }
             }
             return { tickers: newTickers };

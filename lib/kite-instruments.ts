@@ -25,12 +25,12 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 function parseCSV(csv: string): KiteInstrument[] {
     const lines = csv.split('\n');
     const instruments: KiteInstrument[] = [];
-    
+
     // Skip header (line 0)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
-        
+
         const parts = line.split(',');
         if (parts.length < 12) continue;
 
@@ -59,7 +59,7 @@ export async function getInstruments(): Promise<KiteInstrument[]> {
     // 2. Check file cache
     if (existsSync(CACHE_FILE)) {
         try {
-            const stat =  await import('fs').then(fs => fs.promises.stat(CACHE_FILE));
+            const stat = await import('fs').then(fs => fs.promises.stat(CACHE_FILE));
             if (Date.now() - stat.mtimeMs < CACHE_DURATION) {
                 console.log('Loading instruments from disk cache...');
                 const data = readFileSync(CACHE_FILE, 'utf-8');
@@ -76,7 +76,7 @@ export async function getInstruments(): Promise<KiteInstrument[]> {
     try {
         const response = await fetch('https://api.kite.trade/instruments/NFO');
         if (!response.ok) throw new Error('Failed to fetch instruments');
-        
+
         const csvText = await response.text();
         const instruments = parseCSV(csvText);
 
@@ -84,7 +84,7 @@ export async function getInstruments(): Promise<KiteInstrument[]> {
         INSTRUMENT_CACHE = instruments;
         writeFileSync(CACHE_FILE, JSON.stringify(instruments));
         console.log(`Cached ${instruments.length} instruments.`);
-        
+
         return instruments;
     } catch (error) {
         console.error('Failed to load instruments:', error);
@@ -94,12 +94,12 @@ export async function getInstruments(): Promise<KiteInstrument[]> {
 
 export async function getOptionChain(symbol: string, expiry?: string): Promise<KiteInstrument[]> {
     const instruments = await getInstruments();
-    
+
     // Filter by name (e.g., NIFTY, BANKNIFTY) and Segment
     // Note: tradingsymbol format usually "NIFTY24MAR22000CE"
     // Name is "NIFTY"
-    let filtered = instruments.filter(i => 
-        i.name === symbol && 
+    let filtered = instruments.filter(i =>
+        i.name === symbol &&
         i.segment === 'NFO-OPT'
     );
 
@@ -109,18 +109,18 @@ export async function getOptionChain(symbol: string, expiry?: string): Promise<K
         // If no expiry, default to the nearest one (first unique expiry found/sorted)
         // For simplicity, we just return all, or let the UI handle grouping.
         // Or we can find the nearest date.
-        
+
         // Let's sort by expiry date and pick the first one if not provided?
         // Actually, returning all expiries for the symbol needs efficient filtering on frontend.
         // Let's filter for current month/nearest expiry if not provided.
         // Implementation: Find unique expiries, sort, pick closest to today.
-        
+
         const today = new Date();
         const expiries = Array.from(new Set(filtered.map(i => i.expiry)))
             .map(e => ({ date: new Date(e), str: e }))
             .sort((a, b) => a.date.getTime() - b.date.getTime())
             .filter(e => e.date >= today); // Only future expiries
-            
+
         if (expiries.length > 0) {
             const nearest = expiries[0].str;
             filtered = filtered.filter(i => i.expiry === nearest);
@@ -128,4 +128,23 @@ export async function getOptionChain(symbol: string, expiry?: string): Promise<K
     }
 
     return filtered;
+}
+
+export async function getExpiries(symbol: string): Promise<string[]> {
+    const instruments = await getInstruments();
+    const filtered = instruments.filter(i =>
+        i.name === symbol &&
+        i.segment === 'NFO-OPT'
+    );
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const uniqueExpiries = Array.from(new Set(filtered.map(i => i.expiry)))
+        .map(e => ({ date: new Date(e), str: e }))
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .filter(e => e.date >= today) // Only future expiries or today
+        .map(e => e.str);
+
+    return uniqueExpiries;
 }
