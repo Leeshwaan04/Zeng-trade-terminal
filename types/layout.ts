@@ -17,7 +17,9 @@ export type WidgetType =
     | "DOM"
     | "FII_DII"
     | "GTT_MANAGER"
-    | "MARGIN_AGGREGATOR";
+    | "MARGIN_AGGREGATOR"
+    | "BUILDUP_SCANNER"
+    | "OI_HEATMAP";
 
 // ... (existing constants) ...
 

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { WorkspaceConfig, PRESET_LAYOUTS, WidgetConfig, WidgetColorGroup, MultiChartConfig, MultiChartViewMode } from "@/types/layout";
+import { WorkspaceConfig, PRESET_LAYOUTS, WidgetConfig, WidgetType, WidgetColorGroup, MultiChartConfig, MultiChartViewMode } from "@/types/layout";
 
 interface LayoutState {
     activeWorkspaceId: string;
@@ -22,6 +22,7 @@ interface LayoutState {
     cycleLayout: (direction: 'next' | 'prev') => void;
     resizeGrid: (id: string, type: 'cols' | 'rows', index: number, newSize: string) => void;
     reorderWidgets: (workspaceId: string, activeId: string, overId: string) => void;
+    addWidget: (type: WidgetType, areaId?: string) => void;
 
     // Maximize State
     maximizedWidgetId: string | null;
@@ -333,6 +334,45 @@ export const useLayoutStore = create<LayoutState>()(
             setAccountManagerHeight: (height) => set({ accountManagerHeight: height }),
             isAccountManagerOpen: true,
             toggleAccountManager: () => set((state) => ({ isAccountManagerOpen: !state.isAccountManagerOpen })),
+
+            addWidget: (type, areaId) => set((state) => {
+                const workspace = state.workspaces[state.activeWorkspaceId];
+                if (!workspace) return state;
+
+                // Use provided areaId or default to the first area
+                const targetAreaId = areaId || workspace.areas[0].id;
+                const areaIndex = workspace.areas.findIndex(a => a.id === targetAreaId);
+                if (areaIndex === -1) return state;
+
+                const area = workspace.areas[areaIndex];
+
+                // Avoid duplicates of the same type in the same area if needed
+                // But for charts/chains, we might want multiple. 
+                // For specialized widgets like Strategy Builder, maybe just one.
+                const isUniqueType = ["STRATEGY_BUILDER", "BUILDUP_SCANNER", "OI_HEATMAP", "POSITIONS", "FII_DII"].includes(type);
+                if (isUniqueType && area.widgets.some((w: WidgetConfig) => w.type === type)) return state;
+
+                const newWidget: WidgetConfig = {
+                    id: `${type.toLowerCase()}-${Date.now()}`,
+                    type,
+                    title: type.replace('_', ' ').split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' '),
+                    symbol: workspace.areas.find(a => a.widgets.some(w => w.symbol))?.widgets.find(w => w.symbol)?.symbol || "NIFTY 50"
+                };
+
+                const newAreas = [...workspace.areas];
+                newAreas[areaIndex] = {
+                    ...area,
+                    widgets: [...area.widgets, newWidget],
+                    activeWidgetId: newWidget.id
+                };
+
+                return {
+                    workspaces: {
+                        ...state.workspaces,
+                        [state.activeWorkspaceId]: { ...workspace, areas: newAreas }
+                    }
+                };
+            }),
         }),
         {
             name: "pro-terminal-layout-v10", // bumped for YouTube Layouts

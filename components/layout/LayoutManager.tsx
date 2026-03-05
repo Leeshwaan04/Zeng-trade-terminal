@@ -14,6 +14,8 @@ import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { SortableWidget } from "./SortableWidget";
 import { StrategyBuilder } from "@/components/trading/StrategyBuilder";
 import { PayoffDiagram } from "@/components/trading/PayoffDiagram";
+import { BuildupScanner } from "@/components/trading/BuildupScanner";
+import { OIHeatmap } from "@/components/trading/OIHeatmap";
 import { PortfolioHeatmap } from "@/components/analytics/PortfolioHeatmap";
 import { AlgoRulesPanel } from "@/components/trading/AlgoRulesPanel";
 import { AutomateBuilder } from "@/components/automate/AutomateBuilder";
@@ -225,6 +227,8 @@ export const LayoutManager = () => {
                         )}
                         {targetWidget.type === "STRATEGY_BUILDER" && <StrategyBuilder />}
                         {targetWidget.type === "PAYOFF_DIAGRAM" && <PayoffDiagram />}
+                        {targetWidget.type === "BUILDUP_SCANNER" && <BuildupScanner />}
+                        {targetWidget.type === "OI_HEATMAP" && <OIHeatmap symbol={targetWidget.symbol?.split(' ')[0] || "NIFTY"} />}
                         {targetWidget.type === "OI_ANALYSIS" && <MultiStrikeOIWidget symbol={targetWidget.symbol || "NIFTY 50"} />}
                         {targetWidget.type === "FII_DII" && <FiiDiiWidget />}
                         {targetWidget.type === "GTT_MANAGER" && <GTTManager />}
@@ -279,6 +283,8 @@ export const LayoutManager = () => {
                                 {widgetConfig.type === "ORDER_ENTRY" && <OrderEntryPanel symbol={widgetConfig.symbol || "NIFTY 50"} />}
                                 {widgetConfig.type === "STRATEGY_BUILDER" && <StrategyBuilder />}
                                 {widgetConfig.type === "PAYOFF_DIAGRAM" && <PayoffDiagram />}
+                                {widgetConfig.type === "BUILDUP_SCANNER" && <BuildupScanner />}
+                                {widgetConfig.type === "OI_HEATMAP" && <OIHeatmap symbol={widgetConfig.symbol?.split(' ')[0] || "NIFTY"} />}
                                 {widgetConfig.type === "OPTION_CHAIN" && <NeuralOptionChain symbol={widgetConfig.symbol} />}
                                 {widgetConfig.type === "PORTFOLIO_HEATMAP" && <PortfolioHeatmap />}
                                 {widgetConfig.type === "ALGO_RULES" && <AlgoRulesPanel />}
@@ -429,6 +435,8 @@ export const LayoutManager = () => {
                                     )}
                                     {widgetConfig.type === "STRATEGY_BUILDER" && <StrategyBuilder />}
                                     {widgetConfig.type === "PAYOFF_DIAGRAM" && <PayoffDiagram />}
+                                    {widgetConfig.type === "BUILDUP_SCANNER" && <BuildupScanner />}
+                                    {widgetConfig.type === "OI_HEATMAP" && <OIHeatmap symbol={widgetConfig.symbol?.split(' ')[0] || "NIFTY"} />}
                                     {widgetConfig.type === "OPTION_CHAIN" && (
                                         <NeuralOptionChain symbol={widgetConfig.symbol} />
                                     )}

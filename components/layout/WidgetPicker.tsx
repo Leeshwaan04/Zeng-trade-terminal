@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetType } from "@/types/layout";
+import { useLayoutStore } from "@/hooks/useLayoutStore";
 
 interface WidgetCardProps {
     type: string;
@@ -48,21 +49,20 @@ const WidgetCard = ({ label, desc, icon, color, gradient, onClick, ready }: Widg
 const WIDGETS_COLLECTION = [
     { type: "CHART", label: "Chart", desc: "Kite-grade TradingView charting", icon: <BarChart3 className="w-5 h-5" />, color: "text-blue-400", gradient: "from-blue-500/20 to-blue-600/40", ready: true },
     { type: "OPTION_CHAIN", label: "Option Chain", desc: "Real-time Greeks and premium tracking", icon: <Grid3X3 className="w-5 h-5" />, color: "text-yellow-400", gradient: "from-yellow-500/20 to-yellow-600/40", ready: true },
+    { type: "BUILDUP_SCANNER", label: "Buildup Scanner", desc: "Live Price-OI market sentiment", icon: <TrendingUp className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
+    { type: "OI_HEATMAP", label: "OI Heatmap", desc: "Historical strike-wise OI shifts", icon: <LayoutGrid className="w-5 h-5" />, color: "text-emerald-400", gradient: "from-emerald-500/20 to-emerald-600/40", ready: true },
+    { type: "STRATEGY_BUILDER", label: "Strategy Builder", desc: "Simulate and deploy multi-leg strategies", icon: <Shield className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
     { type: "WATCHLIST", label: "Watchlist", desc: "Stream live prices for your favorite stocks", icon: <ListOrdered className="w-5 h-5" />, color: "text-emerald-400", gradient: "from-emerald-500/20 to-emerald-600/40", ready: true },
     { type: "POSITIONS", label: "Positions", desc: "Track your open trades and P&L", icon: <Activity className="w-5 h-5" />, color: "text-rose-400", gradient: "from-rose-500/20 to-rose-600/40", ready: true },
     { type: "ORDER_BOOK", label: "Market Depth", desc: "Level 2 data for precise entry/exit", icon: <BookOpen className="w-5 h-5" />, color: "text-purple-400", gradient: "from-purple-500/20 to-purple-600/40", ready: true },
-    { type: "SCALPER", label: "Scalper", desc: "High-speed one-click order execution", icon: <Zap className="w-5 h-5" />, color: "text-orange-400", gradient: "from-orange-500/20 to-orange-600/40", ready: true },
-    { type: "GREEKS", label: "Option Greeks", desc: "Delta, Gamma, Theta, Vega analysis", icon: <Target className="w-5 h-5" />, color: "text-teal-400", gradient: "from-teal-500/20 to-teal-600/40", ready: true },
-    { type: "STRATEGY_BUILDER", label: "Strategy Builder", desc: "Simulate and deploy multi-leg options", icon: <Shield className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
-    { type: "HISTORY", label: "Order History", desc: "Comprehensive log of past trades", icon: <History className="w-5 h-5" />, color: "text-zinc-400", gradient: "from-zinc-500/20 to-zinc-600/40", ready: true },
-    { type: "PORTFOLIO", label: "Portfolio", desc: "Consolidated view of all holdings", icon: <PieChart className="w-5 h-5" />, color: "text-indigo-400", gradient: "from-indigo-500/20 to-indigo-600/40", ready: true },
+    { type: "FII_DII", label: "FII/DII Data", desc: "Track institutional cash flow", icon: <TrendingUp className="w-5 h-5" />, color: "text-cyan-400", gradient: "from-cyan-500/20 to-cyan-600/40", ready: true },
+    { type: "WHALE_SONAR", label: "Whale Sonar", desc: "Institutional flow detection (BETA)", icon: <Activity className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: true },
     { type: "GTT_MANAGER", label: "GTT Manager", desc: "Institutional GTT lifecycle control", icon: <Clock className="w-5 h-5" />, color: "text-amber-400", gradient: "from-amber-500/20 to-amber-600/40", ready: true },
-    { type: "MARGIN_AGGREGATOR", label: "Margin Aggregator", desc: "Consolidated view of Kite, Dhan & Fyers margins", icon: <PieChart className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
-    { type: "WHALE_SONAR", label: "Whale Sonar", desc: "Institutional flow detection (BETA)", icon: <Activity className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: false },
-    { type: "HEATMAP", label: "Heatmap", desc: "Segment visually (BETA)", icon: <LayoutGrid className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: false },
+    { type: "MARGIN_AGGREGATOR", label: "Margin Aggregator", desc: "Consolidated view of all broker margins", icon: <PieChart className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
 ];
 
 export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    const { addWidget } = useLayoutStore();
     if (!isOpen) return null;
 
     return (
@@ -90,7 +90,6 @@ export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                     </button>
                 </div>
 
-                {/* Grid */}
                 <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {WIDGETS_COLLECTION.map((widget) => (
@@ -99,7 +98,7 @@ export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                                 {...widget}
                                 onClick={() => {
                                     if (!widget.ready) return;
-                                    console.log(`Add widget: ${widget.type}`);
+                                    addWidget(widget.type as WidgetType);
                                     onClose();
                                 }}
                             />

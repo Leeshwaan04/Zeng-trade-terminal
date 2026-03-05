@@ -61,11 +61,10 @@ async function executeTWAP(algoId: string, auth: any, totalQty: number, duration
 
     global.activeAlgos.set(algoId, { status: 'running', type: 'twap', totalQty, executedQty });
 
-    console.log(`[ALGO] Started TWAP ${algoId} for ${orderParams.tradingsymbol}. Total Qty: ${totalQty}, Slices: ${slices}, Duration: ${durationMinutes}m`);
+    console.log(`[ALGO] Started Institutional TWAP ${algoId} for ${orderParams.tradingsymbol}. Total Qty: ${totalQty}, Slices: ${slices}, Duration: ${durationMinutes}m`);
 
-    const intervalMs = (durationMinutes * 60 * 1000) / slices;
-    const qtyPerSlice = Math.floor(totalQty / slices);
-    const remainder = totalQty % slices;
+    const averageIntervalMs = (durationMinutes * 60 * 1000) / slices;
+    const averageQtyPerSlice = Math.floor(totalQty / slices);
 
     while (completedSlices < slices && executedQty < totalQty) {
         const state = global.activeAlgos.get(algoId);
@@ -74,27 +73,44 @@ async function executeTWAP(algoId: string, auth: any, totalQty: number, duration
             break;
         }
 
-        // Add the remainder to the very last slice
-        const isLastSlice = completedSlices === slices - 1;
-        const currentSliceQty = isLastSlice ? qtyPerSlice + remainder : qtyPerSlice;
+        // Randomize slice quantity (+/- 15%) for anti-detect
+        let currentSliceQty = averageQtyPerSlice;
+        if (completedSlices < slices - 1) {
+            const variance = 0.85 + (Math.random() * 0.3); // 0.85 to 1.15
+            currentSliceQty = Math.floor(averageQtyPerSlice * variance);
+            if (currentSliceQty < 1) currentSliceQty = 1;
+
+            // Ensure we don't exceed total
+            if (executedQty + currentSliceQty >= totalQty) {
+                currentSliceQty = totalQty - executedQty - 1; // Leave 1 for last slice
+            }
+        } else {
+            // Last slice takes everything remaining
+            currentSliceQty = totalQty - executedQty;
+        }
 
         try {
-            if (auth.broker === "GROWW") {
-                const { placeGrowwOrder } = await import("@/lib/groww-client");
-                await placeGrowwOrder(auth.accessToken, { ...orderParams, quantity: currentSliceQty, trading_symbol: orderParams.tradingsymbol, segment: "FNO" });
-            } else {
-                await placeOrder(auth.apiKey!, auth.accessToken, { ...orderParams, quantity: currentSliceQty });
+            if (currentSliceQty > 0) {
+                if (auth.broker === "GROWW") {
+                    const { placeGrowwOrder } = await import("@/lib/groww-client");
+                    await placeGrowwOrder(auth.accessToken, { ...orderParams, quantity: currentSliceQty, trading_symbol: orderParams.tradingsymbol, segment: "FNO" });
+                } else {
+                    await placeOrder(auth.apiKey!, auth.accessToken, { ...orderParams, quantity: currentSliceQty });
+                }
+
+                executedQty += currentSliceQty;
+                completedSlices++;
+                global.activeAlgos.set(algoId, { status: 'running', type: 'twap', totalQty, executedQty, completedSlices });
+                console.log(`[ALGO] TWAP ${algoId} slice ${completedSlices}/${slices} executed (${currentSliceQty} qty).`);
             }
 
-            executedQty += currentSliceQty;
-            completedSlices++;
-            global.activeAlgos.set(algoId, { status: 'running', type: 'twap', totalQty, executedQty, completedSlices });
-            console.log(`[ALGO] TWAP ${algoId} slice ${completedSlices}/${slices} executed (${currentSliceQty} qty).`);
+            if (completedSlices < slices && executedQty < totalQty) {
+                // Randomize interval with jitter (+/- 20% of average interval)
+                const jitter = (Math.random() * 0.4 - 0.2) * averageIntervalMs;
+                const nextInterval = Math.max(1000, averageIntervalMs + jitter);
 
-            if (completedSlices < slices) {
-                // Wait for the TWAP interval
-                console.log(`[ALGO] TWAP ${algoId} waiting ${intervalMs}ms for next slice...`);
-                await new Promise(resolve => setTimeout(resolve, intervalMs));
+                console.log(`[ALGO] TWAP ${algoId} waiting ${Math.round(nextInterval)}ms for next slice (Jitter: ${Math.round(jitter)}ms)`);
+                await new Promise(resolve => setTimeout(resolve, nextInterval));
             }
 
         } catch (error: any) {

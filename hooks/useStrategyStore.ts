@@ -11,15 +11,20 @@ export interface StrategyLeg {
 
 interface StrategyState {
     legs: StrategyLeg[];
+    ivShift: number; // Percentage shift (e.g. 5 for +5%)
+    dayShift: number; // Days to subtract from current DTE
     addLeg: (leg: Omit<StrategyLeg, 'id'>) => void;
     removeLeg: (id: string) => void;
     updateLeg: (id: string, updates: Partial<StrategyLeg>) => void;
+    setShifts: (shifts: { iv?: number; days?: number }) => void;
     clearStrategy: () => void;
     executeStraddle: (symbol: string, strike: number, priceCE: number, pricePE: number) => void;
 }
 
 export const useStrategyStore = create<StrategyState>((set) => ({
     legs: [],
+    ivShift: 0,
+    dayShift: 0,
     addLeg: (leg) => set((state) => ({
         legs: [...state.legs, { ...leg, id: Math.random().toString(36).substr(2, 9) }]
     })),
@@ -29,7 +34,11 @@ export const useStrategyStore = create<StrategyState>((set) => ({
     updateLeg: (id, updates) => set((state) => ({
         legs: state.legs.map((l) => l.id === id ? { ...l, ...updates } : l)
     })),
-    clearStrategy: () => set({ legs: [] }),
+    setShifts: (shifts) => set((state) => ({
+        ivShift: shifts.iv !== undefined ? shifts.iv : state.ivShift,
+        dayShift: shifts.days !== undefined ? shifts.days : state.dayShift
+    })),
+    clearStrategy: () => set({ legs: [], ivShift: 0, dayShift: 0 }),
 
     executeStraddle: (symbol, strike, priceCE, pricePE) => {
         // Dynamic Import to avoid circular dependency if possible, or use window/event

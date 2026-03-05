@@ -26,7 +26,7 @@ function normCDF(x: number) {
 }
 
 export const PayoffDiagram = () => {
-    const { legs } = useStrategyStore();
+    const { legs, ivShift, dayShift, setShifts } = useStrategyStore();
 
     // Derive underlying from first leg or default
     const underlyingSymbol = legs[0]?.instrument?.name || "NIFTY 50";
@@ -52,9 +52,14 @@ export const PayoffDiagram = () => {
         const end = Math.ceil((center + range / 2) / 100) * 100;
         const step = (end - start) / 100;
 
-        const T = 5 / 365; // 5 DTE
+        // Base values
+        const baseT = 7 / 365; // Assume 7 DTE for demo, or calculate from expiry
         const r = 0.07;
-        const v = 0.2; // 20% IV
+        const baseV = 0.18; // 18% Base IV
+
+        // Shifted values
+        const T = Math.max(0.0001, baseT - (dayShift / 365));
+        const V = Math.max(0.05, baseV + (ivShift / 100));
 
         for (let p = start; p <= end; p += step) {
             let expiryPnL = 0;
@@ -66,13 +71,13 @@ export const PayoffDiagram = () => {
                 const entry = leg.price;
                 const qty = leg.quantity;
 
-                // Expiry PnL
+                // Expiry PnL (IV/Time shift doesn't affect expiry PnL)
                 const intrinsic = type === 'CE' ? Math.max(0, p - strike) : Math.max(0, strike - p);
                 const legExpiryPnL = leg.side === 'BUY' ? (intrinsic - entry) * qty : (entry - intrinsic) * qty;
                 expiryPnL += legExpiryPnL;
 
-                // T+0 PnL via Black-Scholes
-                const bs = blackScholes(p, strike, Math.max(0.001, T), r, v, type as 'CE' | 'PE');
+                // T+N PnL via Black-Scholes (Dynamic T and V)
+                const bs = blackScholes(p, strike, T, r, V, type as 'CE' | 'PE');
                 const theoreticalPrice = bs.price;
                 const legTZeroPnL = leg.side === 'BUY' ? (theoreticalPrice - entry) * qty : (entry - theoreticalPrice) * qty;
                 tZeroPnL += legTZeroPnL;
@@ -85,7 +90,7 @@ export const PayoffDiagram = () => {
             });
         }
         return data;
-    }, [legs, currentPrice]);
+    }, [legs, currentPrice, ivShift, dayShift]);
 
     if (legs.length === 0) {
         return (
@@ -110,38 +115,71 @@ export const PayoffDiagram = () => {
         }
 
         let probability = 0;
-        const v = 0.2; // IV
-        const T = 5 / 365;
+        const v = 0.18 + (ivShift / 100);
+        const T = Math.max(0.0001, (7 - dayShift) / 365);
 
         if (breakevens.length === 0) {
             probability = maxProfit > 0 ? 99 : 1;
         } else if (breakevens.length === 1) {
-            // Single breakeven (e.g. naked option)
             const be = breakevens[0];
             const d2 = (Math.log(currentPrice / be) + (0.07 - (v * v) / 2) * T) / (v * Math.sqrt(T));
-            // If profit is above BE (e.g. long call)
             const isProfitAbove = chartData[chartData.length - 1].pnl > 0;
             probability = isProfitAbove ? normCDF(d2) * 100 : normCDF(-d2) * 100;
         } else {
-            // Range bound (e.g. iron condor or spreads)
             const be1 = breakevens[0];
             const be2 = breakevens[breakevens.length - 1];
             const d2_1 = (Math.log(currentPrice / be1) + (0.07 - (v * v) / 2) * T) / (v * Math.sqrt(T));
             const d2_2 = (Math.log(currentPrice / be2) + (0.07 - (v * v) / 2) * T) / (v * Math.sqrt(T));
-
-            // Assume profit is inside the breakevens for typical non-directional
             const isProfitInside = chartData[Math.floor(chartData.length / 2)].pnl > 0;
             const probInside = Math.abs(normCDF(d2_1) - normCDF(d2_2)) * 100;
             probability = isProfitInside ? probInside : 100 - probInside;
         }
 
         return Math.min(99, Math.max(1, probability));
-    }, [chartData, currentPrice]);
+    }, [chartData, currentPrice, ivShift, dayShift, maxProfit]);
 
     return (
-        <div className="flex flex-col h-full bg-black/40 backdrop-blur-md p-4">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Payoff Analysis</h3>
+        <div className="flex flex-col h-full bg-black/40 backdrop-blur-md p-3">
+            {/* Simulation Controls */}
+            <div className="flex gap-4 mb-3 pb-3 border-b border-white/5">
+                <div className="flex-1 space-y-1">
+                    <div className="flex justify-between text-[8px] font-black text-zinc-500 uppercase">
+                        <span>IV Shift ({ivShift > 0 ? '+' : ''}{ivShift}%)</span>
+                        <button onClick={() => setShifts({ iv: 0 })} className="hover:text-primary transition-colors">RESET</button>
+                    </div>
+                    <input
+                        type="range"
+                        min="-20"
+                        max="50"
+                        step="1"
+                        value={ivShift}
+                        onChange={(e) => setShifts({ iv: parseInt(e.target.value) })}
+                        className="w-full accent-primary h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                    />
+                </div>
+                <div className="flex-1 space-y-1">
+                    <div className="flex justify-between text-[8px] font-black text-zinc-500 uppercase">
+                        <span>Days To Expiry ({7 - dayShift}d)</span>
+                        <button onClick={() => setShifts({ days: 0 })} className="hover:text-primary transition-colors">RESET</button>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="7"
+                        step="1"
+                        value={dayShift}
+                        onChange={(e) => setShifts({ days: parseInt(e.target.value) })}
+                        className="w-full accent-blue-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    Payoff Analyzer
+                </h3>
+
                 <div className="flex gap-4">
                     <div className="flex flex-col items-end">
                         <span className="text-[8px] text-zinc-600 uppercase">POP</span>
