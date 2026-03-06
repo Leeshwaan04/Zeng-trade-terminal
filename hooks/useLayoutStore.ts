@@ -68,8 +68,8 @@ interface LayoutState {
 export const useLayoutStore = create<LayoutState>()(
     persist(
         (set) => ({
-            activeWorkspaceId: "groww-classic",
-            workspaces: PRESET_LAYOUTS,
+            activeWorkspaceId: "empty-desk",
+            workspaces: {},
 
             setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
 

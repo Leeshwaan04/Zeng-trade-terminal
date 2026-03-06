@@ -27,6 +27,7 @@ import { MultiStrikeOIWidget } from "@/components/trading/MultiStrikeOIWidget";
 import { FiiDiiWidget } from "@/components/trading/FiiDiiWidget";
 import { GTTManager } from "@/components/trading/GTTManager";
 import { MarginAggregatorWidget } from "@/components/trading/MarginAggregatorWidget";
+import { EmptyWorkspaceDesk } from "@/components/layout/EmptyWorkspaceDesk";
 
 export const LayoutManager = () => {
     // Hydration fix for zustand persist
@@ -56,9 +57,9 @@ export const LayoutManager = () => {
 
     // Normalize key lookup (Layout IDs might be inconsistently cased in localStorage)
     const activeWorkspace = workspaces[activeWorkspaceId] ||
-        workspaces[activeWorkspaceId.toLowerCase()] ||
-        workspaces[activeWorkspaceId.toUpperCase()] ||
-        Object.values(workspaces)[0];
+        workspaces[activeWorkspaceId?.toLowerCase()] ||
+        workspaces[activeWorkspaceId?.toUpperCase()] ||
+        (activeWorkspaceId === "empty-desk" ? null : Object.values(workspaces)[0]);
 
     const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -66,7 +67,11 @@ export const LayoutManager = () => {
     const initialSizesRef = useRef<string[]>([]);
     const [mobileActiveTabIdx, setMobileActiveTabIdx] = useState(0);
 
-    if (!isMounted || !activeWorkspace) return null;
+    if (!isMounted) return null;
+
+    if (!activeWorkspace || activeWorkspaceId === "empty-desk") {
+        return <EmptyWorkspaceDesk />;
+    }
 
     // Mobile Responsive Logic -> Now handled with a completely separate return flow at the bottom
     let effectiveCols = activeWorkspace.gridTemplateColumns;
