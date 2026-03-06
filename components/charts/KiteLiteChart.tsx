@@ -26,8 +26,9 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
 
         // Detect current theme colors from CSS variables
         const style = getComputedStyle(document.documentElement);
-        const isDark = document.documentElement.classList.contains("dark");
-        const bg = isDark ? "#0a0f1a" : "#f8fafc";
+        const isLight = document.documentElement.classList.contains("light");
+        const isDark = !isLight;
+        const bg = isDark ? "#0a0f1a" : "#ffffff";
         const textColor = isDark ? "#94a3b8" : "#475569";
         const gridColor = isDark ? "#1e293b" : "#e2e8f0";
 

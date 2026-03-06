@@ -92,6 +92,32 @@ export const WhaleSonarWidget = () => {
                 title="INSTITUTIONAL RADAR (L2)"
                 action={
                     <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                        <button
+                            onClick={() => {
+                                const mockSymbols = ["RELIANCE", "HDFCBANK", "INFY", "BANKNIFTY 47500 CE", "NIFTY 22800 PE", "ITC"];
+                                const symbol = mockSymbols[Math.floor(Math.random() * mockSymbols.length)];
+                                const tradeValueCr = 0.2 + Math.random() * 2.5;
+                                let threat: WhaleTrade["threatLevel"] = "ALPHA";
+                                if (tradeValueCr > 1.0) threat = "MEGA";
+                                else if (tradeValueCr > 0.5) threat = "BETA";
+
+                                const newWhale: WhaleTrade = {
+                                    id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                                    time: new Date().toLocaleTimeString('en-IN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                                    symbol,
+                                    side: Math.random() > 0.5 ? "BUY" : "SELL",
+                                    quantity: Math.floor((tradeValueCr * 10000000) / (Math.random() * 2000 + 100)),
+                                    price: Math.floor(Math.random() * 2000 + 100),
+                                    value: tradeValueCr,
+                                    threatLevel: threat
+                                };
+                                setWhales(prev => [newWhale, ...prev].slice(0, 100));
+                            }}
+                            className="px-2 py-0.5 text-[7px] font-black uppercase text-amber-500 hover:bg-amber-500/10 rounded mr-1 flex items-center gap-1 transition-colors"
+                            title="Simulate Institutional Flow (E2E Test)"
+                        >
+                            <Zap className="w-2.5 h-2.5" /> SIM
+                        </button>
                         {SECTORS.map(s => (
                             <button
                                 key={s.id}

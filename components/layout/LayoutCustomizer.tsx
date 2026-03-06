@@ -52,7 +52,9 @@ const WIDGET_META: Record<WidgetType, { label: string; icon: React.ReactNode; co
     FII_DII: { label: "FII/DII Data", icon: <LineChart className="w-3.5 h-3.5" />, color: "text-sky-400", desc: "Institutional flow analysis" },
     DOM: { label: "DOM", icon: <BookOpen className="w-3.5 h-3.5" />, color: "text-cyan-400", desc: "Depth of Market" },
     GTT_MANAGER: { label: "GTT Manager", icon: <Clock className="w-3.5 h-3.5" />, color: "text-amber-400", desc: "Manage OCO and GTT triggers" },
-    MARGIN_AGGREGATOR: { label: "Margin Aggregator", icon: <Wallet className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Cross-broker buying power" }
+    MARGIN_AGGREGATOR: { label: "Margin Aggregator", icon: <Wallet className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Cross-broker buying power" },
+    BUILDUP_SCANNER: { label: "Buildup Scanner", icon: <Activity className="w-3.5 h-3.5" />, color: "text-blue-400", desc: "Live Price-OI sentiment mapping" },
+    OI_HEATMAP: { label: "OI Heatmap", icon: <LayoutGrid className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Historical strike flow heat" }
 };
 
 /* ═══════════════════════════════════════════════════════════
