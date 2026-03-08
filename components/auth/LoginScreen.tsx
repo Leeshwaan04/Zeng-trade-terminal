@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuthStore } from "@/hooks/useAuthStore";
-import { Zap, Shield, BarChart3, Activity, Key, Lock, Globe, ChevronRight, X as CloseIcon } from "lucide-react";
+import { Zap, Shield, BarChart3, Activity, Key, Lock, Globe, ChevronRight, X as CloseIcon, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeSelector } from "@/components/ui/theme-selector";
 
@@ -50,6 +50,7 @@ export const LoginScreen = () => {
         { id: "KITE", name: "Zerodha Kite", color: "from-[#ff5722] to-[#ff8a65]", icon: <Zap className="w-5 h-5" />, ready: true },
         { id: "DHAN", name: "DhanHQ", color: "from-[#00E5FF] to-[#006064]", icon: <Activity className="w-5 h-5" />, ready: true },
         { id: "FYERS", name: "Fyers Core", color: "from-[#2196F3] to-[#0D47A1]", icon: <BarChart3 className="w-5 h-5" />, ready: true },
+        { id: "GUEST", name: "Guest Access", color: "from-[#374151] to-[#111827]", icon: <UserCircle className="w-5 h-5 text-cyan-400" />, ready: true, isGuest: true },
     ];
 
     return (
@@ -91,11 +92,12 @@ export const LoginScreen = () => {
                         <BrokerCard
                             key={b.id}
                             name={b.name}
-                            status="Linkable"
+                            status={b.isGuest ? "Free Demo" : "Linkable"}
                             color={b.color}
                             icon={b.icon}
-                            onClick={() => handleBrokerClick(b)}
+                            onClick={() => b.isGuest ? useAuthStore.getState().loginAsGuest() : handleBrokerClick(b)}
                             ready={b.ready}
+                            isGuest={b.isGuest}
                         />
                     ))}
                 </div>
@@ -201,9 +203,10 @@ interface BrokerCardProps {
     onClick?: () => void;
     disabled?: boolean;
     ready?: boolean;
+    isGuest?: boolean;
 }
 
-const BrokerCard = ({ name, status, color, icon, onClick, disabled, ready }: BrokerCardProps) => {
+const BrokerCard = ({ name, status, color, icon, onClick, disabled, ready, isGuest }: BrokerCardProps) => {
     const [rotate, setRotate] = useState({ x: 0, y: 0 });
 
     const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -237,7 +240,9 @@ const BrokerCard = ({ name, status, color, icon, onClick, disabled, ready }: Bro
             className={cn(
                 "group relative flex flex-col p-4 rounded-xl border border-border transition-all text-left",
                 ready
-                    ? "bg-[#0A0A0A] hover:bg-zinc-900 hover:scale-[1.02] hover:border-primary/40 active:scale-[0.98]"
+                    ? isGuest
+                        ? "bg-[#0A0A0A] border-cyan-500/30 hover:border-cyan-400/50 hover:bg-cyan-950/20 active:scale-[0.98] shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+                        : "bg-[#0A0A0A] hover:bg-zinc-900 hover:scale-[1.02] hover:border-primary/40 active:scale-[0.98]"
                     : "bg-zinc-900/50 opacity-50 grayscale cursor-not-allowed"
             )}
         >

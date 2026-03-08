@@ -51,6 +51,7 @@ interface AuthState {
     setSkipOrderConfirmation: (skip: boolean) => void;
     login: () => void;
     logout: () => Promise<void>;
+    loginAsGuest: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -71,6 +72,29 @@ export const useAuthStore = create<AuthState>()(
             updateBrokerConfig: (broker, config) => set(state => ({
                 brokerConfigs: { ...state.brokerConfigs, [broker]: config }
             })),
+
+            // ─── Guest Login ─────────────────────────────────
+            loginAsGuest: () => {
+                const guestUser: KiteUser = {
+                    user_id: "GUEST123",
+                    user_name: "Guest Trader",
+                    user_shortname: "Guest",
+                    email: "guest@zengtrade.pro",
+                    broker: "GUEST",
+                    exchanges: ["NSE", "BSE", "NFO"],
+                    products: ["CNC", "MIS", "NRML"],
+                    order_types: ["MARKET", "LIMIT", "SL", "SL-M"],
+                    login_time: new Date().toISOString()
+                };
+                set({
+                    isLoggedIn: true,
+                    user: guestUser,
+                    accessToken: "guest_token",
+                    publicToken: "guest_public",
+                    loginTime: new Date().toISOString(),
+                    activeBroker: "KITE"
+                });
+            },
 
             // ─── Set Session (called after OAuth callback) ───
             setSession: (user, accessToken, publicToken) =>
