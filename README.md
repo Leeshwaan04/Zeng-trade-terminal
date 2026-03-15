@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ZenG Trade — Pro Trading Terminal
 
-## Getting Started
+Institutional-grade trading terminal built with Next.js and Kite Connect v3. Features low-latency WebSocket ticking, advanced charting, and pre-trade intelligence.
 
-First, run the development server:
+## 🚀 Production Deployment (EC2)
 
+This terminal is optimized for deployment on a single EC2 instance (Ubuntu/Linux) using Docker Compose. This architecture fixes Vercel's SSE timeouts and session limitations.
+
+### 1. Prerequisites
+- EC2 instance (t3.medium or better recommended)
+- Docker & Docker Compose installed
+- A domain pointed to your EC2 IP (e.g., `zengtrade.in` and `ws.zengtrade.in`)
+- SSL Certificates via Certbot:
+  ```bash
+  sudo certbot certonly --standalone -d zengtrade.in -d www.zengtrade.in -d ws.zengtrade.in
+  ```
+
+### 2. Configure Environment
+Copy `.env.production.example` to `.env.production` and fill in your secrets:
+- `KITE_API_KEY` & `KITE_API_SECRET`
+- `UPSTASH_REDIS_REST_*` (for historical data caching)
+- Ensure `NEXT_PUBLIC_EC2_WS_URL` is set to `wss://ws.zengtrade.in`
+
+### 3. Build and Start
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Key Features
+- **Binary Tick Engine**: Off-main-thread tick parsing via Web Workers.
+- **Intelligent Modes**: Automatic sub-second switching between `ltp`, `quote`, and `full` subscription modes for bandwidth efficiency.
+- **Execution Audit**: Post-trade analysis with VWAP and fill-fragment visibility.
+- **Hardened Security**: `httpOnly` secure cookies for token management.
+- **L2 Cache**: Server-side historical data caching via Upstash Redis.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📈 Local Development
+```bash
+npm install
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to start trading.

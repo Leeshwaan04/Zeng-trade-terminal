@@ -5,12 +5,14 @@ import { User, CreditCard, LogOut, Keyboard, Settings, ChevronRight, UserCircle 
 import { useLayoutStore } from "@/hooks/useLayoutStore";
 import { useAuthStore, GrowwUser } from "@/hooks/useAuthStore";
 import { cn } from "@/lib/utils";
+import { useMarketStore } from "@/hooks/useMarketStore";
 
 export const ProfileMenu = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { setSettingsOpen } = useLayoutStore();
     const { user, logout, activeBroker, setBroker, setGrowwSession, growwAccessToken } = useAuthStore();
+    const { totalMargin } = useMarketStore(s => s.unifiedMargin);
 
     // Close on click outside
     useEffect(() => {
@@ -104,11 +106,8 @@ export const ProfileMenu = () => {
                         </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                        <div className="px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-[8px] font-black text-primary uppercase tracking-tighter">
-                            ENTERPRISE PRO
-                        </div>
                         <div className="flex-1" />
-                        <div className="text-[10px] font-bold text-up">₹5,40,231.00</div>
+                        <div className="text-[10px] font-bold text-up">₹{totalMargin.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                     </div>
                 </div>
 
