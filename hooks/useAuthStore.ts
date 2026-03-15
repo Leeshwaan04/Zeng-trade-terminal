@@ -126,13 +126,14 @@ export const useAuthStore = create<AuthState>()(
                 }
 
                 const origin = window.location.origin;
-                const redirectUri = encodeURIComponent(`${origin}/api/auth/callback`);
-
                 if (activeBroker === "KITE") {
+                    const redirectUri = encodeURIComponent(`${origin}/api/auth/callback`);
                     window.location.href = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}&redirect_uri=${redirectUri}`;
                 } else if (activeBroker === "DHAN") {
+                    const redirectUri = encodeURIComponent(`${origin}/api/dhan/auth/callback`);
                     window.location.href = `https://auth.dhan.co/oauth/authorize?response_type=code&client_id=${apiKey}&redirect_uri=${redirectUri}&scope=orders,read`;
                 } else if (activeBroker === "FYERS") {
+                    const redirectUri = encodeURIComponent(`${origin}/api/fyers/auth/callback`);
                     window.location.href = `https://api-v3.fyers.in/api/v3/generate-authcode?client_id=${apiKey}&redirect_uri=${redirectUri}&response_type=code&state=zeng_fyers`;
                 }
             },

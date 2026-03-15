@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     const clientId = process.env.DHAN_CLIENT_ID;
-    const redirectUri = process.env.DHAN_REDIRECT_URI || "http://localhost:3000/api/dhan/auth/callback";
+    const origin = req.nextUrl.origin;
+    const redirectUri = process.env.DHAN_REDIRECT_URI || `${origin}/api/dhan/auth/callback`;
 
     if (!clientId) {
         return NextResponse.json({ error: "Dhan Client ID not configured" }, { status: 500 });

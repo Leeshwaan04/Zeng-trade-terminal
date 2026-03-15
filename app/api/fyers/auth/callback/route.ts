@@ -70,7 +70,7 @@ export async function GET(request: Request) {
             path: "/"
         });
 
-        return NextResponse.redirect(new URL("/", request.url));
+        return NextResponse.redirect(new URL("/terminal?auth_success=1", request.url));
 
     } catch (error) {
         return NextResponse.json({ error: "Fyers Auth Failed", details: String(error) }, { status: 500 });

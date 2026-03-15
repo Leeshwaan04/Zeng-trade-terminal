@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     const appId = process.env.FYERS_APP_ID; // App ID
-    const redirectUri = process.env.FYERS_REDIRECT_URI || "http://localhost:3000/api/fyers/auth/callback";
+    const origin = req.nextUrl.origin;
+    const redirectUri = process.env.FYERS_REDIRECT_URI || `${origin}/api/fyers/auth/callback`;
 
     if (!appId) {
         return NextResponse.json({ error: "Fyers App ID not configured" }, { status: 500 });

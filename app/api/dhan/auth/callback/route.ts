@@ -42,7 +42,7 @@ export async function GET(request: Request) {
                 client_secret: clientSecret,
                 grant_type: "authorization_code",
                 code,
-                redirect_uri: process.env.DHAN_REDIRECT_URI || "http://localhost:3000/api/dhan/auth/callback",
+                redirect_uri: process.env.DHAN_REDIRECT_URI || `${new URL(request.url).origin}/api/dhan/auth/callback`,
             }),
         });
 
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
         }
 
         // Redirect to Dashboard
-        return NextResponse.redirect(new URL("/", request.url));
+        return NextResponse.redirect(new URL("/terminal?auth_success=1", request.url));
 
     } catch (error) {
         return NextResponse.json({ error: "Dhan Auth Failed" }, { status: 500 });
