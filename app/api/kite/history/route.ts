@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const KITE_API_BASE = "https://api.kite.trade";
+import { getHistoricalData } from "@/lib/kite-client";
+import { HistoricalCache } from "@/lib/kite-cache";
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -15,46 +15,45 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
+    // 1. Check Cache First (L1 in-memory → L2 Redis)
+    const cachedData = await HistoricalCache.get(instrument_token, interval, from, to);
+    if (cachedData && !forceMock) {
+        console.log(`[Kite History] Cache HIT: ${instrument_token}`);
+        return NextResponse.json({ status: "success", data: { candles: cachedData } });
+    }
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("kite_access_token")?.value;
     const apiKey = process.env.KITE_API_KEY;
 
-    // Determine baseline price for mock generation
-    const basePrice = instrument_token === "260105" ? 60000 :
-        instrument_token === "256265" ? 25000 :
-            1000;
+    // Baseline for mocks
+    const basePrice = instrument_token === "260105" ? 60000 : instrument_token === "256265" ? 25000 : 1000;
 
-    // If forcing mock or unauthenticated, return mock data immediately
+    // 2. Mock Fallback
     if (forceMock || !accessToken || !apiKey) {
         return NextResponse.json(generateMockData(from, to, interval, basePrice));
     }
 
     try {
-        const url = `${KITE_API_BASE}/instruments/historical/${instrument_token}/${interval}?from=${from}&to=${to}`;
-        console.log(`[Kite History] Fetching: ${url}`);
-        console.log(`[Kite History] Auth: token ${apiKey}:<redacted>${accessToken?.slice(-4)}`);
+        // 3. Fetch from Kite (Client handles rate limiting)
+        const candles = await getHistoricalData(apiKey, accessToken, instrument_token, interval, from, to);
+        
+        // 4. Update Cache
+        HistoricalCache.set(instrument_token, interval, from, to, candles);
 
-        const response = await fetch(url, {
-            headers: {
-                "X-Kite-Version": "3",
-                "Authorization": `token ${apiKey}:${accessToken}`
-            },
-            next: { revalidate: 60 }
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[Kite History] Error ${response.status}: ${errorText}`);
-            return NextResponse.json(generateMockData(from, to, interval, basePrice));
-        }
-
-        const data = await response.json();
-        console.log(`[Kite History] SUCCESS: ${data?.data?.candles?.length || 0} candles returned`);
-        return NextResponse.json(data);
+        console.log(`[Kite History] SUCCESS: ${candles.length} candles returned`);
+        return NextResponse.json({ status: "success", data: { candles } });
 
     } catch (error: any) {
         console.error("[Kite History] Server exception:", error);
-        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+        
+        // If it's a 403 (Subscription issue), we should probably let the user know, 
+        // but for now, we'll fall back to mock to keep the chart alive.
+        if (error.httpStatus === 403) {
+            console.warn("[Kite History] Historical API not subscribed. Falling back to mock.");
+        }
+        
+        return NextResponse.json(generateMockData(from, to, interval, basePrice));
     }
 }
 
@@ -63,12 +62,11 @@ function generateMockData(fromStr: string, toStr: string, interval: string, base
     const from = new Date(fromStr).getTime();
     const to = new Date(toStr).getTime();
     let current = from;
-    const step = interval === "day" ? 86400000 : interval === "60minute" ? 3600000 : 300000; // Approx
+    const step = interval === "day" ? 86400000 : interval === "60minute" ? 3600000 : 300000;
 
     let price = basePrice;
-
     while (current <= to) {
-        const volatility = basePrice * 0.005; // 0.5%
+        const volatility = basePrice * 0.005;
         const change = (Math.random() - 0.5) * volatility;
         const open = price;
         const close = price + change;
@@ -76,10 +74,7 @@ function generateMockData(fromStr: string, toStr: string, interval: string, base
         const low = Math.min(open, close) - Math.random() * volatility * 0.5;
         const volume = Math.floor(Math.random() * 100000);
 
-        // Mock ISO String for API compatibility
-        const timeStr = new Date(current).toISOString();
-        candles.push([timeStr, open, high, low, close, volume]);
-
+        candles.push([new Date(current).toISOString(), open, high, low, close, volume]);
         price = close;
         current += step;
     }

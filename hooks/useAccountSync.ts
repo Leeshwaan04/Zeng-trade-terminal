@@ -8,16 +8,24 @@
  * 3. Session Watchdog (via apiClient Interceptor)
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from './useAuthStore';
 import { useMarketStore } from './useMarketStore';
 import { useOrderStore, Order, Position } from './useOrderStore';
 import { apiClient } from '@/lib/api-client';
+import { MARKET_INSTRUMENTS } from '@/lib/market-config';
+import { useToast } from '@/hooks/use-toast';
 
 export function useAccountSync() {
     const activeBroker = useAuthStore(s => s.activeBroker);
     const isLoggedIn = useAuthStore(s => s.isLoggedIn);
+    const logout = useAuthStore(s => s.logout);
+    const mtfPrewarmed = useRef(false);
+    const snapshotLoaded = useRef(false);
+    const sessionExpiredNotified = useRef(false);
     const updateUnifiedMargin = useMarketStore(s => s.updateUnifiedMargin);
+    const updateTickers = useMarketStore(s => s.updateTickers);
+    const { toast } = useToast();
 
     const lastOrderTime = useOrderStore(s => s.lastOrderTime);
     const setOrders = useOrderStore(s => s.setOrders);
@@ -63,7 +71,8 @@ export function useAccountSync() {
                     status: (ko.status === 'COMPLETE' ? 'EXECUTED' : ko.status) as any,
                     timestamp: ko.order_timestamp ? new Date(ko.order_timestamp).getTime() : Date.now(),
                     rejectionReason: ko.status_message,
-                    broker: ko.broker
+                    // Kite API does not return a broker field — set it explicitly
+                    broker: 'KITE',
                 }));
 
                 // Keep only today's relevant orders naturally managed by Kite
@@ -82,10 +91,74 @@ export function useAccountSync() {
                 setPositions(mappedPositions);
             }
 
-        } catch (error) {
+        } catch (error: any) {
+            // 401 means the Kite access token has expired (happens at 6 AM IST).
+            // Detect it once and prompt the user to re-login — don't silently show stale data.
+            if (error?.status === 401 || error?.message?.includes("401") || error?.message?.toLowerCase().includes("token")) {
+                if (!sessionExpiredNotified.current) {
+                    sessionExpiredNotified.current = true;
+                    console.warn("[AccountSync] Kite session expired — prompting re-login");
+                    toast({
+                        title: "Session Expired",
+                        description: "Your Kite session has expired. Please log in again to continue trading.",
+                        variant: "destructive",
+                    });
+                    // Clear client-side auth state so login screen shows
+                    await logout();
+                }
+                return;
+            }
             console.warn("[AccountSync] Sync failed", error);
         }
-    }, [isLoggedIn, activeBroker, updateUnifiedMargin, setOrders, setPositions]);
+    }, [isLoggedIn, activeBroker, updateUnifiedMargin, setOrders, setPositions, logout, toast]);
+
+    // Fire MTF pre-warm + OHLC snapshot once immediately after Kite login
+    useEffect(() => {
+        if (!isLoggedIn || activeBroker !== 'KITE') return;
+
+        // MTF history pre-warm (runs once)
+        if (!mtfPrewarmed.current) {
+            mtfPrewarmed.current = true;
+            fetch('/api/kite/mtf-prewarm', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => console.log('[AccountSync] MTF prewarm:', d.summary))
+                .catch(e => console.warn('[AccountSync] MTF prewarm failed:', e));
+        }
+
+        // OHLC snapshot — pre-fills watchlist with real prices before WS connects (runs once)
+        if (!snapshotLoaded.current) {
+            snapshotLoaded.current = true;
+            const tokens = MARKET_INSTRUMENTS.map(i => i.token).filter(Boolean).join(',');
+            fetch(`/api/kite/snapshot?tokens=${tokens}`)
+                .then(r => r.json())
+                .then(json => {
+                    if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+                        updateTickers(json.data);
+                        console.log(`[AccountSync] Snapshot loaded ${json.data.length} instruments`);
+                    }
+                })
+                .catch(e => console.warn('[AccountSync] Snapshot failed:', e));
+
+            // Profile Sync — Refresh user metadata from Kite
+            fetch('/api/kite/profile')
+                .then(r => r.json())
+                .then(json => {
+                    if (json.status === 'success' && json.data) {
+                        const kd = json.data;
+                        // Partial update of profile data
+                        useAuthStore.getState().setUser({
+                            user_id: kd.user_id,
+                            user_name: kd.user_name,
+                            user_shortname: kd.user_shortname,
+                            email: kd.email,
+                            avatar_url: kd.avatar_url
+                        } as any);
+                        console.log('[AccountSync] Profile updated:', kd.user_name);
+                    }
+                })
+                .catch(e => console.warn('[AccountSync] Profile fetch failed:', e));
+        }
+    }, [isLoggedIn, activeBroker, updateTickers]);
 
     // Fast-Sync interval loop
     useEffect(() => {

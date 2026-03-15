@@ -76,7 +76,7 @@ export const ChartControls = ({
     magnetMode = false,
     onToggleMagnet
 }: ChartControlsProps) => {
-    const intervals = ["1m", "5m", "15m", "30m", "1H", "4H", "1D", "1W"];
+    const intervals = ["1m", "5m", "15m", "30m", "1H", "1D", "1W"];
     const tickerData = useMarketStore(state => state.tickers[symbol]);
     const placeOrder = useOrderStore(state => state.placeOrder);
     const {

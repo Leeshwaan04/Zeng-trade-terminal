@@ -40,9 +40,9 @@ export const ChartHeader = ({ symbol, interval, onIntervalChange }: ChartHeaderP
 
             {/* Timeframes */}
             <div className="flex items-center gap-1">
-                {["1 minute", "2 minute", "3 minute", "5 minute", "10 minute", "15 minute", "30 minute", "60 minute", "day"].map(tf => {
+                {["1 minute", "3 minute", "5 minute", "10 minute", "15 minute", "30 minute", "60 minute", "day"].map(tf => {
                     const labelMap: Record<string, string> = {
-                        "1 minute": "1m", "2 minute": "2m", "3 minute": "3m", "5 minute": "5m",
+                        "1 minute": "1m", "3 minute": "3m", "5 minute": "5m",
                         "10 minute": "10m", "15 minute": "15m", "30 minute": "30m", "60 minute": "1h", "day": "D"
                     };
                     return (

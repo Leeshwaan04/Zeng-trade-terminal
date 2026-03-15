@@ -50,6 +50,7 @@ interface AuthState {
     clearSession: () => void;
     setSkipOrderConfirmation: (skip: boolean) => void;
     login: () => void;
+    setUser: (user: UnifiedUser) => void;
     logout: () => Promise<void>;
 }
 
@@ -138,6 +139,11 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
+            // ─── Set User (update profile) ──────────────────
+            setUser: (newUser) => set((state) => ({
+                user: state.user ? { ...state.user, ...newUser } : newUser
+            })),
+
             // ─── Logout ──────────────────────────────────────
             logout: async () => {
                 try {
@@ -159,15 +165,15 @@ export const useAuthStore = create<AuthState>()(
             },
         }),
         {
-            name: "cyber-trade-auth",
-            storage: createJSONStorage(() => sessionStorage),
+            // ─── Persist only user preferences in localStorage ───
+            // Session data (tokens, user) is NOT stored — it lives in the
+            // kite_auth_payload cookie (8h expiry) and is re-hydrated by
+            // AuthInitializer on every page load. This prevents stale tokens
+            // from sitting in browser storage and avoids Vercel/sessionStorage
+            // lifetime surprises entirely.
+            name: "zeng-prefs",
+            storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
-                isLoggedIn: state.isLoggedIn,
-                user: state.user,
-                accessToken: state.accessToken,
-                publicToken: state.publicToken,
-                growwAccessToken: state.growwAccessToken,
-                loginTime: state.loginTime,
                 skipOrderConfirmation: state.skipOrderConfirmation,
                 activeBroker: state.activeBroker,
                 brokerConfigs: state.brokerConfigs,

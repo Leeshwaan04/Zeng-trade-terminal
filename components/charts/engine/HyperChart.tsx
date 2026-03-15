@@ -11,6 +11,7 @@ import { useMarketStore } from "@/hooks/useMarketStore";
 // Minimal Grid Layer
 import { ChartLayer } from "./ChartEngine";
 import { getInstrumentToken } from "@/lib/market-config";
+import { lookbackFrom, toKiteInterval } from "@/lib/charting/Datafeed";
 
 const HyperGridLayer = () => {
     const draw = (ctx: CanvasRenderingContext2D, { width, height, scales }: any) => {
@@ -67,7 +68,7 @@ const HyperCrosshairLayer = () => {
 import { HyperOrderLayer } from "./HyperOrderLayer";
 import { SmartZoneLayer } from "./SmartZoneLayer";
 
-export const HyperChart = ({ symbol }: { symbol: string }) => {
+export const HyperChart = ({ symbol, interval = "minute" }: { symbol: string; interval?: string }) => {
     // Determine data source (mock for now or from store)
     const [data, setData] = useState<any[]>([]);
 
@@ -101,22 +102,25 @@ export const HyperChart = ({ symbol }: { symbol: string }) => {
             }
 
             try {
-                const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const from = new Date(lookbackFrom(interval)).toISOString().split('T')[0];
                 const today = new Date().toISOString().split('T')[0];
+                const kiteInterval = toKiteInterval(interval);
 
-                const url = `/api/kite/history?instrument_token=${token}&from=${dayAgo}&to=${today}&interval=minute`;
+                const url = `/api/kite/history?instrument_token=${token}&from=${from}&to=${today}&interval=${kiteInterval}`;
                 const res = await fetch(url);
                 const json = await res.json();
 
                 if (json.status === "success" && json.data?.candles) {
-                    const formatted = json.data.candles.map((c: any) => ({
-                        time: new Date(c[0]).getTime(),
-                        open: c[1],
-                        high: c[2],
-                        low: c[3],
-                        close: c[4],
-                        volume: c[5]
-                    }));
+                    const formatted = json.data.candles.map((c: any) => {
+                        const raw = String(c[0]);
+                        const iso = (raw.includes("T") || raw.includes("+") || raw.length === 10)
+                            ? raw
+                            : raw.replace(" ", "T") + "+05:30";
+                        return {
+                            time: new Date(iso).getTime(),
+                            open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5]
+                        };
+                    });
                     setData(formatted);
                 } else {
                     generateMockData();
@@ -143,7 +147,7 @@ export const HyperChart = ({ symbol }: { symbol: string }) => {
         };
 
         fetchHistory();
-    }, [symbol]);
+    }, [symbol, interval]);
 
     return (
         <ChartEngine data={data}>

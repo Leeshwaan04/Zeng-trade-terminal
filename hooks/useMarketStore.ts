@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import { MARKET_INSTRUMENTS } from '@/lib/market-config';
 
+// O(1) token→symbol lookup built once at module init.
+// Replaces the O(n) MARKET_INSTRUMENTS.find() called on every single tick.
+const TOKEN_TO_SYMBOL = new Map<number | string, string>(
+    MARKET_INSTRUMENTS
+        .filter(i => i.token > 0)
+        .map(i => [i.token, i.symbol] as [number, string])
+);
+const GROWW_TOKEN_TO_SYMBOL = new Map<string, string>(
+    MARKET_INSTRUMENTS
+        .filter(i => i.groww_token)
+        .map(i => [i.groww_token!, i.symbol])
+);
+
 export interface TickerData {
     symbol: string;
     instrument_token: number | string;
@@ -57,6 +70,11 @@ interface MarketState {
     metrics: { latency: number; integrity: number };
     updateMetrics: (data: { latency?: number; integrity?: number }) => void;
     subscribedTokens: Set<number>;
+    subscribedLtpTokens: Set<number>;
+    subscribedQuoteTokens: Set<number>;
+    subscribedFullTokens: Set<number>;
+    subscribeMode: (identifiers: (string | number)[], mode: 'ltp' | 'quote' | 'full') => void;
+    unsubscribeMode: (identifiers: (string | number)[], mode: 'ltp' | 'quote' | 'full') => void;
 }
 
 // Empty initial state — show "—" until live WebSocket data arrives
@@ -104,14 +122,17 @@ export const useMarketStore = create<MarketState>((set) => ({
             const newTickers = { ...state.tickers };
             for (const data of dataArray) {
                 let symbol = data.symbol;
+                // O(1) lookup via pre-built Maps — was O(n) MARKET_INSTRUMENTS.find() per tick
                 if (!symbol && data.instrument_token) {
-                    const mappedInst = MARKET_INSTRUMENTS.find(i => i.token === Number(data.instrument_token) || i.groww_token === data.instrument_token);
-                    if (mappedInst) symbol = mappedInst.symbol;
+                    symbol =
+                        TOKEN_TO_SYMBOL.get(Number(data.instrument_token)) ||
+                        GROWW_TOKEN_TO_SYMBOL.get(String(data.instrument_token)) ||
+                        undefined;
                 }
                 if (symbol) {
                     newTickers[symbol] = { ...data, symbol };
                 }
-                // ALWAYS index by token string — lets OptionChain & Depth lookup by instrument_token
+                // Also index by token string — lets OptionChain & Depth do O(1) token lookup
                 if (data.instrument_token) {
                     newTickers[String(data.instrument_token)] = { ...data, symbol: symbol || String(data.instrument_token) };
                 }
@@ -171,4 +192,30 @@ export const useMarketStore = create<MarketState>((set) => ({
         metrics: { ...state.metrics, ...data }
     })),
     subscribedTokens: new Set<number>(),
+    subscribedLtpTokens: new Set<number>(),
+    subscribedQuoteTokens: new Set<number>(),
+    subscribedFullTokens: new Set<number>(),
+
+    subscribeMode: (identifiers, mode) => set((state) => {
+        const key = mode === 'ltp' ? 'subscribedLtpTokens' : mode === 'quote' ? 'subscribedQuoteTokens' : 'subscribedFullTokens';
+        const newSet = new Set(state[key]);
+        const allTokens = new Set(state.subscribedTokens);
+
+        identifiers.forEach(id => {
+            if (typeof id === 'number') {
+                newSet.add(id);
+                allTokens.add(id);
+            }
+        });
+        return { [key]: newSet, subscribedTokens: allTokens };
+    }),
+
+    unsubscribeMode: (identifiers, mode) => set((state) => {
+        const key = mode === 'ltp' ? 'subscribedLtpTokens' : mode === 'quote' ? 'subscribedQuoteTokens' : 'subscribedFullTokens';
+        const newSet = new Set(state[key]);
+        identifiers.forEach(id => {
+            if (typeof id === 'number') newSet.delete(id);
+        });
+        return { [key]: newSet };
+    }),
 }));

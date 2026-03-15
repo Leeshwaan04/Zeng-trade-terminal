@@ -38,22 +38,54 @@ export interface KiteResponse<T = any> {
 }
 
 // ─── Helper ──────────────────────────────────────────────────
+const REQUEST_TIMEOUT_MS = 8000; // 8s — prevents indefinite hangs in serverless
+const MAX_RETRIES = 2;           // retry on 429 / transient 5xx
+
 export async function kiteRequest<T = any>(
     path: string,
     apiKey: string,
     accessToken: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    _retryCount = 0
 ): Promise<KiteResponse<T>> {
     const url = `${KITE_API_BASE}${path}`;
 
-    const res = await fetch(url, {
-        ...options,
-        headers: {
-            "X-Kite-Version": KITE_VERSION,
-            Authorization: `token ${apiKey}:${accessToken}`,
-            ...(options.headers || {}),
-        },
-    });
+    // Rate-limit historical calls BEFORE sending (best-effort within a single process)
+    if (path.includes("/historical/")) {
+        await KiteRateLimiter.wait();
+    }
+
+    // AbortController prevents indefinite hangs on slow/unresponsive Kite API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+                "X-Kite-Version": KITE_VERSION,
+                Authorization: `token ${apiKey}:${accessToken}`,
+                ...(options.headers || {}),
+            },
+        });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+
+    // 429 Too Many Requests — exponential backoff, then retry
+    if (res.status === 429 && _retryCount < MAX_RETRIES) {
+        const delay = 500 * Math.pow(2, _retryCount); // 500ms → 1000ms
+        await new Promise(r => setTimeout(r, delay));
+        return kiteRequest<T>(path, apiKey, accessToken, options, _retryCount + 1);
+    }
+
+    // 502/503 transient gateway errors — single retry after 1s
+    if ((res.status === 502 || res.status === 503) && _retryCount < 1) {
+        await new Promise(r => setTimeout(r, 1000));
+        return kiteRequest<T>(path, apiKey, accessToken, options, _retryCount + 1);
+    }
 
     const json = await res.json();
 
@@ -300,7 +332,8 @@ export async function getQuote(
     accessToken: string,
     instruments: string[]
 ): Promise<Record<string, any>> {
-    const params = instruments.map(i => `i=${i}`).join("&");
+    // encodeURIComponent required — "NSE:NIFTY 50" has a space that breaks raw URLs
+    const params = instruments.map(i => `i=${encodeURIComponent(i)}`).join("&");
     const res = await kiteRequest<Record<string, any>>(
         `/quote?${params}`,
         apiKey,
@@ -314,11 +347,171 @@ export async function getOHLC(
     accessToken: string,
     instruments: string[]
 ): Promise<Record<string, any>> {
-    const params = instruments.map(i => `i=${i}`).join("&");
+    // encodeURIComponent required — "NSE:NIFTY 50" has a space that breaks raw URLs
+    const params = instruments.map(i => `i=${encodeURIComponent(i)}`).join("&");
     const res = await kiteRequest<Record<string, any>>(
         `/quote/ohlc?${params}`,
         apiKey,
         accessToken
     );
     return res.data;
+}
+
+// ─── Order Trades (actual fills) ─────────────────────────────
+/**
+ * GET /orders/{order_id}/trades
+ * Returns actual fill-level data for a placed order.
+ * Used for post-trade attribution — gives real fill price,
+ * fill quantity, and exchange timestamp (unlike average_price from /orders).
+ */
+export async function getOrderTrades(
+    apiKey: string,
+    accessToken: string,
+    orderId: string
+): Promise<any[]> {
+    const res = await kiteRequest<any[]>(`/orders/${orderId}/trades`, apiKey, accessToken);
+    return res.data;
+}
+// ─── Historical Data ──────────────────────────────────────────
+export async function getHistoricalData(
+    apiKey: string,
+    accessToken: string,
+    instrumentToken: string | number,
+    interval: string,
+    from: string,
+    to: string
+): Promise<any[]> {
+    const path = `/instruments/historical/${instrumentToken}/${interval}?from=${from}&to=${to}`;
+    const res = await kiteRequest<any>(path, apiKey, accessToken);
+    return res.data.candles;
+}
+
+// ─── Pre-Trade Margin & Charges ──────────────────────────────
+export interface KiteMarginOrder {
+    exchange: string;
+    tradingsymbol: string;
+    transaction_type: "BUY" | "SELL";
+    variety: string;
+    product: string;
+    order_type: string;
+    quantity: number;
+    price?: number;
+    trigger_price?: number;
+}
+
+/**
+ * Calculate required margin for one or more orders before placement.
+ * POST /margins/orders — requires JSON body.
+ */
+export async function getOrderMargins(
+    apiKey: string,
+    accessToken: string,
+    orders: KiteMarginOrder[]
+): Promise<any[]> {
+    const res = await kiteRequest<any[]>("/margins/orders", apiKey, accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orders),
+    });
+    return res.data;
+}
+
+/**
+ * Calculate basket margin with spread benefit.
+ * POST /margins/basket — returns initial vs final margin after netting.
+ */
+export async function getBasketMargins(
+    apiKey: string,
+    accessToken: string,
+    orders: KiteMarginOrder[]
+): Promise<{ initial: any; final: any }> {
+    const res = await kiteRequest<{ initial: any; final: any }>("/margins/basket", apiKey, accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orders),
+    });
+    return res.data;
+}
+
+/**
+ * Calculate brokerage + tax charges for proposed orders.
+ * POST /charges/orders — returns per-order charge breakdown.
+ */
+export async function getOrderCharges(
+    apiKey: string,
+    accessToken: string,
+    orders: KiteMarginOrder[]
+): Promise<any[]> {
+    const res = await kiteRequest<any[]>("/charges/orders", apiKey, accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orders),
+    });
+    return res.data;
+}
+
+// ─── Alerts ──────────────────────────────────────────────────
+export async function getAlerts(
+    apiKey: string,
+    accessToken: string
+): Promise<any[]> {
+    const res = await kiteRequest<any[]>("/alerts", apiKey, accessToken);
+    return res.data;
+}
+
+export async function createAlert(
+    apiKey: string,
+    accessToken: string,
+    params: {
+        name: string;
+        lhs_exchange: string;
+        lhs_tradingsymbol: string;
+        lhs_attribute: string;
+        operator: string;
+        rhs_type: string;
+        rhs_constant: number;
+    }
+): Promise<{ uuid: string }> {
+    const body = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => body.set(k, String(v)));
+    const res = await kiteRequest<{ uuid: string }>("/alerts", apiKey, accessToken, {
+        method: "POST",
+        body,
+    });
+    return res.data;
+}
+
+export async function deleteAlert(
+    apiKey: string,
+    accessToken: string,
+    uuid: string
+): Promise<void> {
+    await kiteRequest(`/alerts?uuid=${uuid}`, apiKey, accessToken, {
+        method: "DELETE",
+    });
+}
+
+export async function getAlertHistory(
+    apiKey: string,
+    accessToken: string,
+    uuid: string
+): Promise<any[]> {
+    const res = await kiteRequest<any[]>(`/alerts/${uuid}/history`, apiKey, accessToken);
+    return res.data;
+}
+
+// ─── Rate Limiter ──────────────────────────────────────────────
+class KiteRateLimiter {
+    private static lastRequestAt = 0;
+    private static minInterval = 350; // ~3 requests per second
+
+    static async wait() {
+        const now = Date.now();
+        const diff = now - this.lastRequestAt;
+        if (diff < this.minInterval) {
+            const delay = this.minInterval - diff;
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        this.lastRequestAt = Date.now();
+    }
 }

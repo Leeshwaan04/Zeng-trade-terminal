@@ -6,14 +6,23 @@ import { useAuthStore } from '@/hooks/useAuthStore';
 import { useMarketStore } from '@/hooks/useMarketStore';
 import { useToast } from '@/hooks/use-toast';
 
+interface EC2Auth {
+    access_token: string;
+    api_key: string;
+    tokens: number[];
+    mode: string;
+}
+
 interface UseWorkerTickerProps {
     url: string;
     type: 'sse' | 'ws';
     enabled?: boolean;
     isSecondary?: boolean;
+    /** EC2 relay credentials — worker sends AUTH message after WS handshake */
+    auth?: EC2Auth;
 }
 
-export function useWorkerTicker({ url, type, enabled = true, isSecondary = false }: UseWorkerTickerProps) {
+export function useWorkerTicker({ url, type, enabled = true, isSecondary = false, auth }: UseWorkerTickerProps) {
     const workerRef = useRef<Worker | null>(null);
     const updateTickers = useMarketStore((s) => s.updateTickers);
     const updateSecondaryTickers = useMarketStore((s) => s.updateSecondaryTickers);
@@ -32,6 +41,16 @@ export function useWorkerTicker({ url, type, enabled = true, isSecondary = false
 
         const worker = new Worker('/workers/ticker.worker.js');
         workerRef.current = worker;
+
+        worker.onerror = (err) => {
+            console.error('[Worker] Crashed:', err.message, err.filename, err.lineno);
+            setStatus('error');
+            setConnectionStatus('DISCONNECTED');
+            // Auto-restart after 2s
+            setTimeout(() => {
+                if (enabled && url) initWorker();
+            }, 2000);
+        };
 
         worker.onmessage = (event) => {
             const { type, payload } = event.data;
@@ -82,9 +101,9 @@ export function useWorkerTicker({ url, type, enabled = true, isSecondary = false
 
         worker.postMessage({
             type: 'CONNECT',
-            payload: { url, type }
+            payload: { url, type, broker: activeBroker, auth }
         });
-    }, [url, type, updateTickers, updateSecondaryTickers, updateUnifiedMargin, setConnectionStatus, activeBroker, isSecondary]);
+    }, [url, type, auth, updateTickers, updateSecondaryTickers, updateUnifiedMargin, setConnectionStatus, activeBroker, isSecondary]);
 
     useEffect(() => {
         if (enabled && url) {

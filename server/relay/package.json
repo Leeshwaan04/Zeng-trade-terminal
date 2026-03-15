@@ -1,0 +1,20 @@
+{
+  "name": "zengtrade-ws-relay",
+  "version": "1.0.0",
+  "description": "ZenG Trade WebSocket relay — persistent Kite WS → client bridge. Runs on EC2, eliminates Vercel SSE 5-minute timeout.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node --esm src/index.ts",
+    "pm2": "pm2 start dist/index.js --name zeng-relay --instances 1 --max-memory-restart 512M"
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5"
+  }
+}

@@ -10,6 +10,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# NEXT_PUBLIC_ vars are baked into the JS bundle at build time — must be supplied here
+ARG NEXT_PUBLIC_EC2_WS_URL
+ARG NEXT_PUBLIC_KITE_API_KEY
+ENV NEXT_PUBLIC_EC2_WS_URL=$NEXT_PUBLIC_EC2_WS_URL
+ENV NEXT_PUBLIC_KITE_API_KEY=$NEXT_PUBLIC_KITE_API_KEY
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Generate the standalone production build
 RUN npm run build
 
@@ -17,8 +24,9 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-# Optimize Node.js garbage collection for an always-on websocket server
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+# Optimize Node.js for an always-on server
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Run as non-root user for security
@@ -37,5 +45,8 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Note: server.js is automatically created by next build output: "standalone"
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost:3000/ || exit 1
+
+# server.js is created by Next.js standalone output
 CMD ["node", "server.js"]

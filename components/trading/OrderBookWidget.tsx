@@ -1,18 +1,28 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useMarketStore } from "@/hooks/useMarketStore";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { WidgetHeader } from "@/components/ui/WidgetHeader";
 import { useKiteTicker } from "@/hooks/useKiteTicker";
 import { getInstrumentToken } from "@/lib/market-config";
+import { TradeDetailsModal } from "./TradeDetailsModal";
+import { useOrderStore } from "@/hooks/useOrderStore";
 
 const DEPTH_LEVELS = 5;
 
 export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) => {
     const ticker = useMarketStore(state => state.tickers[symbol]);
     const instrumentToken = getInstrumentToken(symbol) || 256265;
+    const [isTradesModalOpen, setIsTradesModalOpen] = useState(false);
+    const { orders } = useOrderStore();
+
+    // Find the latest executed order for this symbol to show its trades
+    const latestOrderId = useMemo(() => {
+        const order = orders.find(o => o.symbol === symbol && o.status === 'EXECUTED');
+        return order?.id || null;
+    }, [orders, symbol]);
 
     // Establish a localized SSE connection ONLY for this symbol in "full" mode
     useKiteTicker({
@@ -121,10 +131,20 @@ export const OrderBookWidget = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                 <button className="flex-1 bg-white/[0.02] border border-white/5 rounded-[2px] py-1 text-[8px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors">
                     Depth 20
                 </button>
-                <button className="flex-1 bg-white/[0.02] border border-white/5 rounded-[2px] py-1 text-[8px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors">
-                    Stats
+                <button 
+                    onClick={() => setIsTradesModalOpen(true)}
+                    disabled={!latestOrderId}
+                    className="flex-1 bg-white/[0.02] border border-white/5 rounded-[2px] py-1 text-[8px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                    Execution
                 </button>
             </div>
+
+            <TradeDetailsModal 
+                orderId={latestOrderId}
+                isOpen={isTradesModalOpen}
+                onClose={() => setIsTradesModalOpen(false)}
+            />
         </div>
     );
 };

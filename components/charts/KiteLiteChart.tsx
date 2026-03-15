@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createChart, CandlestickSeries, IChartApi, ISeriesApi, CandlestickData } from "lightweight-charts";
-import { KiteDatafeed } from "@/lib/charting/Datafeed";
+import { KiteDatafeed, getIntervalSeconds, lookbackFrom } from "@/lib/charting/Datafeed";
 import { useMarketStore } from "@/hooks/useMarketStore";
 
 interface KiteLiteChartProps {
@@ -15,6 +15,7 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
     const currentBarRef = useRef<CandlestickData | null>(null);
+    const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
 
     // Get live data from market store
     const lastTick = useMarketStore((s) => s.tickers[symbol]);
@@ -75,9 +76,10 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
         // ── Load Historical Data ──────────────────────────────
         const datafeed = new KiteDatafeed(symbol, interval);
         const loadData = async () => {
+            setLoadState("loading");
             try {
                 const now = Date.now();
-                const from = now - 30 * 24 * 60 * 60 * 1000; // 30 days
+                const from = lookbackFrom(interval); // interval-aware: 10d for 1m, 365d for 1D, 3yr for 1W
                 const bars = await datafeed.getHistory(from, now);
 
                 if (bars.length > 0) {
@@ -93,10 +95,16 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
                         series.setData(uniqueBars);
                         chart.timeScale().fitContent();
                         currentBarRef.current = uniqueBars[uniqueBars.length - 1];
+                        setLoadState("ready");
+                    } else {
+                        setLoadState("error");
                     }
+                } else {
+                    setLoadState("error");
                 }
             } catch (e) {
                 console.error("[KiteLiteChart] Historical data load error:", e);
+                setLoadState("error");
             }
         };
 
@@ -128,9 +136,7 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
         const price = lastTick.last_price;
         if (!price) return;
 
-        const intervalSeconds = interval.includes("minute")
-            ? parseInt(interval) * 60
-            : 86400;
+        const intervalSeconds = getIntervalSeconds(interval);
 
         let barTime = (Math.floor(Date.now() / (intervalSeconds * 1000)) * intervalSeconds) as any;
 
@@ -159,5 +165,19 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
         }
     }, [lastTick, interval]);
 
-    return <div ref={chartContainerRef} className="w-full h-full" />;
+    return (
+        <div className="relative w-full h-full">
+            <div ref={chartContainerRef} className="w-full h-full" />
+            {loadState === "loading" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0f1a]/70 pointer-events-none">
+                    <span className="text-xs text-slate-400 animate-pulse">Loading {symbol}…</span>
+                </div>
+            )}
+            {loadState === "error" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0f1a]/70 pointer-events-none">
+                    <span className="text-xs text-red-400">No data for {symbol} — check connection or login</span>
+                </div>
+            )}
+        </div>
+    );
 };

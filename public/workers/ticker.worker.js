@@ -16,7 +16,11 @@ const brokerMargins = new Map();
 const RECONNECT_INTERVAL = 5000;
 const LAG_THRESHOLD = 3000; // 3 seconds lag = switch
 const POLL_INTERVAL = 1500; // 1.5s REST polling interval
-const SSE_FAILURE_THRESHOLD = 3; // After 3 SSE failures, switch to polling
+// After 1 SSE failure switch immediately to polling.
+// Vercel SSE connections terminate every 5 minutes (maxDuration=300).
+// Waiting for 3 failures caused a ~30s data blackout every 5 min during market hours.
+// With threshold=1, fallback to polling happens instantly, then SSE reconnect retries in background.
+const SSE_FAILURE_THRESHOLD = 1;
 
 let riskLimits = { maxLoss: -10000, maxTrades: 50 }; // Defaults
 let isHaltActive = false;
@@ -35,7 +39,7 @@ self.onmessage = (event) => {
             if (payload?.type === 'sse') {
                 connectSSE(payload.url, instanceKey, payload.broker || 'KITE');
             } else if (payload?.type === 'ws') {
-                connectWS(payload.url, instanceKey, payload.broker || 'GROWW');
+                connectWS(payload.url, instanceKey, payload.broker || 'KITE', payload.auth);
             }
             break;
         case 'UPDATE_RISK_LIMITS':
@@ -119,31 +123,28 @@ function calculateFusedPrice(symbol, broker, price) {
     return allPrices.length % 2 !== 0 ? allPrices[mid] : (allPrices[mid - 1] + allPrices[mid]) / 2;
 }
 
-// ─── OPTIMIZATION: Tick Batching ─────────────────────────────
-// Instead of spamming the main thread on every single tick (which causes React to freeze),
-// we accumulate them in this buffer and flush them every 250ms.
-const TICK_FLUSH_INTERVAL = 250;
-const tickBuffer = new Map(); // key -> current map of token -> tick
-let isTickFlushRunning = false;
+// ─── OPTIMIZATION: Tick Batching (double-buffer, race-free) ──────────────────
+// Two buffers: activeBuffer accumulates incoming ticks; flushInterval atomically
+// swaps it out so no tick can be lost between accumulation and the clear().
+// 50ms flush = imperceptible chart lag even for scalpers.
+const TICK_FLUSH_INTERVAL = 50;
+// activeBuffer: key (SSE URL) -> Map<uid, tick>
+let activeBuffer = new Map();
 
-function startTickFlush() {
-    if (isTickFlushRunning) return;
-    isTickFlushRunning = true;
-    setInterval(() => {
-        if (tickBuffer.size === 0) return;
+setInterval(() => {
+    if (activeBuffer.size === 0) return;
 
-        tickBuffer.forEach((ticksMap, key) => {
-            const ticksArray = Array.from(ticksMap.values());
-            if (ticksArray.length > 0) {
-                self.postMessage({ type: 'TICK', payload: { data: ticksArray, key } });
-                ticksMap.clear(); // Clear after flushing
-            }
-        });
-    }, TICK_FLUSH_INTERVAL);
-}
+    // Atomic swap — new incoming ticks go into a fresh map immediately
+    const toFlush = activeBuffer;
+    activeBuffer = new Map();
 
-// Start immediately
-startTickFlush();
+    toFlush.forEach((ticksMap, key) => {
+        const ticksArray = Array.from(ticksMap.values());
+        if (ticksArray.length > 0) {
+            self.postMessage({ type: 'TICK', payload: { data: ticksArray, key } });
+        }
+    });
+}, TICK_FLUSH_INTERVAL);
 
 // ─── METRICS BROADCAST ──────────────────────────────────────
 setInterval(() => {
@@ -179,10 +180,6 @@ function broadcast(type, key, payload) {
     if (type === 'TICK' && payload.data) {
         const ticks = Array.isArray(payload.data) ? payload.data : [payload.data];
 
-        // Ensure map exists for this key
-        if (!tickBuffer.has(key)) tickBuffer.set(key, new Map());
-        const instanceBuffer = tickBuffer.get(key);
-
         ticks.forEach((tick) => {
             if (tick.last_price || tick.instrument_token || tick.symbol) {
                 const symbol = tick.symbol || key;
@@ -204,9 +201,12 @@ function broadcast(type, key, payload) {
                     }
                 }
 
-                // Aggregate into buffer (latest tick per instrument overwrites older ones in same batch)
+                // Aggregate into activeBuffer (latest tick per instrument overwrites older in same batch)
                 const uid = tick.instrument_token || symbol;
-                // Merge with existing tick in buffer to preserve fields (e.g. ohlc + depth from different packets)
+                // Ensure map exists for this key in the current active buffer
+                if (!activeBuffer.has(key)) activeBuffer.set(key, new Map());
+                const instanceBuffer = activeBuffer.get(key);
+                // Merge with existing tick to preserve fields (e.g. ohlc + depth from different packets)
                 const existing = instanceBuffer.get(uid) || {};
                 instanceBuffer.set(uid, { ...existing, ...tick });
             }
@@ -245,7 +245,7 @@ function checkFailover() {
                 if (instance.socket) {
                     instance.socket.close();
                 }
-                scheduleReconnect(instance.url, 'ws', key, instance.broker);
+                scheduleReconnect(instance.url, 'ws', key, instance.broker, instance.auth);
             }
         }
     });
@@ -318,16 +318,24 @@ function connectSSE(url, key, broker) {
             instance.sseFailureCount = (instance.sseFailureCount || 0) + 1;
             console.warn(`[Worker] SSE error #${instance.sseFailureCount} for ${key}`);
 
-            // After threshold failures, switch to polling fallback
+            // After threshold failures, switch to polling fallback immediately
             if (instance.sseFailureCount >= SSE_FAILURE_THRESHOLD) {
-                console.warn(`[Worker] SSE failed ${SSE_FAILURE_THRESHOLD}x. Switching to REST polling.`);
-                // Close the broken SSE connection
+                console.warn(`[Worker] SSE failed. Switching to REST polling + scheduling SSE retry in 10s.`);
                 eventSource.close();
                 instance.eventSource = null;
-                // Start polling
+                // Start polling so ticks continue with zero gap
                 startPolling(key);
+                // Schedule a background SSE reconnect attempt — if it works, polling stops automatically
+                if (instance.reconnectTimer) clearTimeout(instance.reconnectTimer);
+                instance.reconnectTimer = setTimeout(() => {
+                    const current = instances.get(key);
+                    if (current && !current.eventSource) {
+                        console.log(`[Worker] Retrying SSE reconnect for ${key}`);
+                        instance.sseFailureCount = 0;
+                        connectSSE(current.url, key, current.broker);
+                    }
+                }, 10000);
             } else {
-                // Let EventSource auto-reconnect for a few tries
                 broadcast('ERROR', key, { message: 'SSE Connection Failed, retrying...' });
             }
         };
@@ -393,46 +401,112 @@ async function doPoll(key, pollUrl) {
     }
 }
 
-// ─── WebSocket Connection (Secondary Brokers) ─────────────────
-function connectWS(url, key, broker) {
+// ─── WebSocket Connection (EC2 Relay & secondary brokers) ─────
+// EC2 relay protocol:
+//   → AUTH  { type:"AUTH", access_token, api_key, tokens, mode }
+//   ← status { type:"status", connected }
+//   ← tick   { type:"tick",   data: [{instrument_token, last_price, ...}] }
+//   ← heartbeat { type:"heartbeat", t: epoch_ms }
+//   ← order  { type:"order",  data: {...} }
+function connectWS(url, key, broker, auth) {
     cleanupInstance(key);
 
+    // Strip auth params from the actual WebSocket URL (clean handshake)
+    let wsUrl = url;
     try {
-        const socket = new WebSocket(url);
+        const u = new URL(url, self.location?.origin || 'wss://localhost');
+        // Remove tokens/mode from URL — sent in AUTH message instead
+        u.searchParams.delete('tokens');
+        u.searchParams.delete('mode');
+        wsUrl = u.href;
+    } catch (_) { /* keep original url */ }
+
+    try {
+        const socket = new WebSocket(wsUrl);
         socket.binaryType = 'arraybuffer';
-        instances.set(key, { socket, type: 'ws', lastTickAt: Date.now(), broker, url });
+        instances.set(key, { socket, type: 'ws', lastTickAt: Date.now(), broker, url, auth });
 
         socket.onopen = () => {
-            broadcast('STATUS', key, { connected: true });
+            // ── EC2 relay: send AUTH immediately after handshake ──
+            if (auth?.access_token && auth?.api_key) {
+                // Parse the complex modes string: "quote:123,456|ltp:789"
+                const modeParts = auth.mode ? auth.mode.split('|') : [];
+                const modes = {};
+                modeParts.forEach(part => {
+                    const [m, t] = part.split(':');
+                    if (m && t) modes[m] = t.split(',').map(Number);
+                });
+
+                socket.send(JSON.stringify({
+                    type: 'AUTH',
+                    access_token: auth.access_token,
+                    api_key: auth.api_key,
+                    tokens: auth.tokens || [],
+                    modes: Object.keys(modes).length > 0 ? modes : undefined,
+                    mode: !modes ? (auth.mode || 'quote') : undefined,
+                }));
+                // Relay will respond with { type:"status", connected:false, message:"Authenticated — connecting to Kite..." }
+                // then { type:"status", connected:true } once Kite WS is up
+            } else {
+                // Non-relay WS (Groww, etc.) — connected immediately
+                broadcast('STATUS', key, { connected: true });
+            }
         };
 
         socket.onmessage = (event) => {
-            broadcast('TICK', key, {
-                data: event.data,
-                isBinary: event.data instanceof ArrayBuffer
-            });
+            // ── EC2 relay sends JSON text frames only ─────────────
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'tick' && Array.isArray(msg.data)) {
+                        lastTickTime = Date.now();
+                        ticksInWindow++;
+                        broadcast('TICK', key, { data: msg.data });
+                    } else if (msg.type === 'status') {
+                        broadcast('STATUS', key, { connected: !!msg.connected, ...msg });
+                    } else if (msg.type === 'heartbeat') {
+                        // Keep last-tick clock alive so stale detection doesn't fire
+                        lastTickTime = Date.now();
+                        const instance = instances.get(key);
+                        if (instance) instance.lastTickAt = Date.now();
+                    } else if (msg.type === 'order') {
+                        self.postMessage({ type: 'ORDER_UPDATE', payload: { data: msg.data, key } });
+                    }
+                    // msg.type === 'error' — log and let reconnect logic handle it
+                } catch (_) { /* malformed JSON — ignore */ }
+                return;
+            }
+
+            // ── Binary frame (non-relay WS, e.g. direct Groww feed) ─
+            if (event.data instanceof ArrayBuffer) {
+                broadcast('TICK', key, { data: event.data, isBinary: true });
+            }
         };
 
         socket.onerror = () => {
             broadcast('ERROR', key, { message: 'WS Connection Failed' });
-            scheduleReconnect(url, 'ws', key, broker);
+            scheduleReconnect(url, 'ws', key, broker, auth);
         };
 
-        socket.onclose = () => {
-            broadcast('STATUS', key, { connected: false });
+        socket.onclose = (event) => {
+            broadcast('STATUS', key, { connected: false, code: event.code });
+            // Reconnect unless we closed cleanly (DISCONNECT command)
+            if (event.code !== 1000) {
+                scheduleReconnect(url, 'ws', key, broker, auth);
+            }
         };
     } catch (err) {
         console.error('Worker WS Error:', err);
     }
 }
 
-function scheduleReconnect(url, type, key, broker) {
+function scheduleReconnect(url, type, key, broker, auth) {
     const instance = instances.get(key);
     if (instance?.reconnectTimer) clearTimeout(instance.reconnectTimer);
 
     const timer = setTimeout(() => {
         if (type === 'sse') connectSSE(url, key, broker);
-        else connectWS(url, key, broker);
+        else connectWS(url, key, broker, auth);
     }, RECONNECT_INTERVAL);
 
     if (instance) instance.reconnectTimer = timer;
