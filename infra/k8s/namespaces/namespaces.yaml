@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-frontend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-trading
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-data
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-analytics
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zengtrade-monitoring

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tick-processor
+  namespace: zengtrade-data
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tick-processor
+  template:
+    metadata:
+      labels:
+        app: tick-processor
+    spec:
+      containers:
+        - name: tick-processor
+          image: zengtrade/tick-processor:latest
+          env:
+            - name: KAFKA_BROKERS
+              value: "kafka.zengtrade-infra.svc.cluster.local:9092"
+          resources:
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+            limits:
+              cpu: "4"
+              memory: "2Gi"
+          readinessProbe:
+            exec:
+              command: ["ls", "/usr/bin/tick-processor"]
+            initialDelaySeconds: 5
+            periodSeconds: 10

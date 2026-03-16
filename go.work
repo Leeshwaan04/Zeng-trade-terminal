@@ -1,0 +1,13 @@
+go 1.26.1
+
+use (
+	./services/data/realtime-gateway
+	./services/trading/broker-adapter
+	./services/trading/broker-gateway
+	./services/trading/market-data-gateway
+	./services/trading/notification-service
+	./services/trading/order-service
+	./services/trading/order-state-service
+	./services/trading/portfolio-service
+	./services/trading/risk-engine
+)

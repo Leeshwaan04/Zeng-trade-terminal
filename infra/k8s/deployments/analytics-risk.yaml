@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-engine
+  namespace: zengtrade-trading
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: risk-engine
+  template:
+    metadata:
+      labels:
+        app: risk-engine
+    spec:
+      containers:
+        - name: risk-engine
+          image: zengtrade/risk-engine:latest
+          ports:
+            - containerPort: 8085
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strategy-engine
+  namespace: zengtrade-analytics
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: strategy-engine
+  template:
+    metadata:
+      labels:
+        app: strategy-engine
+    spec:
+      containers:
+        - name: strategy-engine
+          image: zengtrade/strategy-engine:latest
+          env:
+            - name: ORDER_SERVICE_URL
+              value: "http://order-service.zengtrade-trading.svc.cluster.local:8080/orders"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1.5"
+              memory: "2Gi"

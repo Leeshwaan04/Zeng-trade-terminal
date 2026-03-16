@@ -1,0 +1,49 @@
+name: Deploy Relay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server/relay/**"
+      - ".github/workflows/deploy-relay.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ secrets.ECR_REGISTRY }}/zengtrade-relay:${{ github.sha }} \
+            -t ${{ secrets.ECR_REGISTRY }}/zengtrade-relay:latest \
+            ./server/relay
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/zengtrade-relay:${{ github.sha }}
+          docker push ${{ secrets.ECR_REGISTRY }}/zengtrade-relay:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/zengtrade
+            docker compose -f docker-compose.prod.yml pull relay
+            docker compose -f docker-compose.prod.yml up -d --no-deps relay
+            docker image prune -f

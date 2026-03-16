@@ -1,0 +1,35 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: tick-processor-scaler
+  namespace: zengtrade-data
+spec:
+  scaleTargetRef:
+    name: tick-processor
+  minReplicas: 2
+  maxReplicas: 20
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka.zengtrade-infra.svc.cluster.local:9092
+      consumerGroup: tick-processor-group
+      topic: market.ticks.raw
+      lagThreshold: "1000" # Scale up if lag exceeds 1000 messages
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: strategy-engine-scaler
+  namespace: zengtrade-analytics
+spec:
+  scaleTargetRef:
+    name: strategy-engine
+  minReplicas: 2
+  maxReplicas: 10
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka.zengtrade-infra.svc.cluster.local:9092
+      consumerGroup: strategy-engine-group
+      topic: market.ticks.normalized
+      lagThreshold: "500"
