@@ -50,6 +50,38 @@ This is normal. GitHub **never** displays stored secret values — the "Value" f
 - Only enter a new value if you want to **replace** the existing secret.
 - Clicking "Update secret" without entering a value will show a validation error — this confirms the field requires input, not that your secret is gone.
 
+### CI/CD Setup Checklist
+
+Run these commands on your local machine (requires `aws` and `gh` CLI authenticated):
+
+```bash
+# 1. Create ECR repositories (one-time)
+aws ecr create-repository --repository-name zengtrade-frontend --region ap-south-1
+aws ecr create-repository --repository-name zengtrade-relay --region ap-south-1
+
+# 2. Get your ECR registry URI (use this for the ECR_REGISTRY secret)
+aws sts get-caller-identity --query Account --output text
+# Registry format: <account-id>.dkr.ecr.ap-south-1.amazonaws.com
+
+# 3. Ensure /opt/zengtrade exists on EC2 with docker-compose.prod.yml
+ssh -i /path/to/key.pem ubuntu@<EC2_HOST> "sudo mkdir -p /opt/zengtrade"
+scp -i /path/to/key.pem docker-compose.prod.yml ubuntu@<EC2_HOST>:/opt/zengtrade/
+
+# 4. Set all GitHub secrets via CLI
+gh secret set AWS_ACCESS_KEY_ID --body "<your-access-key>"
+gh secret set AWS_SECRET_ACCESS_KEY --body "<your-secret-key>"
+gh secret set ECR_REGISTRY --body "<account-id>.dkr.ecr.ap-south-1.amazonaws.com"
+gh secret set EC2_HOST --body "<ec2-public-ip>"
+gh secret set EC2_USER --body "ubuntu"
+gh secret set EC2_SSH_KEY < /path/to/your-key.pem
+gh secret set NEXT_PUBLIC_EC2_WS_URL --body "wss://ws.zengtrade.in"
+gh secret set NEXT_PUBLIC_KITE_API_KEY --body "<your-kite-api-key>"
+
+# 5. Trigger a deploy to verify everything works
+gh workflow run deploy-frontend.yml --ref main
+gh run watch
+```
+
 ## 🛠️ Key Features
 - **Binary Tick Engine**: Off-main-thread tick parsing via Web Workers.
 - **Intelligent Modes**: Automatic sub-second switching between `ltp`, `quote`, and `full` subscription modes for bandwidth efficiency.
