@@ -12,34 +12,22 @@ export async function GET() {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const primaryAuth = allAuth[0];
+    if (primaryAuth.broker !== "KITE") {
+        return NextResponse.json({ error: "Only Kite is supported in this phase" }, { status: 403 });
+    }
+
     try {
-        const results = await Promise.allSettled(allAuth.map(async (auth: AuthCredentials) => {
-            if (auth.broker === "GROWW") {
-                const { getGrowwPositions } = await import("@/lib/groww-client");
-                const positions = await getGrowwPositions(auth.accessToken);
-                return (positions || []).map((p: any) => ({ ...p, broker: "GROWW" }));
-            } else if (auth.broker === "DHAN") {
-                const { getDhanPositions } = await import("@/lib/dhan-client");
-                const positions = await getDhanPositions(auth.accessToken);
-                return positions.net; // Dhan net positions
-            } else if (auth.broker === "FYERS") {
-                const { getFyersPositions } = await import("@/lib/fyers-client");
-                const positions = await getFyersPositions(auth.accessToken);
-                return positions.net; // Fyers net positions
-            } else {
-                const positions = await getPositions(auth.apiKey!, auth.accessToken);
-                return positions.net.map((p: any) => ({ ...p, broker: "KITE" }));
-            }
-        }));
-
-        const combinedPositions = results.reduce((acc: any[], res) => {
-            if (res.status === "fulfilled") {
-                return [...acc, ...res.value];
-            }
-            return acc;
-        }, []);
-
-        return NextResponse.json({ status: "success", data: { net: combinedPositions, day: [] } });
+        const positions = await getPositions(primaryAuth.apiKey!, primaryAuth.accessToken!);
+        const netPositions = positions.net.map((p: any) => ({ ...p, broker: "KITE" }));
+        
+        return NextResponse.json({ 
+            status: "success", 
+            data: { 
+                net: netPositions, 
+                day: positions.day.map((p: any) => ({ ...p, broker: "KITE" })) 
+            } 
+        });
     } catch (error: any) {
         console.error("[PositionsAggregation] Failed:", error);
         return NextResponse.json({ error: "Failed to fetch aggregated positions" }, { status: 500 });

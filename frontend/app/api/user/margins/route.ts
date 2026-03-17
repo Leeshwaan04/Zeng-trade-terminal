@@ -74,44 +74,27 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const primaryAuth = allAuth[0];
+
     try {
-        const brokerMargins: Record<string, any> = {};
+        const margins = await getMargins(primaryAuth.apiKey!, primaryAuth.accessToken!);
+        const totalAvailable = (margins.equity?.available?.live_balance || 0) + (margins.commodity?.available?.live_balance || 0);
+        const netUsed = (margins.equity?.utilised?.debits || 0) + (margins.commodity?.utilised?.debits || 0);
+        const util_percent = totalAvailable > 0 ? (netUsed / (totalAvailable + netUsed)) * 100 : 0;
 
-        const results = await Promise.allSettled(allAuth.map(async (auth: AuthCredentials) => {
-            let marginData: any;
-            if (auth.broker === "GROWW") {
-                // Groww margins mock for now as client is external
-                marginData = { equity: { available: { live_balance: 500000 }, utilised: { debits: 0 } } };
-            } else if (auth.broker === "DHAN") {
-                const { getDhanMargins } = await import("@/lib/dhan-client");
-                marginData = await getDhanMargins(auth.accessToken);
-            } else if (auth.broker === "FYERS") {
-                const { getFyersMargins } = await import("@/lib/fyers-client");
-                marginData = await getFyersMargins(auth.accessToken);
-            } else {
-                const margins = await getMargins(auth.apiKey!, auth.accessToken!);
-                marginData = {
-                    equity: margins.equity,
-                    commodity: margins.commodity,
-                    totalAvailable: (margins.equity?.available?.live_balance || 0) + (margins.commodity?.available?.live_balance || 0),
-                    netUsed: (margins.equity?.utilised?.debits || 0) + (margins.commodity?.utilised?.debits || 0)
-                };
-            }
-            return { broker: auth.broker, data: marginData };
-        }));
-
-        let totalAvailable = 0;
-        let totalUsed = 0;
-
-        results.forEach((res: PromiseSettledResult<{ broker: string, data: any }>) => {
-            if (res.status === "fulfilled") {
-                const { broker, data } = res.value;
-                brokerMargins[broker] = {
-                    available: data.totalAvailable || data.equity?.available?.live_balance || 0,
-                    used: data.netUsed || data.equity?.utilised?.debits || 0,
-                };
-                totalAvailable += brokerMargins[broker].available;
-                totalUsed += brokerMargins[broker].used;
+        return NextResponse.json({
+            status: "success",
+            data: {
+                ...margins,
+                totalAvailable,
+                netUsed,
+                util_percent,
+                brokers: {
+                    KITE: {
+                        available: totalAvailable,
+                        used: netUsed
+                    }
+                }
             }
         });
 

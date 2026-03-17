@@ -35,11 +35,17 @@ export async function GET(req: NextRequest) {
         }
     }
 
+    // Use request origin as fallback to handle dynamic ports (3000, 3001, etc.)
     const appOrigin = process.env.NEXTAUTH_URL || req.nextUrl.origin;
+    
+    // Debug log to help identify origin mismatches
+    console.log(`[AuthCallback] Origin: ${req.nextUrl.origin}, appOrigin: ${appOrigin}`);
 
     if (!apiKey || !apiSecret) {
         console.error("[AuthCallback] Missing KITE API configuration (Env or Temp Cookie)");
-        return NextResponse.redirect(new URL(`/terminal?auth_error=missing_config`, appOrigin));
+        const errorUrl = new URL("/terminal", appOrigin);
+        errorUrl.searchParams.set("auth_error", "missing_config");
+        return NextResponse.redirect(errorUrl);
     }
 
     try {
@@ -66,7 +72,9 @@ export async function GET(req: NextRequest) {
         });
 
         // ─── Set Cookies & Redirect ──────────────────────────
-        const response = NextResponse.redirect(new URL(`/terminal?auth_success=1`, appOrigin));
+        const successUrl = new URL("/terminal", appOrigin);
+        successUrl.searchParams.set("auth_success", "1");
+        const response = NextResponse.redirect(successUrl);
 
         const isProduction = process.env.NODE_ENV === "production";
         const cookieOptions = {

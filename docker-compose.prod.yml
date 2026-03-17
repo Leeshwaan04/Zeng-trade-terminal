@@ -15,6 +15,7 @@ version: '3.9'
 services:
   # ── Next.js App ─────────────────────────────────────────────
   app:
+    image: ${ECR_REGISTRY}/zengtrade-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -41,6 +42,7 @@ services:
 
   # ── WebSocket Relay ──────────────────────────────────────────
   relay:
+    image: ${ECR_REGISTRY}/zengtrade-relay:latest
     build:
       context: ./server/relay
       dockerfile: Dockerfile

@@ -69,85 +69,18 @@ export async function POST(req: NextRequest) {
         }
         // ────────────────────────────────────────────────────────────
 
-        // ─── SMART ORDER ROUTING (SOR) ──────────────────────────────
-        // If multiple brokers are connected, intelligently splinter 
-        // the required margin payload across all available gateways.
-        // ────────────────────────────────────────────────────────────
-        if (allAuth.length > 1 && saneBody.quantity >= allAuth.length) {
-            console.log(`[SOR] Splitting order of ${saneBody.quantity} across ${allAuth.length} gateways.`);
-
-            const baseQty = Math.floor(saneBody.quantity / allAuth.length);
-            let remainder = saneBody.quantity % allAuth.length;
-
-            const sorResults = await Promise.allSettled(allAuth.map(async (auth) => {
-                const sliceQty = baseQty + (remainder > 0 ? 1 : 0);
-                remainder = Math.max(0, remainder - 1);
-
-                if (sliceQty === 0) return null;
-
-                const sliceBody = { ...saneBody, quantity: sliceQty };
-
-                if (auth.broker === "GROWW") {
-                    const { placeGrowwOrder } = await import("@/lib/groww-client");
-                    const growwParams: any = {
-                        trading_symbol: sliceBody.tradingsymbol,
-                        exchange: sliceBody.exchange,
-                        transaction_type: sliceBody.transaction_type,
-                        order_type: sliceBody.order_type,
-                        quantity: sliceBody.quantity,
-                        price: sliceBody.price || 0,
-                        product: sliceBody.product === "CNC" ? "CNC" : sliceBody.product === "MIS" ? "MIS" : "NRML",
-                        segment: sliceBody.exchange === "NFO" || sliceBody.exchange === "BFO" ? "FNO" : "CASH",
-                        validity: sliceBody.validity
-                    };
-                    return await placeGrowwOrder(auth.accessToken, growwParams);
-                } else if (auth.broker === "DHAN") {
-                    const { placeDhanOrder } = await import("@/lib/dhan-client");
-                    return await placeDhanOrder(auth.accessToken, sliceBody);
-                } else if (auth.broker === "FYERS") {
-                    const { placeFyersOrder } = await import("@/lib/fyers-client");
-                    return await placeFyersOrder(auth.accessToken, sliceBody);
-                } else {
-                    return await placeOrder(auth.apiKey!, auth.accessToken, sliceBody);
-                }
-            }));
-
-            const successful = sorResults.filter((r) => r.status === 'fulfilled');
-            if (successful.length === 0) {
-                throw new Error("SOR completely failed across all brokers.");
-            }
-            return NextResponse.json({ status: "success", sor_routed: true, shards: successful.length, data: successful.map((r: any) => r.value) });
-        }
-
-        // Single Broker Fallback
+        // ─── Kite Execution ─────────────────────────────────────────
         const primaryAuth = allAuth[0];
-        if (primaryAuth.broker === "GROWW") {
-            const { placeGrowwOrder } = await import("@/lib/groww-client");
-            const growwParams: any = {
-                trading_symbol: saneBody.tradingsymbol,
-                exchange: saneBody.exchange,
-                transaction_type: saneBody.transaction_type,
-                order_type: saneBody.order_type,
-                quantity: saneBody.quantity,
-                price: saneBody.price || 0,
-                product: saneBody.product === "CNC" ? "CNC" : saneBody.product === "MIS" ? "MIS" : "NRML",
-                segment: saneBody.exchange === "NFO" || saneBody.exchange === "BFO" ? "FNO" : "CASH",
-                validity: saneBody.validity
-            };
-            const result = await placeGrowwOrder(primaryAuth.accessToken, growwParams);
-            return NextResponse.json({ status: "success", data: result });
-        } else if (primaryAuth.broker === "DHAN") {
-            const { placeDhanOrder } = await import("@/lib/dhan-client");
-            const result = await placeDhanOrder(primaryAuth.accessToken, saneBody);
-            return NextResponse.json({ status: "success", data: result });
-        } else if (primaryAuth.broker === "FYERS") {
-            const { placeFyersOrder } = await import("@/lib/fyers-client");
-            const result = await placeFyersOrder(primaryAuth.accessToken, saneBody);
-            return NextResponse.json({ status: "success", data: result });
-        } else {
-            const result = await placeOrder(primaryAuth.apiKey!, primaryAuth.accessToken, saneBody);
-            return NextResponse.json({ status: "success", data: result });
+        
+        // Safety check to ensure we only use Kite while in this stability phase
+        if (primaryAuth.broker !== "KITE") {
+            return NextResponse.json({ 
+                error: `Broker ${primaryAuth.broker} is currently disabled for security audits. Use Kite.` 
+            }, { status: 403 });
         }
+
+        const result = await placeOrder(primaryAuth.apiKey!, primaryAuth.accessToken, saneBody);
+        return NextResponse.json({ status: "success", data: result });
     } catch (error: any) {
         if (error instanceof KiteError) {
             return NextResponse.json(

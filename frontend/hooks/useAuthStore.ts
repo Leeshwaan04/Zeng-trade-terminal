@@ -45,12 +45,11 @@ interface AuthState {
     updateBrokerConfig: (broker: string, config: { apiKey: string, apiSecret: string }) => void;
 
     // ─── Actions ─────────────────────────────────────────────
-    setSession: (user: UnifiedUser, accessToken: string, publicToken: string) => void;
-    setGrowwSession: (user: GrowwUser, accessToken: string) => void;
+    setSession: (user: KiteUser, accessToken: string, publicToken: string) => void;
     clearSession: () => void;
     setSkipOrderConfirmation: (skip: boolean) => void;
     login: () => void;
-    setUser: (user: UnifiedUser) => void;
+    setUser: (user: KiteUser) => void;
     logout: () => Promise<void>;
 }
 
@@ -83,24 +82,6 @@ export const useAuthStore = create<AuthState>()(
                     loginTime: new Date().toISOString(),
                 }),
 
-            setGrowwSession: async (user, accessToken) => {
-                try {
-                    await fetch("/api/auth/groww", {
-                        method: "POST",
-                        body: JSON.stringify({ accessToken, user }),
-                    });
-                } catch (e) {
-                    console.warn("Groww Auth API call failed:", e);
-                }
-                set({
-                    isLoggedIn: true,
-                    user,
-                    growwAccessToken: accessToken,
-                    activeBroker: "GROWW",
-                    loginTime: new Date().toISOString(),
-                });
-            },
-
             // ─── Clear Session ───────────────────────────────
             clearSession: () =>
                 set({
@@ -119,10 +100,11 @@ export const useAuthStore = create<AuthState>()(
                 const { activeBroker, brokerConfigs } = get();
                 const config = brokerConfigs[activeBroker];
 
-                const apiKey = config?.apiKey || process.env.NEXT_PUBLIC_KITE_API_KEY || process.env.KITE_API_KEY;
+                // Prioritize user-entered key (wizard), then fallback to ENV (admin)
+                const apiKey = config?.apiKey || process.env.NEXT_PUBLIC_KITE_API_KEY;
 
                 if (!apiKey) {
-                    console.error(`❌ [Auth] Missing API Key for ${activeBroker}. Set config or environment variables.`);
+                    console.error(`❌ [Auth] Missing API Key for ${activeBroker}. Set config in Onboarding or ENV.`);
                     return;
                 }
 
@@ -130,12 +112,8 @@ export const useAuthStore = create<AuthState>()(
                 if (activeBroker === "KITE") {
                     const redirectUri = encodeURIComponent(`${origin}/api/auth/callback`);
                     window.location.href = `https://kite.zerodha.com/connect/login?v=3&api_key=${apiKey}&redirect_uri=${redirectUri}`;
-                } else if (activeBroker === "DHAN") {
-                    const redirectUri = encodeURIComponent(`${origin}/api/dhan/auth/callback`);
-                    window.location.href = `https://auth.dhan.co/oauth/authorize?response_type=code&client_id=${apiKey}&redirect_uri=${redirectUri}&scope=orders,read`;
-                } else if (activeBroker === "FYERS") {
-                    const redirectUri = encodeURIComponent(`${origin}/api/fyers/auth/callback`);
-                    window.location.href = `https://api-v3.fyers.in/api/v3/generate-authcode?client_id=${apiKey}&redirect_uri=${redirectUri}&response_type=code&state=zeng_fyers`;
+                } else {
+                    console.warn(`⚠️ [Auth] Broker ${activeBroker} is currently disabled for stability audits.`);
                 }
             },
 
