@@ -26,6 +26,30 @@ Copy `.env.production.example` to `.env.production` and fill in your secrets:
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+## 🔐 GitHub Secrets (CI/CD)
+
+The deployment workflows (`.github/workflows/`) require these repository secrets. Configure them at **Settings > Secrets and variables > Actions** in your GitHub repo.
+
+| Secret | Used by | Description |
+|--------|---------|-------------|
+| `AWS_ACCESS_KEY_ID` | deploy-frontend, deploy-relay | AWS IAM access key for ECR push |
+| `AWS_SECRET_ACCESS_KEY` | deploy-frontend, deploy-relay | AWS IAM secret key |
+| `ECR_REGISTRY` | deploy-frontend, deploy-relay | ECR registry URI (e.g. `123456789.dkr.ecr.ap-south-1.amazonaws.com`) |
+| `EC2_HOST` | deploy-frontend, deploy-relay | EC2 instance public IP or hostname |
+| `EC2_USER` | deploy-frontend, deploy-relay | SSH username (typically `ubuntu`) |
+| `EC2_SSH_KEY` | deploy-frontend, deploy-relay | Private SSH key for EC2 access |
+| `NEXT_PUBLIC_EC2_WS_URL` | deploy-frontend | WebSocket endpoint (e.g. `wss://ws.zengtrade.in`) |
+| `NEXT_PUBLIC_KITE_API_KEY` | deploy-frontend | Kite Connect API key for the frontend build |
+
+### Why do my secrets look empty on GitHub?
+
+This is normal. GitHub **never** displays stored secret values — the "Value" field is always blank when you open the "Update secret" page. This is a security measure to prevent credentials from being exposed in the browser.
+
+- A blank field does **not** mean the secret is empty or missing.
+- Your workflows will use the stored value as expected.
+- Only enter a new value if you want to **replace** the existing secret.
+- Clicking "Update secret" without entering a value will show a validation error — this confirms the field requires input, not that your secret is gone.
+
 ## 🛠️ Key Features
 - **Binary Tick Engine**: Off-main-thread tick parsing via Web Workers.
 - **Intelligent Modes**: Automatic sub-second switching between `ltp`, `quote`, and `full` subscription modes for bandwidth efficiency.
