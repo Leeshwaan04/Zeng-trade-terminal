@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26"
+          go-version: "1.23"
           cache-dependency-path: services/trading/broker-gateway/go.sum
 
       - name: Build broker-gateway
@@ -59,7 +59,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26"
+          go-version: "1.23"
           cache-dependency-path: services/trading/broker-adapter/go.sum
 
       - name: Build broker-adapter
