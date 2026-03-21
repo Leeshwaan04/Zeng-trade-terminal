@@ -398,7 +398,7 @@ export default function AppShell() {
                         </span>
                     </span>
                     <span className="opacity-30">|</span>
-                    <span className="hover:text-primary transition-colors cursor-pointer text-numeral">v0.4.0-zeng</span>
+                    <span className="hover:text-primary transition-colors cursor-pointer text-numeral">v1.0.0-complete</span>
                     {user && <span className="opacity-50">• {user.user_id}</span>}
                 </div>
                 <div className="flex gap-4 uppercase tracking-widest text-[9px]">

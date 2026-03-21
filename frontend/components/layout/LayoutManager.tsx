@@ -29,6 +29,11 @@ import { FiiDiiWidget } from "@/components/trading/FiiDiiWidget";
 import { GTTManager } from "@/components/trading/GTTManager";
 import { MarginAggregatorWidget } from "@/components/trading/MarginAggregatorWidget";
 import { EmptyWorkspaceDesk } from "@/components/layout/EmptyWorkspaceDesk";
+import { PCRWidget } from "@/components/trading/PCRWidget";
+import { MaxPainWidget } from "@/components/trading/MaxPainWidget";
+import { AlertsManager } from "@/components/trading/AlertsManager";
+import { StrategyMarketplace } from "@/components/trading/StrategyMarketplace";
+import { CopyTradingWidget } from "@/components/trading/CopyTradingWidget";
 
 export const LayoutManager = () => {
     // Hydration fix for zustand persist
@@ -239,6 +244,11 @@ export const LayoutManager = () => {
                         {targetWidget.type === "FII_DII" && <FiiDiiWidget />}
                         {targetWidget.type === "GTT_MANAGER" && <GTTManager />}
                         {targetWidget.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
+                        {targetWidget.type === "PCR" && <PCRWidget symbol={targetWidget.symbol || "NIFTY"} />}
+                        {targetWidget.type === "MAX_PAIN" && <MaxPainWidget symbol={targetWidget.symbol || "NIFTY"} />}
+                        {targetWidget.type === "ALERTS_MANAGER" && <AlertsManager />}
+                        {targetWidget.type === "STRATEGY_MARKETPLACE" && <StrategyMarketplace />}
+                        {targetWidget.type === "COPY_TRADING" && <CopyTradingWidget />}
                     </WidgetContainer>
                 </div>
             );
@@ -302,6 +312,11 @@ export const LayoutManager = () => {
                                 {widgetConfig.type === "FII_DII" && <FiiDiiWidget />}
                                 {widgetConfig.type === "GTT_MANAGER" && <GTTManager />}
                                 {widgetConfig.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
+                                {widgetConfig.type === "PCR" && <PCRWidget symbol={widgetConfig.symbol || "NIFTY"} />}
+                                {widgetConfig.type === "MAX_PAIN" && <MaxPainWidget symbol={widgetConfig.symbol || "NIFTY"} />}
+                                {widgetConfig.type === "ALERTS_MANAGER" && <AlertsManager />}
+                                {widgetConfig.type === "STRATEGY_MARKETPLACE" && <StrategyMarketplace />}
+                                {widgetConfig.type === "COPY_TRADING" && <CopyTradingWidget />}
                             </WidgetContainer>
                         </div>
                     )}
@@ -457,6 +472,11 @@ export const LayoutManager = () => {
                                     {widgetConfig.type === "FII_DII" && <FiiDiiWidget />}
                                     {widgetConfig.type === "GTT_MANAGER" && <GTTManager />}
                                     {widgetConfig.type === "MARGIN_AGGREGATOR" && <MarginAggregatorWidget />}
+                                    {widgetConfig.type === "PCR" && <PCRWidget symbol={widgetConfig.symbol || "NIFTY"} />}
+                                    {widgetConfig.type === "MAX_PAIN" && <MaxPainWidget symbol={widgetConfig.symbol || "NIFTY"} />}
+                                    {widgetConfig.type === "ALERTS_MANAGER" && <AlertsManager />}
+                                    {widgetConfig.type === "STRATEGY_MARKETPLACE" && <StrategyMarketplace />}
+                                    {widgetConfig.type === "COPY_TRADING" && <CopyTradingWidget />}
                                 </WidgetContainer>
                             </SortableWidget>
                         );
