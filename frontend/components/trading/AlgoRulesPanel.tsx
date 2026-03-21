@@ -14,7 +14,7 @@ export const AlgoRulesPanel = () => {
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-purple-500" />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-purple-200">Active Stratgies</h3>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-purple-200">Active Strategies</h3>
                 </div>
             </div>
 

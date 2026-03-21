@@ -4,7 +4,7 @@ import React from "react";
 import {
     X, BarChart3, ListOrdered, Activity, BookOpen,
     Grid3X3, Shield, TrendingUp, LayoutGrid, Zap,
-    Target, BarChart, History, PieChart, Clock
+    Target, BarChart, History, PieChart, Clock, Bell, Store, Users, AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetType } from "@/types/layout";
@@ -59,6 +59,11 @@ const WIDGETS_COLLECTION = [
     { type: "WHALE_SONAR", label: "Whale Sonar", desc: "Institutional flow detection (BETA)", icon: <Activity className="w-5 h-5" />, color: "text-zinc-500", gradient: "from-zinc-500/10 to-zinc-600/20", ready: true },
     { type: "GTT_MANAGER", label: "GTT Manager", desc: "Institutional GTT lifecycle control", icon: <Clock className="w-5 h-5" />, color: "text-amber-400", gradient: "from-amber-500/20 to-amber-600/40", ready: true },
     { type: "MARGIN_AGGREGATOR", label: "Margin Aggregator", desc: "Consolidated view of all broker margins", icon: <PieChart className="w-5 h-5" />, color: "text-primary", gradient: "from-primary/20 to-primary/40", ready: true },
+    { type: "PCR", label: "PCR Analysis", desc: "Put-Call Ratio with OI distribution chart", icon: <BarChart className="w-5 h-5" />, color: "text-yellow-400", gradient: "from-yellow-500/20 to-yellow-600/40", ready: true },
+    { type: "MAX_PAIN", label: "Max Pain", desc: "Option expiry max pain strike calculator", icon: <Target className="w-5 h-5" />, color: "text-orange-400", gradient: "from-orange-500/20 to-orange-600/40", ready: true },
+    { type: "ALERTS_MANAGER", label: "Price Alerts", desc: "Create and manage Kite price/OI alerts", icon: <Bell className="w-5 h-5" />, color: "text-amber-400", gradient: "from-amber-500/20 to-amber-600/40", ready: true },
+    { type: "STRATEGY_MARKETPLACE", label: "Marketplace", desc: "Browse and subscribe to trading strategies", icon: <Store className="w-5 h-5" />, color: "text-purple-400", gradient: "from-purple-500/20 to-purple-600/40", ready: true },
+    { type: "COPY_TRADING", label: "Copy Trading", desc: "Follow and copy top-performing traders", icon: <Users className="w-5 h-5" />, color: "text-pink-400", gradient: "from-pink-500/20 to-pink-600/40", ready: true },
 ];
 
 export const WidgetPicker = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {

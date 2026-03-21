@@ -20,7 +20,12 @@ export type WidgetType =
     | "GTT_MANAGER"
     | "MARGIN_AGGREGATOR"
     | "BUILDUP_SCANNER"
-    | "OI_HEATMAP";
+    | "OI_HEATMAP"
+    | "PCR"
+    | "MAX_PAIN"
+    | "ALERTS_MANAGER"
+    | "STRATEGY_MARKETPLACE"
+    | "COPY_TRADING";
 
 // ... (existing constants) ...
 
@@ -430,6 +435,38 @@ export const PRESET_LAYOUTS: Record<string, WorkspaceConfig> = {
                     { id: "adv-pos", type: "POSITIONS", title: "Net Positions" }
                 ],
                 activeWidgetId: "adv-oc"
+            }
+        ]
+    },
+    "marketplace": {
+        id: "marketplace",
+        name: "Marketplace",
+        category: "Pro",
+        gridTemplateColumns: "1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
+        icon: "Store",
+        areas: [
+            {
+                id: "mp-strategies",
+                gridArea: "1 / 1 / 3 / 2",
+                widgets: [{ id: "mp-strat", type: "STRATEGY_MARKETPLACE", title: "Strategy Marketplace" }],
+                activeWidgetId: "mp-strat"
+            },
+            {
+                id: "mp-copy",
+                gridArea: "1 / 2 / 2 / 3",
+                widgets: [{ id: "mp-copy-1", type: "COPY_TRADING", title: "Copy Trading" }],
+                activeWidgetId: "mp-copy-1"
+            },
+            {
+                id: "mp-alerts",
+                gridArea: "2 / 2 / 3 / 3",
+                widgets: [
+                    { id: "mp-alerts-1", type: "ALERTS_MANAGER", title: "Price Alerts" },
+                    { id: "mp-pcr", type: "PCR", title: "PCR Analysis", symbol: "NIFTY" },
+                    { id: "mp-maxpain", type: "MAX_PAIN", title: "Max Pain", symbol: "NIFTY" }
+                ],
+                activeWidgetId: "mp-alerts-1"
             }
         ]
     }
