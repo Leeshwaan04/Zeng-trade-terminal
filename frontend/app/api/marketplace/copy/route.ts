@@ -2,14 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { cookies } from "next/headers";
 
-const redis = Redis.fromEnv();
-
-async function getUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const payload = cookieStore.get("kite_auth_payload")?.value;
-    if (!payload) return null;
+function getRedis(): Redis | null {
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null;
     try {
-        return JSON.parse(payload).user_id || null;
+        return Redis.fromEnv();
+    } catch {
+        return null;
+    }
+}
+
+function getUserId(): string | null {
+    try {
+        const cookieStore = cookies();
+        const raw = cookieStore.get("kite_auth_payload")?.value;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed.user_id || null;
     } catch {
         return null;
     }
@@ -23,70 +31,74 @@ interface CopyTrader {
     isActive: boolean;
 }
 
-// GET — list traders being copied
-export async function GET() {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
+export async function GET(req: NextRequest) {
     try {
-        const following = await redis.hgetall(`copy:following:${userId}`);
-        const traders: CopyTrader[] = following
-            ? Object.values(following).map(v => typeof v === 'string' ? JSON.parse(v) : v as CopyTrader)
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const redis = getRedis();
+        if (!redis) return NextResponse.json({ status: "ok", following: [] });
+
+        const raw = await redis.hgetall(`copy:following:${userId}`);
+        const following: CopyTrader[] = raw
+            ? Object.values(raw).map(v => (typeof v === "string" ? JSON.parse(v) : v as CopyTrader))
             : [];
-        return NextResponse.json({ status: "success", data: traders });
-    } catch (error: any) {
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+
+        return NextResponse.json({ status: "ok", following });
+    } catch (err) {
+        console.error("[marketplace/copy] GET error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
 
-// POST — follow a trader
 export async function POST(req: NextRequest) {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
-    const { traderId, traderName, allocationPercent = 10 } = await req.json();
-    if (!traderId || !traderName) {
-        return NextResponse.json({ status: "error", error: "traderId and traderName required" }, { status: 400 });
-    }
-
-    const entry: CopyTrader = {
-        traderId,
-        traderName,
-        followedAt: new Date().toISOString(),
-        allocationPercent: Math.min(100, Math.max(1, allocationPercent)),
-        isActive: true,
-    };
-
     try {
-        await redis.hset(`copy:following:${userId}`, { [traderId]: JSON.stringify(entry) });
-        await redis.hincrby("copy:follower_counts", traderId, 1);
-        return NextResponse.json({ status: "success", data: entry });
-    } catch (error: any) {
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const body = await req.json();
+        const { traderId, traderName, allocationPercent } = body;
+        if (!traderId || !traderName) return NextResponse.json({ error: "Missing traderId or traderName" }, { status: 400 });
+
+        const allocation = Math.min(100, Math.max(1, Number(allocationPercent) || 10));
+        const entry: CopyTrader = {
+            traderId,
+            traderName,
+            followedAt: new Date().toISOString(),
+            allocationPercent: allocation,
+            isActive: true,
+        };
+
+        const redis = getRedis();
+        if (redis) {
+            await redis.hset(`copy:following:${userId}`, { [traderId]: JSON.stringify(entry) });
+            await redis.hincrby("copy:follower_counts", traderId, 1);
+        }
+
+        return NextResponse.json({ status: "ok", following: entry });
+    } catch (err) {
+        console.error("[marketplace/copy] POST error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
 
-// DELETE — unfollow a trader
 export async function DELETE(req: NextRequest) {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
-    const traderId = req.nextUrl.searchParams.get("traderId");
-    if (!traderId) {
-        return NextResponse.json({ status: "error", error: "traderId required" }, { status: 400 });
-    }
-
     try {
-        await redis.hdel(`copy:following:${userId}`, traderId);
-        await redis.hincrby("copy:follower_counts", traderId, -1);
-        return NextResponse.json({ status: "success" });
-    } catch (error: any) {
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const traderId = req.nextUrl.searchParams.get("traderId");
+        if (!traderId) return NextResponse.json({ error: "Missing traderId" }, { status: 400 });
+
+        const redis = getRedis();
+        if (redis) {
+            await redis.hdel(`copy:following:${userId}`, traderId);
+            await redis.hincrby("copy:follower_counts", traderId, -1);
+        }
+
+        return NextResponse.json({ status: "ok", unfollowed: true });
+    } catch (err) {
+        console.error("[marketplace/copy] DELETE error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }

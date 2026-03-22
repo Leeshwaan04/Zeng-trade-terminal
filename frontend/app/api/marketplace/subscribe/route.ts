@@ -2,78 +2,84 @@ import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { cookies } from "next/headers";
 
-const redis = Redis.fromEnv();
-
-async function getUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const payload = cookieStore.get("kite_auth_payload")?.value;
-    if (!payload) return null;
+function getRedis(): Redis | null {
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null;
     try {
-        const parsed = JSON.parse(payload);
+        return Redis.fromEnv();
+    } catch {
+        return null;
+    }
+}
+
+function getUserId(): string | null {
+    try {
+        const cookieStore = cookies();
+        const raw = cookieStore.get("kite_auth_payload")?.value;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
         return parsed.user_id || null;
     } catch {
         return null;
     }
 }
 
-// POST — subscribe to a strategy
 export async function POST(req: NextRequest) {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
-    const { strategyId } = await req.json();
-    if (!strategyId) {
-        return NextResponse.json({ status: "error", error: "strategyId required" }, { status: 400 });
-    }
-
     try {
-        await redis.sadd(`marketplace:subscriptions:${userId}`, strategyId);
-        // Increment subscriber count
-        await redis.hincrby("marketplace:subscriber_counts", strategyId, 1);
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        return NextResponse.json({ status: "success", message: "Subscribed successfully" });
-    } catch (error: any) {
-        console.error("[Marketplace] Subscribe failed:", error);
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+        const body = await req.json();
+        const { strategyId } = body;
+        if (!strategyId) return NextResponse.json({ error: "Missing strategyId" }, { status: 400 });
+
+        const redis = getRedis();
+        if (redis) {
+            await redis.sadd(`marketplace:subscriptions:${userId}`, strategyId);
+            await redis.hincrby("marketplace:subscriber_counts", strategyId, 1);
+        }
+
+        return NextResponse.json({ status: "ok", subscribed: true });
+    } catch (err) {
+        console.error("[marketplace/subscribe] POST error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
 
-// DELETE — unsubscribe from a strategy
 export async function DELETE(req: NextRequest) {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
-    const strategyId = req.nextUrl.searchParams.get("strategyId");
-    if (!strategyId) {
-        return NextResponse.json({ status: "error", error: "strategyId required" }, { status: 400 });
-    }
-
     try {
-        await redis.srem(`marketplace:subscriptions:${userId}`, strategyId);
-        await redis.hincrby("marketplace:subscriber_counts", strategyId, -1);
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        return NextResponse.json({ status: "success", message: "Unsubscribed successfully" });
-    } catch (error: any) {
-        console.error("[Marketplace] Unsubscribe failed:", error);
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+        const strategyId = req.nextUrl.searchParams.get("strategyId");
+        if (!strategyId) return NextResponse.json({ error: "Missing strategyId" }, { status: 400 });
+
+        const redis = getRedis();
+        if (redis) {
+            await redis.srem(`marketplace:subscriptions:${userId}`, strategyId);
+            await redis.hincrby("marketplace:subscriber_counts", strategyId, -1);
+        }
+
+        return NextResponse.json({ status: "ok", unsubscribed: true });
+    } catch (err) {
+        console.error("[marketplace/subscribe] DELETE error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
 
-// GET — list subscribed strategies for current user
-export async function GET() {
-    const userId = await getUserId();
-    if (!userId) {
-        return NextResponse.json({ status: "error", error: "Not authenticated" }, { status: 401 });
-    }
-
+export async function GET(req: NextRequest) {
     try {
-        const subscriptions = await redis.smembers(`marketplace:subscriptions:${userId}`);
-        return NextResponse.json({ status: "success", data: subscriptions || [] });
-    } catch (error: any) {
-        return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+        const userId = getUserId();
+        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const redis = getRedis();
+        let subscriptions: string[] = [];
+        if (redis) {
+            subscriptions = await redis.smembers(`marketplace:subscriptions:${userId}`);
+        }
+
+        return NextResponse.json({ status: "ok", subscriptions });
+    } catch (err) {
+        console.error("[marketplace/subscribe] GET error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
