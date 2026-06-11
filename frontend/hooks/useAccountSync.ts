@@ -115,6 +115,8 @@ export function useAccountSync() {
     // Fire MTF pre-warm + OHLC snapshot once immediately after Kite login
     useEffect(() => {
         if (!isLoggedIn || activeBroker !== 'KITE') return;
+        // Sandbox has no Kite session — these authenticated one-shots would 401.
+        if (typeof window !== 'undefined' && window.location.search.includes('mock=true')) return;
 
         // MTF history pre-warm (runs once)
         if (!mtfPrewarmed.current) {

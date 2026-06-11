@@ -32,19 +32,24 @@ export async function apiClient<T = any>(
         body: body ? JSON.stringify(body) : undefined,
     };
 
-    // MOCK MODE: Circuit Breaker for Margins
+    // MOCK MODE: circuit breaker — never hit authenticated endpoints from the
+    // sandbox. Return the same *unwrapped* shape real calls produce (apiClient
+    // returns json.data), otherwise consumers read undefined fields.
     if (typeof window !== "undefined" && window.location.search.includes("mock=true")) {
         if (endpoint.includes("/api/user/margins")) {
-            console.log("[API] Mock Mode: Intercepting Margins Call");
             return {
-                status: "success",
-                data: {
-                    totalAvailable: 1000000,
-                    netUsed: 0,
-                    util_percent: 0,
-                    equity: { available: { live_balance: 1000000 } }
-                }
+                totalAvailable: 1000000, // ₹10L virtual capital
+                netUsed: 0,
+                util_percent: 0,
+                brokers: { KITE: { available: 1000000, used: 0, util_percent: 0 } },
+                equity: { available: { live_balance: 1000000 } },
             } as any;
+        }
+        if (endpoint.includes("/api/orders/list")) {
+            return [] as any; // mock orders live client-side in useOrderStore
+        }
+        if (endpoint.includes("/api/portfolio/positions")) {
+            return { net: [], day: [] } as any;
         }
     }
 

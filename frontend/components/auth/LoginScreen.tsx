@@ -20,6 +20,7 @@ export const LoginScreen = () => {
     const brokerConfigs = useAuthStore((s) => s.brokerConfigs);
 
     const handleBrokerClick = (broker: any) => {
+        if (!broker.ready) return; // Coming-soon brokers must never open the credential form
         setSelectedBroker(broker);
         setStoreBroker(broker.id);
         
@@ -37,8 +38,22 @@ export const LoginScreen = () => {
     };
 
     const handleLogin = async () => {
-        setLoading(true);
         setError(null);
+
+        // Cheap shape validation BEFORE any redirect — an invalid key would
+        // otherwise dump the user on Zerodha's raw JSON error page off-site.
+        if (selectedBroker?.id === "KITE") {
+            if (!/^[a-z0-9]{10,24}$/i.test(apiKey.trim())) {
+                setError("That doesn't look like a Kite API key (expected ~16 letters/digits). Copy it from the app page on kite.trade/apps.");
+                return;
+            }
+            if (!/^[a-z0-9]{24,44}$/i.test(apiSecret.trim())) {
+                setError("That doesn't look like a Kite API secret (expected ~32 letters/digits). Copy it from the app page on kite.trade/apps.");
+                return;
+            }
+        }
+
+        setLoading(true);
         try {
             // 1. Secure Handshake (Sets session cookie for redirect route)
             const res = await fetch("/api/auth/pre-auth", {
@@ -167,7 +182,8 @@ export const LoginScreen = () => {
                                     <BrokerCard
                                         key={b.id}
                                         {...b}
-                                        status={brokerConfigs[b.id] ? "CONFIGURED" : "LINKABLE"}
+                                        status={!b.ready ? "COMING SOON" : brokerConfigs[b.id] ? "CONFIGURED" : "LINKABLE"}
+                                        disabled={!b.ready}
                                         onClick={() => handleBrokerClick(b)}
                                     />
                                 ))}
@@ -281,7 +297,9 @@ export const LoginScreen = () => {
                                 
                                 <p className="text-[9px] text-zinc-600 text-center uppercase tracking-widest font-bold">
                                     <ShieldCheck className="w-3 h-3 inline-block mr-1 text-[var(--up)]" />
-                                    You log in on Zerodha&apos;s page — we never see your password
+                                    {selectedBroker?.id === "KITE"
+                                        ? "You log in on Zerodha's page — we never see your password"
+                                        : "Your keys stay in your browser — we never see your password"}
                                 </p>
                             </div>
                         </div>

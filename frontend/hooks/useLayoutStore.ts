@@ -69,9 +69,23 @@ export const useLayoutStore = create<LayoutState>()(
     persist(
         (set) => ({
             activeWorkspaceId: "empty-desk",
-            workspaces: {},
+            // Seed all preset layouts so activating one always finds a workspace.
+            // (Previously {} — selecting a preset or adding a widget silently
+            // no-op'd because workspaces[activeWorkspaceId] was undefined.)
+            workspaces: { ...PRESET_LAYOUTS },
 
-            setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
+            setActiveWorkspace: (id) => set((state) => {
+                // Self-heal: if the id isn't in the store but is a known preset
+                // (e.g. stale persisted state from before presets were seeded),
+                // copy the preset in before activating it.
+                if (!state.workspaces[id] && PRESET_LAYOUTS[id]) {
+                    return {
+                        activeWorkspaceId: id,
+                        workspaces: { ...state.workspaces, [id]: PRESET_LAYOUTS[id] },
+                    };
+                }
+                return { activeWorkspaceId: id };
+            }),
 
             setActiveWidget: (areaId, widgetId) => set((state) => {
                 const workspace = state.workspaces[state.activeWorkspaceId];
@@ -336,8 +350,33 @@ export const useLayoutStore = create<LayoutState>()(
             toggleAccountManager: () => set((state) => ({ isAccountManagerOpen: !state.isAccountManagerOpen })),
 
             addWidget: (type, areaId) => set((state) => {
-                const workspace = state.workspaces[state.activeWorkspaceId];
-                if (!workspace) return state;
+                let workspace = state.workspaces[state.activeWorkspaceId];
+                let workspaceId = state.activeWorkspaceId;
+
+                // No active workspace (fresh empty desk): create one on the fly
+                // instead of silently dropping the user's action.
+                if (!workspace) {
+                    workspaceId = `custom-${Date.now()}`;
+                    workspace = {
+                        id: workspaceId,
+                        name: "My Desk",
+                        category: "Standard",
+                        gridTemplateColumns: "1fr",
+                        gridTemplateRows: "1fr",
+                        icon: "LayoutGrid",
+                        areas: [{
+                            id: `${workspaceId}-main`,
+                            gridArea: "1 / 1 / 2 / 2",
+                            widgets: [],
+                            activeWidgetId: ""
+                        }]
+                    };
+                    state = {
+                        ...state,
+                        activeWorkspaceId: workspaceId,
+                        workspaces: { ...state.workspaces, [workspaceId]: workspace },
+                    };
+                }
 
                 // Use provided areaId or default to the first area
                 const targetAreaId = areaId || workspace.areas[0].id;
@@ -367,15 +406,27 @@ export const useLayoutStore = create<LayoutState>()(
                 };
 
                 return {
+                    activeWorkspaceId: workspaceId,
                     workspaces: {
                         ...state.workspaces,
-                        [state.activeWorkspaceId]: { ...workspace, areas: newAreas }
+                        [workspaceId]: { ...workspace, areas: newAreas }
                     }
                 };
             }),
         }),
         {
-            name: "pro-terminal-layout-v10", // bumped for YouTube Layouts
+            // v11: presets are seeded into `workspaces` — older persisted state
+            // had an empty workspaces map that made preset/widget actions no-op.
+            name: "pro-terminal-layout-v11",
+            merge: (persisted, current) => {
+                const p = (persisted ?? {}) as Partial<LayoutState>;
+                return {
+                    ...current,
+                    ...p,
+                    // Presets always present; user workspaces layered on top.
+                    workspaces: { ...PRESET_LAYOUTS, ...(p.workspaces || {}) },
+                };
+            },
         }
     )
 );

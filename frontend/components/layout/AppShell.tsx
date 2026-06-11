@@ -359,13 +359,16 @@ export default function AppShell() {
             <footer className="h-[28px] border-t border-border/10 bg-background/80 backdrop-blur-2xl text-[9.5px] flex items-center justify-between px-4 text-muted-foreground select-none shrink-0 font-mono z-20">
                 <div className="flex gap-4">
                     <span className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_var(--up)] ${connectionStatus === 'CONNECTED' || searchParams.get('mock') === 'true' ? 'bg-primary' :
-                            connectionStatus === 'CONNECTING' ? 'bg-amber-500' : 'bg-destructive'
+                        {/* Truthful status: never claim "<BROKER> LIVE" in the sandbox */}
+                        <span className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_var(--up)] ${searchParams.get('mock') === 'true' ? 'bg-amber-400' :
+                            connectionStatus === 'CONNECTED' ? 'bg-primary' :
+                                connectionStatus === 'CONNECTING' ? 'bg-amber-500' : 'bg-destructive'
                             }`}></span>
-                        <span className={`neon-text-glow font-bold ${connectionStatus === 'CONNECTED' || searchParams.get('mock') === 'true' ? 'text-primary' :
-                            connectionStatus === 'CONNECTING' ? 'text-amber-500' : 'text-destructive'
+                        <span className={`neon-text-glow font-bold ${searchParams.get('mock') === 'true' ? 'text-amber-400' :
+                            connectionStatus === 'CONNECTED' ? 'text-primary' :
+                                connectionStatus === 'CONNECTING' ? 'text-amber-500' : 'text-destructive'
                             }`}>
-                            {searchParams.get('mock') === 'true' ? (activeBroker || 'MOCK') + ' LIVE' :
+                            {searchParams.get('mock') === 'true' ? 'MOCK MODE' :
                                 connectionStatus === 'CONNECTED' ? (activeBroker || 'NSE') + ' LIVE' : connectionStatus}
                         </span>
                     </span>

@@ -210,13 +210,25 @@ export async function GET(req: NextRequest) {
                 console.log("[Stream] Initiating Local Mock Stream (No Broker).");
                 send("status", { source: "mock", connected: true, broker: "MOCK" });
 
+                // Realistic base prices so the mock tape doesn't show nonsense
+                // (e.g. VIX at 1,001 or SENSEX at 1,000) — values are plausible
+                // levels, varied per instrument.
+                const MOCK_BASE_PRICES: Record<string, number> = {
+                    "NIFTY 50": 25000, "BANKNIFTY": 56500, "NIFTY BANK": 56500,
+                    "FINNIFTY": 26800, "MIDCPNIFTY": 13100, "NIFTY NEXT 50": 68200,
+                    "NIFTY IT": 41800, "NIFTY AUTO": 26300, "NIFTY METAL": 9900,
+                    "NIFTY PHARMA": 22100, "NIFTY FMCG": 56200, "INDIA VIX": 13.8,
+                    "SENSEX": 82400,
+                };
+
                 // Generate a fake stream emitting every second
                 const mockInterval = setInterval(() => {
                     if (isClosed) return;
                     const ticks = instrumentTokens.map(t => {
                         const inst = MARKET_INSTRUMENTS.find(i => i.token === t);
-                        const basePrice = inst && inst.symbol.includes("NIFTY") ? (inst.symbol === "NIFTY 50" ? 25000 : 60000) : 1000;
-                        const change = (Math.random() - 0.5) * 5;
+                        const basePrice = (inst && MOCK_BASE_PRICES[inst.symbol]) || 1000;
+                        // Scale moves to the instrument (VIX shouldn't move ₹5/tick)
+                        const change = (Math.random() - 0.5) * Math.max(0.2, basePrice * 0.0004);
                         return {
                             instrument_token: t,
                             last_price: basePrice + change,
