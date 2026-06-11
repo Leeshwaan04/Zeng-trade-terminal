@@ -99,3 +99,34 @@ Principle: one perfect journey (mock options trade E2E) before ten half-journeys
 | **Now (this week)** | P0-1 workspace no-ops; P0-2 mock session bug + backoff; P0-3 error boundary + Sentry; P1-4 validate key in-app before redirect; P1-5 truly disable coming-soon brokers + broker-aware copy; P2-9 truthful mock strip/margin/status |
 | **Next (2 wks)** | P1-6 mock chain strikes → legs → payoff → mock order E2E; P1-7 Funds & Ledger + order ticket; onboarding tour + default first desk; uptime + analytics; legal pages; ws DNS; token auto-refresh |
 | **Later** | Mumbai migration; live-broker E2E smoke with founder's login; marketplace/algo per SEBI; pricing launch |
+
+---
+
+## Round 2 — re-test after fixes (2026-06-12, production)
+
+### Verified fixed ✅
+- Preset loading works: Options Trader desk renders (chain + chart + ticket + payoff), workspace tabs appear
+- Widget add works on an active workspace (Watchlist added live)
+- Mock margin shows ₹10,00,000; status pill shows amber MOCK MODE; VIX 13.8 / SENSEX 82,393 realistic
+- Console errors: **218 → 0** in an equivalent session
+- Dhan/Fyers properly disabled with COMING SOON badges; click stays on broker select
+- No off-site redirect with malformed keys
+- Round-1 "intermittent white-screen crash" RETRACTED: reproduced as `about:blank` navigation caused by the
+  automation browser (Meta+K browser shortcut), not an app bug
+
+### New findings (round 2)
+| # | Sev | Finding |
+|---|-----|---------|
+| R2-1 | **P0** | **SAFE mode doesn't block orders** — clicked BUY with safety toggle in SAFE ("Orders Blocked") and got ORDER PLACED toast. The safety gate is cosmetic. |
+| R2-2 | **P0** | **Mock order is toast-theater** — "ORDER PLACED — BUY 50 qty @ 22450.00" but Orders tab says "No orders found" and no position is created. The aha-journey dead-ends at its final step. |
+| R2-3 | P1 | Order defaulted to qty 50 @ ₹22,450 while LTP was ₹24,999 — stale hardcoded ticket defaults. |
+| R2-4 | P1 | Option chain body still empty in mock (spot ticks, no strike rows) — blocks legs→payoff→strategy journey. |
+| R2-5 | P2 | Funds & Ledger menu item still does nothing (round-1 finding persists). |
+| R2-6 | P2 | Mock chart prints a vertical price spike at the right edge (last-candle glitch). |
+| R2-7 | P2 | Command-palette/login cards re-render constantly (refs churn ~1/s) — suggests permanent animation loops; minor CPU cost, complicates automation. |
+
+### Next wave (proposed)
+1. R2-1: gate order submission on safety state (real check in order path, not just UI)
+2. R2-2: mock order lifecycle in useOrderStore (order → fill → position → P&L) so the demo loop completes
+3. R2-3: ticket defaults from live LTP; qty default = 1 lot of instrument
+4. R2-4: synthesize mock chain strikes around spot (reuse payoff math for plausible premiums)
