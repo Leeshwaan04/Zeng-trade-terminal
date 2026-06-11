@@ -10,12 +10,10 @@
 #   2. certbot certonly --standalone -d zengtrade.in -d www.zengtrade.in -d ws.zengtrade.in
 #   3. docker compose -f docker-compose.prod.yml up -d --build
 
-version: '3.9'
-
 services:
   # ── Next.js App ─────────────────────────────────────────────
   app:
-    image: ${ECR_REGISTRY}/zengtrade-frontend:latest
+    image: zengtrade-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -42,7 +40,7 @@ services:
 
   # ── WebSocket Relay ──────────────────────────────────────────
   relay:
-    image: ${ECR_REGISTRY}/zengtrade-relay:latest
+    image: zengtrade-relay:latest
     build:
       context: ./server/relay
       dockerfile: Dockerfile

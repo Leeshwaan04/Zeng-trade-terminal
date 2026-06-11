@@ -46,3 +46,7 @@ server.log
 
 # relay compiled output
 server/relay/dist/
+
+# test artifacts (generated)
+playwright-report/
+test-results/
