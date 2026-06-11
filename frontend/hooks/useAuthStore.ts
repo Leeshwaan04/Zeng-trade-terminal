@@ -157,8 +157,7 @@ export const useAuthStore = create<AuthState>()(
             // Session data (tokens, user) is NOT stored — it lives in the
             // kite_auth_payload cookie (8h expiry) and is re-hydrated by
             // AuthInitializer on every page load. This prevents stale tokens
-            // from sitting in browser storage and avoids Vercel/sessionStorage
-            // lifetime surprises entirely.
+            // from sitting in browser storage.
             name: "zeng-prefs",
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({

@@ -2,8 +2,8 @@
  * GET /api/ws/poll?tokens=256265,260105
  *
  * Lightweight REST endpoint that fetches quotes from Kite Connect API.
- * Designed to complete in <2s, works within Vercel Hobby plan limits.
- * Called repeatedly by the ticker worker as an SSE fallback.
+ * Designed to complete in <2s. Called repeatedly by the ticker worker as a
+ * last-resort fallback when both the EC2 relay and SSE stream are unavailable.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";

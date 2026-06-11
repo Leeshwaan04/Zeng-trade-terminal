@@ -1,9 +1,9 @@
 /**
  * Kite Historical Cache — Two-Tier Architecture
  *
- * L1: In-process Map  — zero-latency, cleared on every serverless cold start
- * L2: Upstash Redis   — shared across ALL concurrent Vercel function instances,
- *                        survives cold starts, eliminates duplicate Kite API calls
+ * L1: In-process Map  — zero-latency, lives for the lifetime of the Node process
+ * L2: Upstash Redis   — shared across all app container replicas, survives
+ *                        restarts/redeploys, eliminates duplicate Kite API calls
  *                        when 4 charts load simultaneously.
  *
  * Graceful degradation: if UPSTASH_REDIS_REST_URL is not set, runs as pure L1.

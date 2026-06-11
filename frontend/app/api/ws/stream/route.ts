@@ -18,8 +18,9 @@ const KITE_API_BASE = "https://api.kite.trade";
 const GROWW_WS_BASE = "wss://api.groww.in/v1/market/feed";
 import { MARKET_INSTRUMENTS } from "@/lib/market-config";
 
-// Vercel Pro: extend serverless function timeout to 5 minutes for SSE streaming
-export const maxDuration = 300;
+// Self-hosted on AWS EC2 (long-lived Node server) — SSE connections are not
+// time-limited here. This route is the fallback transport; the primary tick
+// path is the EC2 WebSocket relay at wss://ws.zengtrade.in (see useKiteTicker).
 
 export async function GET(req: NextRequest) {
     const cookieStore = await cookies();

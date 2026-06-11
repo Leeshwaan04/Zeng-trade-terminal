@@ -1,81 +1,53 @@
 name: Deploy Frontend
 
+# AWS-native deploy: runs on a self-hosted GitHub Actions runner installed on the
+# production EC2 box (ap-south... currently eu-north-1 16.170.31.58). The runner
+# pulls jobs outbound — no inbound SSH, no ECR, no AWS access keys in CI.
+# Build args + runtime secrets live in /opt/zengtrade/.env on the box.
+
 on:
   push:
     branches: [main]
     paths:
       - "frontend/**"
+      - "docker-compose.prod.yml"
+      - "nginx/**"
       - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+# Never let two deploys build on the box at once
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-
+  deploy:
+    runs-on: [self-hosted, zeng-prod]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
-        env:
-          NEXT_PUBLIC_EC2_WS_URL: ${{ secrets.NEXT_PUBLIC_EC2_WS_URL }}
-          NEXT_PUBLIC_KITE_API_KEY: ${{ secrets.NEXT_PUBLIC_KITE_API_KEY }}
-
-      - name: Build Docker image
+      - name: Sync code to deploy directory
         run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_EC2_WS_URL=$NEXT_PUBLIC_EC2_WS_URL \
-            --build-arg NEXT_PUBLIC_KITE_API_KEY=$NEXT_PUBLIC_KITE_API_KEY \
-            -t $ECR_REGISTRY/zengtrade-frontend:${{ github.sha }} \
-            -t $ECR_REGISTRY/zengtrade-frontend:latest \
-            .
-        env:
-          NEXT_PUBLIC_EC2_WS_URL: ${{ secrets.NEXT_PUBLIC_EC2_WS_URL }}
-          NEXT_PUBLIC_KITE_API_KEY: ${{ secrets.NEXT_PUBLIC_KITE_API_KEY }}
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          rsync -a --delete \
+            --exclude node_modules --exclude .next \
+            frontend/ /opt/zengtrade/frontend/
+          cp docker-compose.prod.yml /opt/zengtrade/
+          mkdir -p /opt/zengtrade/nginx
+          cp nginx/default.conf /opt/zengtrade/nginx/
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Push to ECR
+      - name: Build & restart app container
+        working-directory: /opt/zengtrade
         run: |
-          docker push $ECR_REGISTRY/zengtrade-frontend:${{ github.sha }}
-          docker push $ECR_REGISTRY/zengtrade-frontend:latest
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          docker compose -f docker-compose.prod.yml build app
+          docker compose -f docker-compose.prod.yml up -d app
+          docker image prune -f
 
-      - name: Deploy to EC2 (prod)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY
-          script: |
-            cd /opt/zengtrade
-            docker compose -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.prod.yml up -d --no-deps app
-            docker image prune -f
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      - name: Health check
+        run: |
+          for i in $(seq 1 20); do
+            if docker inspect --format '{{.State.Health.Status}}' zengtrade-app | grep -q healthy; then
+              echo "✅ zengtrade-app healthy"; exit 0
+            fi
+            sleep 3
+          done
+          echo "❌ app did not become healthy"; docker logs --tail 50 zengtrade-app; exit 1

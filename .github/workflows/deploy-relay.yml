@@ -1,56 +1,47 @@
 name: Deploy Relay
 
+# AWS-native deploy via self-hosted runner on the production EC2 box.
+# No ECR, no AWS access keys, no inbound SSH. See deploy-frontend.yml.
+
 on:
   push:
     branches: [main]
     paths:
       - "server/relay/**"
+      - "docker-compose.prod.yml"
       - ".github/workflows/deploy-relay.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-
+  deploy:
+    runs-on: [self-hosted, zeng-prod]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Sync relay to deploy directory
         run: |
-          docker build \
-            -t $ECR_REGISTRY/zengtrade-relay:${{ github.sha }} \
-            -t $ECR_REGISTRY/zengtrade-relay:latest \
-            ./server/relay
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          rsync -a --delete \
+            --exclude node_modules --exclude dist \
+            server/relay/ /opt/zengtrade/server/relay/
+          cp docker-compose.prod.yml /opt/zengtrade/
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Push to ECR
+      - name: Build & restart relay container
+        working-directory: /opt/zengtrade
         run: |
-          docker push $ECR_REGISTRY/zengtrade-relay:${{ github.sha }}
-          docker push $ECR_REGISTRY/zengtrade-relay:latest
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          docker compose -f docker-compose.prod.yml build relay
+          docker compose -f docker-compose.prod.yml up -d relay
+          docker image prune -f
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY
-          script: |
-            cd /opt/zengtrade
-            docker compose -f docker-compose.prod.yml pull relay
-            docker compose -f docker-compose.prod.yml up -d --no-deps relay
-            docker image prune -f
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      - name: Health check
+        run: |
+          for i in $(seq 1 20); do
+            if docker inspect --format '{{.State.Health.Status}}' zengtrade-relay | grep -q healthy; then
+              echo "✅ zengtrade-relay healthy"; exit 0
+            fi
+            sleep 3
+          done
+          echo "❌ relay did not become healthy"; docker logs --tail 50 zengtrade-relay; exit 1
