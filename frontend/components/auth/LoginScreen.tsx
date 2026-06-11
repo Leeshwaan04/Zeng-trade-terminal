@@ -12,6 +12,7 @@ export const LoginScreen = () => {
     const [apiKey, setApiKey] = useState("");
     const [apiSecret, setApiSecret] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const login = useAuthStore((s) => s.login);
     const setStoreBroker = useAuthStore((s) => s.setBroker);
@@ -37,22 +38,29 @@ export const LoginScreen = () => {
 
     const handleLogin = async () => {
         setLoading(true);
+        setError(null);
         try {
             // 1. Secure Handshake (Sets session cookie for redirect route)
             const res = await fetch("/api/auth/pre-auth", {
                 method: "POST",
                 body: JSON.stringify({ broker: selectedBroker.id, apiKey, apiSecret }),
             });
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
 
-            if (data.success) {
+            if (res.ok && data.success) {
                 // 2. Persist in store for future sessions
                 updateConfig(selectedBroker.id, { apiKey, apiSecret });
                 // 3. Initiate Auth Redirect
                 login();
+            } else {
+                setError(
+                    data.error ||
+                    "Couldn't verify these credentials. Double-check your API key and secret on kite.trade/apps, then try again."
+                );
             }
         } catch (e) {
             console.error("Login Handshake Failed:", e);
+            setError("Network error while contacting the server. Check your connection and try again.");
         } finally {
             setLoading(false);
         }
@@ -232,7 +240,11 @@ export const LoginScreen = () => {
                                             <Globe className="w-4 h-4 text-primary" />
                                             <div className="space-y-0.5">
                                                 <p className="text-[10px] font-black text-white uppercase tracking-tight">Where to find keys?</p>
-                                                <p className="text-[9px] text-zinc-500">Open {selectedBroker.name} Developer Dashboard</p>
+                                                <p className="text-[9px] text-zinc-500">
+                                                    {selectedBroker.id === "KITE"
+                                                        ? "Create an app on kite.trade — Kite Connect is ₹500/mo, billed by Zerodha"
+                                                        : `Open ${selectedBroker.name} Developer Dashboard`}
+                                                </p>
                                             </div>
                                         </div>
                                         <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-primary transition-all" />
@@ -241,6 +253,11 @@ export const LoginScreen = () => {
                             </div>
 
                             <div className="pt-4 space-y-4">
+                                {error && (
+                                    <div role="alert" className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] leading-relaxed">
+                                        {error}
+                                    </div>
+                                )}
                                 <button
                                     onClick={handleLogin}
                                     disabled={loading || !apiKey || !apiSecret}
@@ -264,7 +281,7 @@ export const LoginScreen = () => {
                                 
                                 <p className="text-[9px] text-zinc-600 text-center uppercase tracking-widest font-bold">
                                     <ShieldCheck className="w-3 h-3 inline-block mr-1 text-[var(--up)]" />
-                                    Bridge secured with 512-bit ephemeral encryption
+                                    You log in on Zerodha&apos;s page — we never see your password
                                 </p>
                             </div>
                         </div>
