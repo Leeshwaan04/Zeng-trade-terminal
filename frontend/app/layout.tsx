@@ -7,34 +7,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.zengtrade.in"),
-  title: {
-    default: "ZenG Trade — Professional Trading Terminal for Indian Markets",
-    template: "%s · ZenG Trade",
-  },
-  description:
-    "Option chain with live Greeks, strategy payoffs with probability of profit, OI analytics and a one-click risk engine — on top of your own Zerodha account via Kite Connect.",
-  keywords: [
-    "trading terminal", "options trading India", "option chain Greeks",
-    "Zerodha Kite Connect", "NIFTY options", "payoff diagram", "OI analysis",
-    "algo trading India",
-  ],
-  alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    url: "https://www.zengtrade.in",
-    siteName: "ZenG Trade",
-    title: "ZenG Trade — Professional Trading Terminal for Indian Markets",
-    description:
-      "Your Zerodha account, a professional cockpit: live Greeks, payoff with POP, OI analytics, panic flatten.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "ZenG Trade — Professional Trading Terminal for Indian Markets",
-    description:
-      "Your Zerodha account, a professional cockpit: live Greeks, payoff with POP, OI analytics, panic flatten.",
-  },
-  robots: { index: true, follow: true },
+  title: "ProTrade Terminal",
+  description: "High-performance specialized trading interface",
 };
 
 import { Toaster } from "@/components/ui/toaster";
