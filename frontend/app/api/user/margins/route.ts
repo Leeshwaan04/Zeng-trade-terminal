@@ -97,18 +97,6 @@ export async function GET(request: NextRequest) {
                 }
             }
         });
-
-        const util_percent = totalAvailable > 0 ? (totalUsed / (totalAvailable + totalUsed)) * 100 : 0;
-
-        return NextResponse.json({
-            status: "success",
-            data: {
-                brokers: brokerMargins,
-                totalAvailable,
-                netUsed: totalUsed,
-                util_percent
-            }
-        });
     } catch (error: any) {
         console.error("[MarginsAggregation] Failed:", error);
         return NextResponse.json({ error: "Failed to fetch aggregated margins" }, { status: 500 });

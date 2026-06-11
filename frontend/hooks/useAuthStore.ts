@@ -46,6 +46,7 @@ interface AuthState {
 
     // ─── Actions ─────────────────────────────────────────────
     setSession: (user: KiteUser, accessToken: string, publicToken: string) => void;
+    setGrowwSession: (user: GrowwUser, growwAccessToken: string) => void;
     clearSession: () => void;
     setSkipOrderConfirmation: (skip: boolean) => void;
     login: () => void;
@@ -79,6 +80,15 @@ export const useAuthStore = create<AuthState>()(
                     user,
                     accessToken,
                     publicToken,
+                    loginTime: new Date().toISOString(),
+                }),
+
+            // ─── Set Groww Session ───────────────────────────
+            setGrowwSession: (user, growwAccessToken) =>
+                set({
+                    isLoggedIn: true,
+                    user,
+                    growwAccessToken,
                     loginTime: new Date().toISOString(),
                 }),
 

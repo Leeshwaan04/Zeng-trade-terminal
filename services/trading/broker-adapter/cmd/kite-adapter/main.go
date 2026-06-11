@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/segmentio/kafka-go"
-	kiteconnect "github.com/zerodha/gokiteconnect/v4"
 )
 
 func main() {

@@ -5,7 +5,6 @@ import { useMarketStore } from "./useMarketStore";
 import { useAuthStore } from "./useAuthStore";
 import { UniversalTick } from "@/types/broker";
 import { useWorkerTicker } from "./useWorkerTicker";
-import { getDhanInstrument } from "@/lib/dhan-config";
 
 interface UseDhanTickerOptions {
     instrumentTokens: string[];

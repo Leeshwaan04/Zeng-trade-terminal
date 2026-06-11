@@ -11,9 +11,9 @@ function getRedis(): Redis | null {
     }
 }
 
-function getUserId(): string | null {
+async function getUserId(): Promise<string | null> {
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         const raw = cookieStore.get("kite_auth_payload")?.value;
         if (!raw) return null;
         const parsed = JSON.parse(raw);
@@ -25,7 +25,7 @@ function getUserId(): string | null {
 
 export async function POST(req: NextRequest) {
     try {
-        const userId = getUserId();
+        const userId = await getUserId();
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        const userId = getUserId();
+        const userId = await getUserId();
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const strategyId = req.nextUrl.searchParams.get("strategyId");
@@ -68,7 +68,7 @@ export async function DELETE(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = getUserId();
+        const userId = await getUserId();
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const redis = getRedis();

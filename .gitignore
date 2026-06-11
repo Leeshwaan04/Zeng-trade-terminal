@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -13,8 +13,8 @@
 # testing
 /coverage
 
-# next.js
-/.next/
+# next.js (any depth — frontend/ lives in a subdirectory since the monorepo migration)
+.next/
 /out/
 
 # production
@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.production.example
 
 # vercel
 .vercel
@@ -42,3 +43,6 @@ next-env.d.ts
 .kite-instruments-cache.json
 server.log
 *.log
+
+# relay compiled output
+server/relay/dist/

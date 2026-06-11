@@ -121,7 +121,7 @@ export const useMarketStore = create<MarketState>((set) => ({
         set((state) => {
             const newTickers = { ...state.tickers };
             for (const data of dataArray) {
-                let symbol = data.symbol;
+                let symbol: string | undefined = data.symbol;
                 // O(1) lookup via pre-built Maps — was O(n) MARKET_INSTRUMENTS.find() per tick
                 if (!symbol && data.instrument_token) {
                     symbol =

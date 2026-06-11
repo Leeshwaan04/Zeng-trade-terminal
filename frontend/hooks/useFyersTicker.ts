@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import { useAuthStore } from "./useAuthStore";
 import { useMarketStore } from "./useMarketStore";
 import { useWorkerTicker } from "./useWorkerTicker";
-import { getFyersInstrument } from "@/lib/fyers-config";
 
 interface UseFyersTickerOptions {
     instrumentTokens: string[];

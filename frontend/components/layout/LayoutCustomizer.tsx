@@ -55,7 +55,12 @@ const WIDGET_META: Record<WidgetType, { label: string; icon: React.ReactNode; co
     GTT_MANAGER: { label: "GTT Manager", icon: <Clock className="w-3.5 h-3.5" />, color: "text-amber-400", desc: "Manage OCO and GTT triggers" },
     MARGIN_AGGREGATOR: { label: "Margin Aggregator", icon: <Wallet className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Cross-broker buying power" },
     BUILDUP_SCANNER: { label: "Buildup Scanner", icon: <Activity className="w-3.5 h-3.5" />, color: "text-blue-400", desc: "Live Price-OI sentiment mapping" },
-    OI_HEATMAP: { label: "OI Heatmap", icon: <LayoutGrid className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Historical strike flow heat" }
+    OI_HEATMAP: { label: "OI Heatmap", icon: <LayoutGrid className="w-3.5 h-3.5" />, color: "text-emerald-400", desc: "Historical strike flow heat" },
+    PCR: { label: "PCR Analysis", icon: <LineChart className="w-3.5 h-3.5" />, color: "text-violet-400", desc: "Put-Call ratio trends" },
+    MAX_PAIN: { label: "Max Pain", icon: <Target className="w-3.5 h-3.5" />, color: "text-red-400", desc: "Option expiry max pain levels" },
+    ALERTS_MANAGER: { label: "Alerts Manager", icon: <Clock className="w-3.5 h-3.5" />, color: "text-yellow-400", desc: "Price & indicator alerts" },
+    STRATEGY_MARKETPLACE: { label: "Strategy Marketplace", icon: <Sparkles className="w-3.5 h-3.5" />, color: "text-fuchsia-400", desc: "Browse & subscribe to strategies" },
+    COPY_TRADING: { label: "Copy Trading", icon: <Link2 className="w-3.5 h-3.5" />, color: "text-green-400", desc: "Mirror top trader positions" }
 };
 
 /* ═══════════════════════════════════════════════════════════

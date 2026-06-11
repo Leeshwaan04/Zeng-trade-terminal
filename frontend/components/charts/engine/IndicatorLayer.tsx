@@ -112,7 +112,7 @@ const calculateBB = (data: any[], period: number = 20, stdDev: number = 2, sourc
 
 export const IndicatorLayer = ({ indicators }: { indicators: IndicatorConfig[] }) => {
 
-    const draw = (ctx: CanvasRenderingContext2D, { data, scales }: any) => {
+    const draw = (ctx: CanvasRenderingContext2D, { data, scales, width, height }: any) => {
         if (!scales || data.length === 0) return;
         const { x, y } = scales;
 

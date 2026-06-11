@@ -225,7 +225,7 @@ export const PayoffDiagram = () => {
                             contentStyle={{ backgroundColor: 'var(--surface-1, #0a0a0a)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                             itemStyle={{ fontSize: 12, color: '#fff' }}
                             labelStyle={{ fontSize: 10, color: '#71717a' }}
-                            formatter={(value: any, name?: string) => [value ? `₹${Number(value).toLocaleString()}` : "₹0", (name || 'pnl') === 'pnl' ? 'Expiry P&L' : 'T+0 P&L']}
+                            formatter={(value: any, name: any) => [value ? `₹${Number(value).toLocaleString()}` : "₹0", (name || 'pnl') === 'pnl' ? 'Expiry P&L' : 'T+0 P&L']}
                             labelFormatter={(label) => `Price: ₹${label}`}
                         />
                         <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeWidth={1} />
