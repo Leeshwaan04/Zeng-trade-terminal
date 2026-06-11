@@ -1,0 +1,10 @@
+[Unit]
+Description=ZenG Trade — capture NIFTY/BANKNIFTY option OI snapshot
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/zengtrade/oi-snapshot.sh
+# Don't let a single failed capture spam the journal as a unit failure
+SuccessExitStatus=0 1

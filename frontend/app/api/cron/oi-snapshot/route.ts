@@ -1,88 +1,108 @@
+/**
+ * GET /api/cron/oi-snapshot   (scheduled job — see infra/oi-snapshot/)
+ *
+ * Captures a REAL option-chain OI snapshot for NIFTY & BANKNIFTY and stores it
+ * in the durable OI store (Upstash Redis). Triggered every few minutes by a
+ * systemd timer on the EC2 box (localhost / docker exec — no internet hop).
+ *
+ * Auth: Bearer CRON_SECRET. Uses a server-side Kite token (KITE_SERVER_TOKEN)
+ * since a cron has no user session. Skips cheaply outside market hours.
+ */
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthCredentials } from "@/lib/auth-utils";
+import { getQuote } from "@/lib/kite-client";
+import { getOptionChain } from "@/lib/kite-instruments";
+import { saveSnapshot, isMarketOpen, isRedisConfigured, nowIST, type OISnapshot } from "@/lib/oi-store";
 
-// Define the global OI snapshot store
-// Format: { "NIFTY": [ { time: "10:15", strikes: { 22000: { ce_oi: 1500, pe_oi: 2000 } } } ] }
-global.oiSnapshots = global.oiSnapshots || {};
+const STRIKES_AROUND_ATM = 10; // ±10 strikes → ~21 strikes, ~42 instruments, 1 quote call
+
+const INDICES = [
+    { key: "NIFTY", spotInstrument: "NSE:NIFTY 50" },
+    { key: "BANKNIFTY", spotInstrument: "NSE:NIFTY BANK" },
+];
 
 export async function GET(req: NextRequest) {
-    // Optional cron security validation here (e.g. check a secret header from Vercel/AWS cron)
-    const cronSecret = req.headers.get("Authorization");
-    if (process.env.CRON_SECRET && cronSecret !== `Bearer ${process.env.CRON_SECRET}`) {
-        return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
+    if (process.env.CRON_SECRET) {
+        if (req.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+            return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
+        }
     }
 
-    try {
-        // Fetch Kite credentials from cookies (simulated since cron is usually stateless, 
-        // in production we should fetch this from DB via a dedicated service account)
-        const auth = await getAuthCredentials();
-        const activeToken = auth?.accessToken || process.env.KITE_SERVER_TOKEN;
-
-        if (!activeToken) {
-            console.warn("[CRON] No active Kite token found for OI Snapshot.");
-            return NextResponse.json({ error: "Missing API token" }, { status: 500 });
-        }
-
-        // We snapshot NIFTY and BANKNIFTY
-        const indices = ["NIFTY", "BANKNIFTY"];
-
-        for (const symbol of indices) {
-            // Internal fetch to the existing option chain route
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-            // Note: Since this is server-side and uses cookies for auth natively, 
-            // hitting our own API might fail without passing cookies. 
-            // Instead of REST, we recreate the direct Kite API call here for safety:
-
-            const kiteUrl = `https://api.kite.trade/quote?i=NSE:${symbol === "NIFTY" ? "NIFTY 50" : "NIFTY BANK"}`;
-            const spotRes = await fetch(kiteUrl, { headers: { "X-Kite-Version": "3", "Authorization": `token ${process.env.KITE_API_KEY}:${activeToken}` } });
-            const spotData = await spotRes.json();
-
-            const spotPrice = spotData?.data?.[`NSE:${symbol === "NIFTY" ? "NIFTY 50" : "NIFTY BANK"}`]?.last_price || 0;
-            if (spotPrice === 0) continue;
-
-            // Fetch chain (simplified mock for the snapshot cron as it requires pulling all instruments)
-            // For Phase 3 Sensibull parity, we simulate the snapshot record
-            const timestamp = new Date().toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
-
-            if (!global.oiSnapshots[symbol]) global.oiSnapshots[symbol] = [];
-
-            // Build pseudo-snapshot around spot
-            const roundedSpot = Math.round(spotPrice / 50) * 50;
-            const snapshotData: any = { time: timestamp, strikes: {}, ce_total: 0, pe_total: 0 };
-
-            for (let i = -5; i <= 5; i++) {
-                const strike = roundedSpot + (i * 50);
-                // Randomize slightly for graph variation
-                const ceOi = Math.floor(Math.random() * 5000000) + 1000000;
-                const peOi = Math.floor(Math.random() * 5000000) + 1000000;
-
-                snapshotData.strikes[strike] = { ce_oi: ceOi, pe_oi: peOi };
-                snapshotData.ce_total += ceOi;
-                snapshotData.pe_total += peOi;
-            }
-
-            global.oiSnapshots[symbol].push(snapshotData);
-
-            // Keep only last 100 snapshots (approx 1 trading day at 3min intervals)
-            if (global.oiSnapshots[symbol].length > 100) {
-                global.oiSnapshots[symbol].shift();
-            }
-
-            console.log(`[CRON] Captured ${symbol} OI Snapshot at ${timestamp}. CE Total: ${snapshotData.ce_total}, PE Total: ${snapshotData.pe_total}`);
-        }
-
-        return NextResponse.json({
-            status: "success",
-            message: "OI Snapshots recorded",
-            data: {
-                NIFTY: global.oiSnapshots["NIFTY"]?.length || 0,
-                BANKNIFTY: global.oiSnapshots["BANKNIFTY"]?.length || 0
-            }
-        });
-
-    } catch (error: any) {
-        console.error("[CRON] OI Snapshot Failed:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!isMarketOpen()) {
+        return NextResponse.json({ status: "skipped", reason: "market closed", ist: nowIST().hhmm });
     }
+
+    const apiKey = process.env.KITE_API_KEY;
+    const token = process.env.KITE_SERVER_TOKEN;
+    if (!apiKey || !token) {
+        // No garbage written — just report the missing config clearly.
+        return NextResponse.json(
+            { error: "Missing KITE_API_KEY / KITE_SERVER_TOKEN — cannot capture real OI" },
+            { status: 503 }
+        );
+    }
+
+    const results: Record<string, unknown> = {};
+
+    for (const { key, spotInstrument } of INDICES) {
+        try {
+            // 1) Spot → ATM
+            const spotQuote = await getQuote(apiKey, token, [spotInstrument]);
+            const spot = spotQuote?.[spotInstrument]?.last_price || 0;
+            if (!spot) { results[key] = { skipped: "no spot" }; continue; }
+
+            // 2) Nearest-expiry chain, strikes nearest to spot
+            const chain = await getOptionChain(key);
+            if (!chain.length) { results[key] = { skipped: "no instruments" }; continue; }
+
+            const expiry = chain[0].expiry;
+            const uniqueStrikes = Array.from(new Set(chain.map(i => i.strike))).sort((a, b) => a - b);
+            const atmIdx = uniqueStrikes.reduce(
+                (best, s, i) => Math.abs(s - spot) < Math.abs(uniqueStrikes[best] - spot) ? i : best, 0
+            );
+            const selected = new Set(
+                uniqueStrikes.slice(
+                    Math.max(0, atmIdx - STRIKES_AROUND_ATM),
+                    atmIdx + STRIKES_AROUND_ATM + 1
+                )
+            );
+
+            // 3) One batched quote call for all CE+PE legs of the selected strikes
+            const legs = chain.filter(i => selected.has(i.strike));
+            const ids = legs.map(i => `NFO:${i.tradingsymbol}`);
+            const quotes = await getQuote(apiKey, token, ids);
+
+            // 4) Aggregate real OI per strike
+            const strikes: OISnapshot["strikes"] = {};
+            let ceTotal = 0, peTotal = 0;
+            for (const leg of legs) {
+                const oi = quotes?.[`NFO:${leg.tradingsymbol}`]?.oi || 0;
+                strikes[leg.strike] = strikes[leg.strike] || { ce_oi: 0, pe_oi: 0 };
+                if (leg.instrument_type === "CE") { strikes[leg.strike].ce_oi = oi; ceTotal += oi; }
+                else if (leg.instrument_type === "PE") { strikes[leg.strike].pe_oi = oi; peTotal += oi; }
+            }
+
+            const snap: OISnapshot = {
+                time: nowIST().hhmm,
+                ts: Date.now(),
+                spot,
+                expiry,
+                ce_total: ceTotal,
+                pe_total: peTotal,
+                pcr: ceTotal > 0 ? +(peTotal / ceTotal).toFixed(3) : 0,
+                strikes,
+            };
+            await saveSnapshot(key, snap);
+            results[key] = { captured: true, spot, expiry, pcr: snap.pcr, strikes: Object.keys(strikes).length };
+        } catch (e: any) {
+            console.error(`[CRON] OI snapshot failed for ${key}:`, e?.message);
+            results[key] = { error: e?.message || "failed" };
+        }
+    }
+
+    return NextResponse.json({
+        status: "ok",
+        durable: isRedisConfigured(),
+        ist: nowIST().hhmm,
+        results,
+    });
 }
