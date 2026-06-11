@@ -1,9 +1,10 @@
 import Link from "next/link";
 import {
-    ArrowRight, Activity, Zap, Shield, ChevronDown, BarChart3,
+    ArrowRight, Shield, ChevronDown, BarChart3,
     CandlestickChart, Layers, Gauge, LayoutGrid, LineChart,
     KeyRound, MousePointerClick, Wallet, Lock, EyeOff, Ban, Undo2
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function LandingPage() {
     return (
@@ -17,12 +18,7 @@ export default function LandingPage() {
             {/* Navigation */}
             <nav className="sticky top-0 z-50 border-b border-white/5 bg-black/60 backdrop-blur-xl">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.3)]">
-                            <Activity className="w-4 h-4 text-black" />
-                        </div>
-                        <span className="text-sm font-black tracking-widest uppercase">ZenG Trade</span>
-                    </div>
+                    <Logo size="sm" />
                     <div className="hidden md:flex items-center gap-8 text-[11px] font-bold tracking-widest uppercase text-zinc-400">
                         <a href="#features" className="hover:text-white transition-colors">Features</a>
                         <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
@@ -235,12 +231,7 @@ export default function LandingPage() {
             <footer className="relative z-10 border-t border-white/5 bg-black/40">
                 <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
-                                <Activity className="w-3.5 h-3.5 text-black" />
-                            </div>
-                            <span className="text-xs font-black tracking-widest uppercase">ZenG Trade</span>
-                        </div>
+                        <Logo size="xs" />
                         <div className="flex flex-wrap gap-x-8 gap-y-2 text-[10px] font-bold tracking-widest uppercase text-zinc-500">
                             <a href="#features" className="hover:text-zinc-300 transition-colors">Features</a>
                             <a href="#security" className="hover:text-zinc-300 transition-colors">Security</a>
