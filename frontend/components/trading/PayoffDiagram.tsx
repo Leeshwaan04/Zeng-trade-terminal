@@ -92,14 +92,6 @@ export const PayoffDiagram = () => {
         return data;
     }, [legs, currentPrice, ivShift, dayShift]);
 
-    if (legs.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-full text-zinc-600 bg-black/40 backdrop-blur-md italic text-xs">
-                Add legs to see payoff diagram
-            </div>
-        );
-    }
-
     const maxProfit = Math.max(...chartData.map(d => d.pnl));
     const maxLoss = Math.min(...chartData.map(d => d.pnl));
 
@@ -137,6 +129,15 @@ export const PayoffDiagram = () => {
 
         return Math.min(99, Math.max(1, probability));
     }, [chartData, currentPrice, ivShift, dayShift, maxProfit]);
+
+    // Early return must come after all hooks (rules-of-hooks)
+    if (legs.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-full text-zinc-600 bg-black/40 backdrop-blur-md italic text-xs">
+                Add legs to see payoff diagram
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full bg-black/40 backdrop-blur-md p-3">

@@ -10,9 +10,8 @@ import { useOrderStore } from "@/hooks/useOrderStore";
 import { useStrategyStore } from "@/hooks/useStrategyStore";
 import { BSResult } from "@/lib/black-scholes";
 
-interface OptionChainItem extends KiteInstrument {
-    // Extended with live data from ticker
-}
+// Extended with live data from ticker
+type OptionChainItem = KiteInstrument;
 
 interface OptionRow {
     strike: number;
