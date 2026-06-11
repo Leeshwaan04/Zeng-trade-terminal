@@ -39,11 +39,12 @@ export function useKiteTicker({
     const [status, setStatus] = useState<ConnectionStatus>("disconnected");
 
     // Merge prop tokens + dynamically subscribed tokens (from Watchlist etc.)
-    const { ltpTokens, quoteTokens, fullTokens } = useMarketStore((s) => ({
-        ltpTokens: s.subscribedLtpTokens || new Set<number>(),
-        quoteTokens: s.subscribedQuoteTokens || new Set<number>(),
-        fullTokens: s.subscribedFullTokens || new Set<number>(),
-    }));
+    // NOTE: select each Set individually — returning a new object `{...}` from a
+    // Zustand v5 selector mints a fresh reference every render, which trips
+    // "getSnapshot should be cached" → infinite re-render → white screen.
+    const ltpTokens = useMarketStore((s) => s.subscribedLtpTokens);
+    const quoteTokens = useMarketStore((s) => s.subscribedQuoteTokens);
+    const fullTokens = useMarketStore((s) => s.subscribedFullTokens);
 
     const allTokens = useMemo(() => {
         const merged = new Set([

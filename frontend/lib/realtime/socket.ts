@@ -14,10 +14,23 @@ class RealtimeClient {
   }
 
   connect() {
+    if (typeof window === "undefined") return;
     if (this.socket?.readyState === WebSocket.OPEN) return;
 
+    // An https:// page cannot open a ws:// socket — the WebSocket constructor
+    // throws a synchronous SecurityError (mixed content). Skip silently rather
+    // than let that throw bubble out of the React effect and white-screen the app.
+    if (window.location.protocol === "https:" && this.url.startsWith("ws://")) {
+      return;
+    }
+
     console.log(`[Realtime] Connecting to ${this.url}...`);
-    this.socket = new WebSocket(this.url);
+    try {
+      this.socket = new WebSocket(this.url);
+    } catch (e) {
+      console.warn("[Realtime] WebSocket construction failed; realtime channel disabled", e);
+      return;
+    }
 
     this.socket.onopen = () => {
       console.log('[Realtime] Connected');
