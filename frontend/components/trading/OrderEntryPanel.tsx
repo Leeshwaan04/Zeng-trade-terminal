@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowUpRight, RefreshCcw, Settings, MoreHorizontal, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,9 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     const [product, setProduct] = useState("MIS");
     const [type, setType] = useState("LMT");
     const [qty, setQty] = useState("50");
-    const [price, setPrice] = useState("22450.00");
+    const [price, setPrice] = useState("0.00");
     const [trigger, setTrigger] = useState("0.00");
+    const priceInitRef = useRef(false);
     const [gttTrailing, setGttTrailing] = useState("0.00");
     const [isBlitz, setIsBlitz] = useState(false);
     const [showRiskPreview, setShowRiskPreview] = useState(false);
@@ -34,7 +35,16 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
     const { toast } = useToast();
 
     const currentTicker = tickers[symbol];
-    const ltp = currentTicker?.last_price || parseFloat(price);
+    const ltp = currentTicker?.last_price || parseFloat(price) || 0;
+
+    // Initialize price from LTP once per symbol (reset when symbol changes)
+    useEffect(() => { priceInitRef.current = false; }, [symbol]);
+    useEffect(() => {
+        if (ltp > 0 && !priceInitRef.current) {
+            priceInitRef.current = true;
+            setPrice(ltp.toFixed(2));
+        }
+    }, [ltp]);
     const change = currentTicker?.change_percent || 0;
     const isUp = change >= 0;
 

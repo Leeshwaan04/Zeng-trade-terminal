@@ -10,6 +10,64 @@ import { useOrderStore } from "@/hooks/useOrderStore";
 import { useStrategyStore } from "@/hooks/useStrategyStore";
 import { BSResult } from "@/lib/black-scholes";
 
+// Synthetic option chain for mock/demo mode — plausible premiums without live Kite data
+function generateMockChain(spot: number, kiteName: string): KiteInstrument[] {
+    const step = kiteName.includes('BANK') ? 100 : 50;
+    const lotSize = kiteName.includes('BANK') ? 15 : kiteName.includes('FIN') ? 40 : 50;
+    const baseToken = kiteName.includes('BANK') ? 9000000 : kiteName.includes('FIN') ? 9100000 : 8000000;
+    const atm = Math.round(spot / step) * step;
+    // ATM 7-day premium approximation: spot × σ × √(T/252) × 0.4 (N'(d1) factor)
+    const atmPremium = +(spot * 0.15 * Math.sqrt(7 / 252) * 0.4).toFixed(1);
+
+    const expiryDate = new Date();
+    // Roll to next Thursday
+    const daysToThursday = (4 - expiryDate.getDay() + 7) % 7 || 7;
+    expiryDate.setDate(expiryDate.getDate() + daysToThursday);
+    const expiryStr = expiryDate.toISOString().split('T')[0];
+
+    const result: KiteInstrument[] = [];
+    for (let i = -10; i <= 10; i++) {
+        const strike = atm + i * step;
+        const dist = Math.abs(strike - spot) / spot;
+        const timeVal = +(atmPremium * Math.exp(-dist * 7)).toFixed(1);
+        const ceIntrinsic = Math.max(0, spot - strike);
+        const peIntrinsic = Math.max(0, strike - spot);
+
+        const tokenBase = baseToken + (i + 10) * 2;
+        const sym = `${kiteName}${expiryStr.replace(/-/g, '').slice(2)}${strike}`;
+
+        result.push({
+            instrument_token: tokenBase,
+            exchange_token: tokenBase >> 8,
+            tradingsymbol: `${sym}CE`,
+            name: kiteName,
+            last_price: +(ceIntrinsic + timeVal).toFixed(1),
+            expiry: expiryStr,
+            strike,
+            tick_size: 0.05,
+            lot_size: lotSize,
+            instrument_type: 'CE',
+            segment: 'NFO-OPT',
+            exchange: 'NFO',
+        });
+        result.push({
+            instrument_token: tokenBase + 1,
+            exchange_token: (tokenBase + 1) >> 8,
+            tradingsymbol: `${sym}PE`,
+            name: kiteName,
+            last_price: +(peIntrinsic + timeVal).toFixed(1),
+            expiry: expiryStr,
+            strike,
+            tick_size: 0.05,
+            lot_size: lotSize,
+            instrument_type: 'PE',
+            segment: 'NFO-OPT',
+            exchange: 'NFO',
+        });
+    }
+    return result;
+}
+
 // Extended with live data from ticker
 type OptionChainItem = KiteInstrument;
 
@@ -25,14 +83,20 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
     const [expiry, setExpiry] = useState<string | null>(null);
     const [allExpiries, setAllExpiries] = useState<string[]>([]);
 
+    const isMock = typeof window !== 'undefined' && window.location.search.includes('mock=true');
+
+    // Kite symbol name (NIFTY, BANKNIFTY, etc.) used for instrument lookup
+    const kiteName = symbol === "NIFTY 50" ? "NIFTY" : symbol === "NIFTY BANK" ? "BANKNIFTY" : symbol.replace(/\s+/g, '');
+
     // Web Worker State for Greeks
     const workerRef = React.useRef<Worker | null>(null);
     const [chainGreeks, setChainGreeks] = useState<Record<number, { ce: BSResult, pe: BSResult }>>({});
 
     // Get Spot Price from Market Store
+    const MOCK_SPOT: Record<string, number> = { NIFTY: 25000, BANKNIFTY: 56500, FINNIFTY: 26800, MIDCPNIFTY: 13100 };
     const spotSymbol = symbol === "NIFTY" ? "NIFTY 50" : symbol;
     const spotTick = useMarketStore(state => state.tickers[spotSymbol]);
-    const spotPrice = spotTick?.last_price || 0;
+    const spotPrice = spotTick?.last_price || (isMock ? (MOCK_SPOT[kiteName] || 25000) : 0);
 
     // Initialize Web Worker
     useEffect(() => {
@@ -47,11 +111,22 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
         };
     }, []);
 
-    // Fetch Chain Data
+    // Fetch Chain Data (real) or generate mock chain
     useEffect(() => {
         const fetchChain = async () => {
             setLoading(true);
             try {
+                if (isMock) {
+                    // Use live spot if available, otherwise fall back to known defaults
+                    const liveSpot = useMarketStore.getState().tickers[spotSymbol]?.last_price;
+                    const effectiveSpot = (liveSpot && liveSpot > 0) ? liveSpot : (MOCK_SPOT[kiteName] || 25000);
+                    const mockInstruments = generateMockChain(effectiveSpot, kiteName);
+                    const mockExpiry = mockInstruments[0]?.expiry || '';
+                    setInstruments(mockInstruments);
+                    setAllExpiries([mockExpiry]);
+                    if (!expiry) setExpiry(mockExpiry);
+                    return;
+                }
                 // Normalize symbol for API (NIFTY 50 -> NIFTY, NIFTY BANK -> BANKNIFTY)
                 const url = `/api/kite/option-chain?symbol=${symbol}${expiry ? `&expiry=${expiry}` : ""}`;
                 const res = await fetch(url);
@@ -69,7 +144,7 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
         };
 
         fetchChain();
-    }, [symbol, expiry]);
+    }, [symbol, expiry, isMock]);
 
     // Construct Chain Rows (Group by Strike)
     const chainRows = useMemo(() => {
@@ -229,7 +304,7 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
                                     <span className={cn(
                                         "font-medium",
                                         (ceData?.net_change || 0) >= 0 ? "text-up" : "text-down"
-                                    )}>{ceData?.last_price?.toFixed(1) || "-"}</span>
+                                    )}>{(ceData?.last_price ?? row.ce?.last_price)?.toFixed(1) || "-"}</span>
                                     <span className="hidden md:inline text-[9px] opacity-50">CE</span>
                                 </div>
 
@@ -244,7 +319,7 @@ export const OptionChainWidget = ({ symbol = "NIFTY" }: { symbol?: string }) => 
                                     <span className={cn(
                                         "font-medium",
                                         (peData?.net_change || 0) >= 0 ? "text-up" : "text-down"
-                                    )}>{peData?.last_price?.toFixed(1) || "-"}</span>
+                                    )}>{(peData?.last_price ?? row.pe?.last_price)?.toFixed(1) || "-"}</span>
                                     <span className="text-[9px] opacity-70">{peData?.oi || "-"}</span>
                                     <span className="text-[9px] text-orange-400 opacity-80">{chainGreeks[row.strike]?.pe.delta.toFixed(2) || "-"}</span>
                                 </div>

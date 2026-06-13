@@ -156,15 +156,75 @@ export const useOrderStore = create<OrderState>()(
                 const { enqueueAction } = get();
 
                 if (!isArmed) {
-                    console.warn("⚠️ EXECUTION PREVENTED: Safety Trigger is ACTIVE (SAFE MODE).");
-                    alert("⚠️ SAFETY LOCK ENGAGED\n\nDisarm the 'Nuclear Toggle' in the header to execute trades.");
-                    return;
+                    throw new Error("SAFE MODE ENGAGED — disarm the safety toggle in the header to execute trades.");
                 }
 
                 if (typeof window !== 'undefined' && !navigator.onLine) {
                     console.warn("[OFFLINE] Network disconnected. Queueing Order Placement.");
                     enqueueAction({ action: 'PLACE_ORDER', payload: orderParams });
                     return;
+                }
+
+                // Mock mode: instant fill, no real API call
+                if (typeof window !== 'undefined' && window.location.search.includes('mock=true')) {
+                    const mockId = `mock_${Date.now()}`;
+                    const marginReq = orderParams.qty * (orderParams.price || 0) * (orderParams.productType === 'MIS' ? 0.2 : 1);
+                    set((state: OrderState) => {
+                        const executedOrder: Order = { ...orderParams, id: mockId, status: 'EXECUTED', timestamp: Date.now() };
+
+                        const existingPosIdx = state.positions.findIndex(
+                            p => p.symbol === orderParams.symbol && p.product === orderParams.productType
+                        );
+                        let newPositions = [...state.positions];
+                        let pos: Position = existingPosIdx > -1 ? { ...newPositions[existingPosIdx] } : {
+                            symbol: orderParams.symbol, exchange: orderParams.symbol.includes('CE') || orderParams.symbol.includes('PE') || orderParams.symbol.includes('FUT') ? 'NFO' : 'NSE',
+                            instrument_token: 0, product: orderParams.productType, quantity: 0, overnight_quantity: 0,
+                            multiplier: 1, average_price: 0, close_price: 0, last_price: orderParams.price,
+                            value: 0, pnl: 0, m2m: 0, unrealised: 0, realised: 0,
+                            buy_quantity: 0, buy_price: 0, buy_value: 0, sell_quantity: 0, sell_price: 0, sell_value: 0,
+                        };
+
+                        if (orderParams.transactionType === 'BUY') {
+                            const totalBuy = (pos.buy_quantity * pos.buy_price) + (orderParams.qty * orderParams.price);
+                            pos.buy_quantity += orderParams.qty;
+                            pos.buy_price = pos.buy_quantity > 0 ? totalBuy / pos.buy_quantity : 0;
+                            pos.buy_value = pos.buy_quantity * pos.buy_price;
+                        } else {
+                            const totalSell = (pos.sell_quantity * pos.sell_price) + (orderParams.qty * orderParams.price);
+                            pos.sell_quantity += orderParams.qty;
+                            pos.sell_price = pos.sell_quantity > 0 ? totalSell / pos.sell_quantity : 0;
+                            pos.sell_value = pos.sell_quantity * pos.sell_price;
+                        }
+
+                        pos.quantity = pos.buy_quantity - pos.sell_quantity;
+                        pos.last_price = orderParams.price;
+                        pos.average_price = pos.quantity > 0 ? pos.buy_price : pos.quantity < 0 ? pos.sell_price : 0;
+                        const closedQty = Math.min(pos.buy_quantity, pos.sell_quantity);
+                        pos.realised = closedQty > 0 ? (pos.sell_price - pos.buy_price) * closedQty : 0;
+                        pos.unrealised = (pos.last_price - pos.average_price) * pos.quantity;
+                        pos.pnl = pos.realised + pos.unrealised;
+                        pos.m2m = pos.pnl;
+                        pos.value = pos.quantity * pos.last_price;
+
+                        if (existingPosIdx > -1) { newPositions[existingPosIdx] = pos; }
+                        else if (pos.quantity !== 0) { newPositions.push(pos); }
+                        newPositions = newPositions.filter(p => p.quantity !== 0);
+
+                        const totalPnL = newPositions.reduce((acc, p) => acc + p.pnl, 0);
+                        const newMarginUsed = state.marginUsed + marginReq;
+                        const baseMockMargin = unifiedMargin.totalMargin || 1000000;
+
+                        return {
+                            orders: [executedOrder, ...state.orders],
+                            positions: newPositions,
+                            marginUsed: newMarginUsed,
+                            marginAvailable: baseMockMargin - newMarginUsed + totalPnL,
+                            dailyPnL: totalPnL,
+                            overallPnL: totalPnL,
+                            lastOrderTime: Date.now(),
+                        };
+                    });
+                    return; // Success — caller's "Order Placed" toast fires normally
                 }
 
                 // --- OPTIMISTIC UI: Generate Temp ID and add to State Immediately ---
@@ -320,11 +380,12 @@ export const useOrderStore = create<OrderState>()(
                     });
                 } catch (error: any) {
                     console.error("Order Execution Failed:", error);
-                    // --- FAIL: Revert State ---
+                    // Revert optimistic state, then re-throw so caller can show error toast
                     set((state: OrderState) => ({
                         orders: state.orders.map(o => o.id === tempId ? { ...o, status: 'REJECTED' as OrderStatus, rejectionReason: error.message } : o),
                         activeOrderLines: state.activeOrderLines.filter(l => l.linkedOrderId !== tempId)
                     }));
+                    throw error;
                 }
             },
 

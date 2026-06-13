@@ -57,8 +57,8 @@ export function useAccountSync() {
                 });
             }
 
-            // Sync Orders
-            if (ordersRes && Array.isArray(ordersRes)) {
+            // Sync Orders — skip in mock mode to preserve locally-simulated orders
+            if (!isMock && ordersRes && Array.isArray(ordersRes)) {
                 const mappedOrders: Order[] = ordersRes.map((ko: any) => ({
                     id: ko.order_id,
                     symbol: ko.tradingsymbol,
@@ -80,8 +80,8 @@ export function useAccountSync() {
                 setOrders(mappedOrders.reverse()); // Reverse to show latest first
             }
 
-            // Sync Positions
-            if (positionsRes && positionsRes.net && Array.isArray(positionsRes.net)) {
+            // Sync Positions — skip in mock mode to preserve locally-simulated positions
+            if (!isMock && positionsRes && positionsRes.net && Array.isArray(positionsRes.net)) {
                 const mappedPositions: Position[] = positionsRes.net.map((kp: any) => ({
                     ...kp,
                     symbol: kp.tradingsymbol, // Map tradingsymbol -> symbol
