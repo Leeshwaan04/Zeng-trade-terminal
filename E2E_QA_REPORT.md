@@ -130,3 +130,37 @@ Principle: one perfect journey (mock options trade E2E) before ten half-journeys
 2. R2-2: mock order lifecycle in useOrderStore (order → fill → position → P&L) so the demo loop completes
 3. R2-3: ticket defaults from live LTP; qty default = 1 lot of instrument
 4. R2-4: synthesize mock chain strikes around spot (reuse payoff math for plausible premiums)
+
+---
+
+## Round 3 — fixes shipped + live re-verification (2026-06-13, production)
+
+Verified headless Chromium against `https://www.zengtrade.in` at **desktop 1440×900**
+and **mobile 390×844**. Evidence: `/tmp/zeng-verify/shots*`. Console errors: **0**.
+
+### All R2 items resolved ✅
+| # | Status | What shipped |
+|---|--------|--------------|
+| R2-1 | ✅ | `placeOrder` throws on SAFE mode → toast reads "🔒 Blocked by Safety Lock" (no more false "Order Placed"). |
+| R2-2 | ✅ | Mock order lifecycle: instant fill → position → P&L; `useAccountSync` skips overwriting local orders in mock. |
+| R2-3 | ✅ | Order ticket price initialises from live LTP (verified showing 24999.95 vs spot, not the old 22,450). |
+| R2-4 | ✅ | **Root cause was the wrong component** — terminal uses `NeuralOptionChain → useLiveOptionChain`, not `OptionChainWidget`. Added mock synthesis there; chain now shows 24 strikes (desktop) / 21 (mobile) with per-second ticks. |
+| R2-5 | ✅ | Funds & Ledger drawer built (available capital, margin, P&L cards, per-broker, transaction ledger). Wired from ProfileMenu + header "Unified Funds" pill. |
+| R2-6 | ✅ | Chart edge-spike killed: new candles open at prev close; ticks deviating >25% rejected. |
+| R2-7 | ✅(non-bug) | "~1/s churn" is CSS keyframe animation, GPU-composited — not a React render loop. No fix needed. |
+
+### Responsiveness (web + mobile) ✅
+- **Zero horizontal overflow** on landing / login / mock-terminal at both viewports.
+- Mobile nav no longer clips widgets (`pb-16`); footer hidden on mobile (was overflowing & covered).
+- Login card scales down (`p-5/p-4`) at 390px — verified not cramped.
+- First-run lands on **populated Standard desk** (was empty-desk dead-end).
+
+### Activation + honesty ✅
+- Footer truthful in mock: `MOCK MODE`, `FEED: SIMULATED`, `LATENCY: SIM`, `MARGIN ₹10,00,000`.
+- Header connection dot shows amber **"Sim"** in mock (was green "Live"); mobile "Sim" badge added.
+- Empty desk turned into one-click preset launcher (Standard / Options / Scalper / Multi-Chart).
+- Also silenced a `/api/kite/instruments` 400 that logged on every terminal load.
+
+### Still open (need owner access — see INFRA_BLOCKERS.md)
+ws.zengtrade.in DNS; EC2 Kite token + Upstash env vars; delete stale Vercel project;
+Mumbai migration; daily token auto-refresh (TOTP); uptime monitoring; legal pages.
