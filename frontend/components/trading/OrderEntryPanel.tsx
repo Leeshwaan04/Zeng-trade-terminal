@@ -9,6 +9,7 @@ import { useOrderStore } from "@/hooks/useOrderStore";
 import { useToast } from "@/hooks/use-toast";
 
 import { useMarketStore } from "@/hooks/useMarketStore";
+import { useLayoutStore } from "@/hooks/useLayoutStore";
 
 export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) => {
     const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -169,12 +170,24 @@ export const OrderEntryPanel = ({ symbol = "NIFTY 50" }: { symbol?: string }) =>
                     toast({ title: "⚡ Blitz Initiated", description: `Executing ${quantity} qty over ${slices} slices` });
                 } else {
                     await placeOrder(orderParams);
-                    toast({ title: "Order Placed", description: `${side.toUpperCase()} ${qty} qty @ ${price}` });
+                    const isMock = typeof window !== 'undefined' && window.location.search.includes('mock=true');
+                    // Make sure the user can see the resulting position/order land
+                    const { isAccountManagerOpen, toggleAccountManager } = useLayoutStore.getState();
+                    if (!isAccountManagerOpen) toggleAccountManager();
+                    toast({
+                        title: isMock ? "✓ Filled (Sim)" : "✓ Order Placed",
+                        description: `${side.toUpperCase()} ${quantity} ${symbol} @ ₹${parseFloat(price).toLocaleString('en-IN')} — see Positions below.`,
+                    });
                 }
             }
 
         } catch (error: any) {
-            toast({ title: "Order Failed", description: error.message, variant: "destructive" });
+            const isSafetyBlock = typeof error?.message === 'string' && error.message.includes('SAFE MODE');
+            toast({
+                title: isSafetyBlock ? "🔒 Blocked by Safety Lock" : "Order Failed",
+                description: error.message,
+                variant: "destructive",
+            });
         } finally {
             setTimeout(() => {
                 submitLock.current = false;

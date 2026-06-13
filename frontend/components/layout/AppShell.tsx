@@ -311,7 +311,8 @@ export default function AppShell() {
 
             {/* Main Grid Layout - DYNAMIC MANAGER */}
             <main className="flex-1 overflow-hidden relative z-0 flex flex-col">
-                <div className="flex-1 min-h-0 relative">
+                {/* pb-16 on mobile creates space above fixed MobileNavBar (h-16) */}
+                <div className="flex-1 min-h-0 relative pb-16 md:pb-0">
                     <LayoutManager />
                 </div>
 
@@ -355,8 +356,8 @@ export default function AppShell() {
             </main>
 
 
-            {/* Footer Status Bar - Antigravity Polish */}
-            <footer className="h-[28px] border-t border-border/10 bg-background/80 backdrop-blur-2xl text-[9.5px] flex items-center justify-between px-4 text-muted-foreground select-none shrink-0 font-mono z-20">
+            {/* Footer Status Bar - hidden on mobile (MobileNavBar replaces bottom chrome) */}
+            <footer className="hidden md:flex h-[28px] border-t border-border/10 bg-background/80 backdrop-blur-2xl text-[9.5px] items-center justify-between px-4 text-muted-foreground select-none shrink-0 font-mono z-20">
                 <div className="flex gap-4">
                     <span className="flex items-center gap-1.5">
                         {/* Truthful status: never claim "<BROKER> LIVE" in the sandbox */}
@@ -385,19 +386,23 @@ export default function AppShell() {
                         LATENCY:
                         <span className={cn(
                             "font-bold",
-                            metrics.latency < 50 ? "text-up" : "text-amber-500"
+                            searchParams.get('mock') === 'true' ? "text-amber-400" :
+                                metrics.latency < 50 ? "text-up" : "text-amber-500"
                         )}>
-                            {connectionStatus === 'CONNECTED' ? `${metrics.latency}ms` : '-'}
+                            {searchParams.get('mock') === 'true' ? 'SIM' :
+                                connectionStatus === 'CONNECTED' ? `${metrics.latency}ms` : '—'}
                         </span>
                     </span>
                     <span className="opacity-30">|</span>
                     <span className="flex items-center gap-1 text-numeral">
-                        SYNC INTEGRITY:
+                        FEED:
                         <span className={cn(
                             "font-bold",
-                            metrics.integrity > 95 ? "text-up" : "text-amber-500"
+                            searchParams.get('mock') === 'true' ? "text-amber-400" :
+                                connectionStatus === 'CONNECTED' ? "text-up" : "text-muted-foreground"
                         )}>
-                            {connectionStatus === 'CONNECTED' ? `${metrics.integrity}%` : 'DEGRADED'}
+                            {searchParams.get('mock') === 'true' ? 'SIMULATED' :
+                                connectionStatus === 'CONNECTED' ? 'LIVE' : 'WAITING'}
                         </span>
                     </span>
                     <span className="opacity-30">|</span>

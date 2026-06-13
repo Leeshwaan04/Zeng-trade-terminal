@@ -118,7 +118,7 @@ export const LoginScreen = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
             {/* Ambient Background */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-[var(--primary)] rounded-full blur-[200px] opacity-[0.03]" />
@@ -169,7 +169,7 @@ export const LoginScreen = () => {
                 </div>
 
                 {/* Interaction Side */}
-                <div className="bg-zinc-950/50 backdrop-blur-3xl border border-white/5 rounded-3xl p-8 shadow-2xl relative">
+                <div className="bg-zinc-950/50 backdrop-blur-3xl border border-white/5 rounded-3xl p-5 sm:p-8 shadow-2xl relative">
                     {step === 1 ? (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                             <div className="space-y-2">

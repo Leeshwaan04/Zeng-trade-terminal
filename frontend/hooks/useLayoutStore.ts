@@ -68,7 +68,10 @@ interface LayoutState {
 export const useLayoutStore = create<LayoutState>()(
     persist(
         (set) => ({
-            activeWorkspaceId: "empty-desk",
+            // First-run users land on a fully populated "standard" desk (watchlist +
+            // chart + order entry + depth + positions) instead of an empty slate —
+            // this is the activation moment. Returning users keep their persisted id.
+            activeWorkspaceId: "standard",
             // Seed all preset layouts so activating one always finds a workspace.
             // (Previously {} — selecting a preset or adding a widget silently
             // no-op'd because workspaces[activeWorkspaceId] was undefined.)
