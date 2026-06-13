@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOptionChain } from "@/lib/kite-instruments";
+import { getOptionChain, getInstruments } from "@/lib/kite-instruments";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const symbol = searchParams.get("symbol");
     const expiry = searchParams.get("expiry");
 
+    // No symbol = cache-warm request (fired once on terminal load to hydrate the
+    // public NFO instrument list). Return a count instead of a 400 — the previous
+    // behaviour logged a console error on every page load.
     if (!symbol) {
-        return NextResponse.json({ error: "Symbol is required (e.g., NIFTY)" }, { status: 400 });
+        try {
+            const all = await getInstruments();
+            return NextResponse.json({ status: "success", warmed: true, count: all.length });
+        } catch {
+            return NextResponse.json({ status: "success", warmed: false, count: 0 });
+        }
     }
 
     try {

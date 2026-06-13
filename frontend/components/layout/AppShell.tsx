@@ -115,8 +115,10 @@ export default function AppShell() {
             setActiveWorkspace('algorithmic');
         }
 
-        // Pre-fetch instruments to hydrate cache
-        fetch('/api/kite/instruments').catch(() => { });
+        // Pre-fetch instruments to hydrate cache (skip in mock — no live data needed)
+        if (searchParams.get('mock') !== 'true') {
+            fetch('/api/kite/instruments').catch(() => { });
+        }
 
         return () => window.removeEventListener('online', handleOnline);
     }, [searchParams, setActiveWorkspace]);
@@ -187,6 +189,15 @@ export default function AppShell() {
                             <div className="absolute top-0 right-0 w-[2px] h-full bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
 
+                        {/* Mock badge — visible below xl where ZONE SIGMA + footer (which carry
+                            mock status) are hidden, so mobile/tablet users still know it's a sim */}
+                        {searchParams.get('mock') === 'true' && (
+                            <span className="xl:hidden shrink-0 ml-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-amber-400">Sim</span>
+                            </span>
+                        )}
+
                         {/* Workspace Navigation */}
                         <div className="flex-1 min-w-0 h-full flex items-center overflow-hidden">
                             <WorkspaceTabs onAddClick={() => setIsLayoutCustomizerOpen(true)} />
@@ -226,21 +237,23 @@ export default function AppShell() {
 
                         <div className="h-6 w-[1px] bg-border/20 mx-2" />
 
-                        {/* Live Connection Status Dot */}
+                        {/* Live Connection Status Dot — truthful in mock mode */}
                         <div className="flex items-center gap-1.5 ml-2">
                             <div className={cn(
                                 "w-1.5 h-1.5 rounded-full transition-colors duration-500",
-                                connectionStatus === 'CONNECTED' ? "bg-up shadow-[0_0_6px_var(--up)] animate-pulse" :
-                                    connectionStatus === 'CONNECTING' ? "bg-yellow-400 animate-pulse" :
-                                        "bg-down/60"
+                                searchParams.get('mock') === 'true' ? "bg-amber-400 shadow-[0_0_6px_#fbbf24] animate-pulse" :
+                                    connectionStatus === 'CONNECTED' ? "bg-up shadow-[0_0_6px_var(--up)] animate-pulse" :
+                                        connectionStatus === 'CONNECTING' ? "bg-yellow-400 animate-pulse" :
+                                            "bg-down/60"
                             )} />
                             <span className={cn(
                                 "text-[8px] font-black uppercase tracking-widest transition-colors",
-                                connectionStatus === 'CONNECTED' ? "text-up" :
-                                    connectionStatus === 'CONNECTING' ? "text-yellow-400" :
-                                        "text-muted-foreground"
+                                searchParams.get('mock') === 'true' ? "text-amber-400" :
+                                    connectionStatus === 'CONNECTED' ? "text-up" :
+                                        connectionStatus === 'CONNECTING' ? "text-yellow-400" :
+                                            "text-muted-foreground"
                             )}>
-                                {connectionStatus === 'CONNECTED' ? 'Live' : connectionStatus === 'CONNECTING' ? 'Sync' : 'Offline'}
+                                {searchParams.get('mock') === 'true' ? 'Sim' : connectionStatus === 'CONNECTED' ? 'Live' : connectionStatus === 'CONNECTING' ? 'Sync' : 'Offline'}
                             </span>
                         </div>
 
