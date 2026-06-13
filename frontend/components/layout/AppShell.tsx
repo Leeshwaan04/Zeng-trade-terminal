@@ -38,6 +38,7 @@ import { AccountManager } from "@/components/trading/AccountManager";
 import { HeaderGuide } from "@/components/layout/HeaderGuide";
 import { useSafetyStore } from "@/hooks/useSafetyStore";
 import { PanicFlattenModal } from "@/components/layout/PanicFlattenModal";
+import { FundsLedgerDrawer } from "@/components/layout/FundsLedgerDrawer";
 import { NotificationBell } from "@/components/ui/NotificationCenter";
 
 const INSTRUMENT_TOKENS = MARKET_INSTRUMENTS.map(i => i.token);
@@ -430,6 +431,7 @@ export default function AppShell() {
 
             {/* Global Modals - Moved here to prevent clipping and stacking context issues */}
             <PanicFlattenModal isOpen={isPanicModalOpen} onClose={() => setIsPanicModalOpen(false)} />
+            <FundsLedgerDrawer />
             <WidgetPicker isOpen={isWidgetPickerOpen} onClose={() => setIsWidgetPickerOpen(false)} />
             <LayoutCustomizer
                 isOpen={isLayoutCustomizerOpen}

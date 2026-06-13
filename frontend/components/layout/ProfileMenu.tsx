@@ -10,7 +10,7 @@ import { useMarketStore } from "@/hooks/useMarketStore";
 export const ProfileMenu = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const { setSettingsOpen } = useLayoutStore();
+    const { setSettingsOpen, setFundsOpen, setCommandCenterOpen } = useLayoutStore();
     const { user, logout, activeBroker, setBroker, setGrowwSession, growwAccessToken } = useAuthStore();
     const { totalMargin } = useMarketStore(s => s.unifiedMargin);
 
@@ -140,10 +140,10 @@ export const ProfileMenu = () => {
                 </div>
 
                 <div className="p-2 space-y-0.5">
-                    <MenuItem icon={User} label="My Profile" onClick={() => { }} />
-                    <MenuItem icon={CreditCard} label="Funds & Ledger" onClick={() => { }} />
+                    <MenuItem icon={User} label="My Profile" onClick={handleSettingsClick} />
+                    <MenuItem icon={CreditCard} label="Funds & Ledger" onClick={() => { setFundsOpen(true); setIsOpen(false); }} />
                     <MenuItem icon={Settings} label="Interface Settings" onClick={handleSettingsClick} />
-                    <MenuItem icon={Keyboard} label="Global Shortcuts" onClick={() => { }} />
+                    <MenuItem icon={Keyboard} label="Global Shortcuts" onClick={() => { setCommandCenterOpen(true); setIsOpen(false); }} />
                 </div>
 
                 <div className="p-2 border-t border-border/10 bg-foreground/[0.02] mt-1">

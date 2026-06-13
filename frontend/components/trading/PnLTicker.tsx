@@ -3,12 +3,14 @@
 import React from "react";
 import { usePortfolioStore } from "@/hooks/usePortfolioStore";
 import { useMarketStore } from "@/hooks/useMarketStore";
+import { useLayoutStore } from "@/hooks/useLayoutStore";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Wallet, Activity } from "lucide-react";
 
 export const PnLTicker = () => {
     const { fusedPositions } = usePortfolioStore();
     const { unifiedMargin } = useMarketStore();
+    const setFundsOpen = useLayoutStore((s) => s.setFundsOpen);
 
     const dailyPnL = fusedPositions.reduce((acc, p) => acc + (p.pnl || 0), 0);
     const marginAvailable = unifiedMargin.totalMargin || 0;
@@ -54,8 +56,12 @@ export const PnLTicker = () => {
 
             <div className="w-px h-8 bg-border hidden 2xl:block" />
 
-            {/* Fused Margin Section */}
-            <div className="hidden 2xl:flex items-center gap-3 p-1.5 rounded-lg hover:bg-primary/10 transition-colors cursor-default group border border-transparent hover:border-border/50">
+            {/* Fused Margin Section — opens Funds & Ledger */}
+            <button
+                type="button"
+                onClick={() => setFundsOpen(true)}
+                title="Open Funds & Ledger"
+                className="hidden 2xl:flex items-center gap-3 p-1.5 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer group border border-transparent hover:border-border/50">
                 <div className="p-1.5 rounded-md bg-surface-1 border border-border text-muted-foreground group-hover:text-foreground group-hover:border-border transition-colors shadow-sm dark:shadow-none">
                     <Wallet className="w-4 h-4" />
                 </div>
@@ -67,7 +73,7 @@ export const PnLTicker = () => {
                         <span className="text-muted-foreground text-[10px] font-medium">{formatCurrency(marginAvailable + marginUsed)}</span>
                     </div>
                 </div>
-            </div>
+            </button>
 
             <div className="w-px h-8 bg-border hidden 2xl:block" />
 

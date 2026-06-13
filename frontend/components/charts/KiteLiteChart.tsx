@@ -134,7 +134,15 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
         if (!lastTick || !seriesRef.current) return;
 
         const price = lastTick.last_price;
-        if (!price) return;
+        if (!price || price <= 0) return;
+
+        // Reject obviously-bad ticks: a >25% jump from the last known close is
+        // almost certainly garbage (stale/misbased mock tick, bad parse) and was
+        // the cause of the vertical price-spike at the chart's right edge.
+        const prevClose = currentBarRef.current?.close;
+        if (prevClose && prevClose > 0 && Math.abs(price - prevClose) / prevClose > 0.25) {
+            return;
+        }
 
         const intervalSeconds = getIntervalSeconds(interval);
 
@@ -146,8 +154,17 @@ export const KiteLiteChart = ({ symbol, interval }: KiteLiteChartProps) => {
         }
 
         if (!currentBarRef.current || currentBarRef.current.time !== barTime) {
-            // New bar
-            currentBarRef.current = { time: barTime, open: price, high: price, low: price, close: price };
+            // New bar — open at the previous bar's close for visual continuity.
+            // Opening at the incoming tick price instead created a gap/spike when
+            // the tick differed from the prior close.
+            const openPrice = prevClose ?? price;
+            currentBarRef.current = {
+                time: barTime,
+                open: openPrice,
+                high: Math.max(openPrice, price),
+                low: Math.min(openPrice, price),
+                close: price,
+            };
         } else {
             // Update existing bar
             currentBarRef.current = {

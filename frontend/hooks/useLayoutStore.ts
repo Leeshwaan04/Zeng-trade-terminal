@@ -44,6 +44,8 @@ interface LayoutState {
     setCommandCenterOpen: (open: boolean) => void;
     settingsOpen: boolean;
     setSettingsOpen: (open: boolean) => void;
+    fundsOpen: boolean;
+    setFundsOpen: (open: boolean) => void;
     indicatorsOpen: boolean;
     setIndicatorsOpen: (open: boolean) => void;
     // Sync States
@@ -333,6 +335,8 @@ export const useLayoutStore = create<LayoutState>()(
             setCommandCenterOpen: (open) => set({ commandCenterOpen: open }),
             settingsOpen: false,
             setSettingsOpen: (open: boolean) => set({ settingsOpen: open }),
+            fundsOpen: false,
+            setFundsOpen: (open: boolean) => set({ fundsOpen: open }),
             indicatorsOpen: false,
             setIndicatorsOpen: (open: boolean) => set({ indicatorsOpen: open }),
 
